@@ -12,20 +12,21 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class OkAuthorization {
-    private static final String APPLICATION_ID = "512001770002";
-    private static final String APPLICATION_KEY = "CDBDAQKGDIHBABABA";
+    public static final String APPLICATION_ID = "512001770002";
+    public static final String APPLICATION_KEY = "CDBDAQKGDIHBABABA";
     private static final String APPLICATION_SECRET_KEY = "040C0F0B005B3B61A346C801";
 
     private static final String REDIRECT_URI = "https://webhook.site/c66a2e2a-3aa9-4caa-9b09-105e970e316c";
 
     private final HttpClient client = HttpClient.newHttpClient();
 
-    private String sig(String sessionSecretKey, String methodName) {
+    static String sig(String accessToken, String methodName) {
+        String secretKey = DigestUtils.md5Hex(accessToken + APPLICATION_SECRET_KEY);
         String sig = "application_key=" +
                 APPLICATION_KEY +
                 "format=jsonmethod=" +
                 methodName +
-                sessionSecretKey;
+                secretKey;
 
         return DigestUtils.md5Hex(sig);
     }
@@ -68,6 +69,5 @@ public class OkAuthorization {
     }
 
     public record TokenPair(String accessToken, String refreshToken) {
-
     }
 }
