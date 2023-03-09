@@ -50,7 +50,7 @@ public class Bot extends TelegramLongPollingCommandBot {
     /**
      * Устанавливает бота в определенное состояние в зависимости от введенной пользователем команды
      * @param message отправленное пользователем сообщение
-     * @return боту необходимо всегда обработать данное сообщение
+     * @return false, так как боту необходимо всегда обработать входящее сообщение
      */
     @Override
     public boolean filter(Message message) {
@@ -69,7 +69,7 @@ public class Bot extends TelegramLongPollingCommandBot {
 
         State currentState = states.get(chatId);
 
-        String answer = nonCommand.nonCommandExecute(chatId, userName, msg.getText(), currentState);
+        String answer = nonCommand.nonCommandExecute(msg.getText(), currentState);
         setAnswer(chatId, userName, answer);
     }
 

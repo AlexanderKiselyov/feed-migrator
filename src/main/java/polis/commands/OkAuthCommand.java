@@ -23,9 +23,9 @@ public class OkAuthCommand extends Command {
         try {
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), userName,
                     String.format("""
-                            Для аторизации в социальной сети Одноклассники перейдите по ссылке:
+                            Для авторизации в социальной сети Одноклассники перейдите по ссылке:
                             %s
-                            После авторизации скопируйте код авторизации из адресной строки и введите его в этот диалог.""",
+                            После авторизации скопируйте код авторизации из адресной строки и отправьте его в этот диалог.""",
                             OkAuthorization.formAuthorizationUrl()));
         } catch (URISyntaxException e) {
             logger.error(String.format("Cannot form link: %s", e));

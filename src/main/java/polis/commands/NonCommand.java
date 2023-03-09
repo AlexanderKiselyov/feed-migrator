@@ -11,7 +11,7 @@ import java.net.URISyntaxException;
 public class NonCommand {
     private final Logger logger = LoggerFactory.getLogger(NonCommand.class);
 
-    public String nonCommandExecute(Long chatId, String userName, String text, State state) {
+    public String nonCommandExecute(String text, State state) {
         switch (state) {
             case Start -> {
                 return "Не могу распознать команду. Попробуйте еще раз.";
