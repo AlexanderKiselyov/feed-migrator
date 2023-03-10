@@ -10,32 +10,30 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-public class OkAuthorization {
-    private static final String APPLICATION_ID = "512001770002";
-    private static final String APPLICATION_SECRET_KEY = "040C0F0B005B3B61A346C801";
-
-    private static final String REDIRECT_URI = "https://webhook.site/c66a2e2a-3aa9-4caa-9b09-105e970e316c";
-
+public final class OkAuthorization {
+    private static final String AUTH_URI = "https://connect.ok.ru/oauth/authorize";
+    private static final String APP_SCOPE = "VALUABLE_ACCESS;LONG_ACCESS_TOKEN;PHOTO_CONTENT;GROUP_CONTENT";
+    private static final String GET_TOKEN_URI = "https://api.ok.ru/oauth/token.do";
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
 
-    public static String formAuthorizationUrl() throws URISyntaxException {
-        URI uri = new URIBuilder("https://connect.ok.ru/oauth/authorize")
-                .addParameter("client_id", APPLICATION_ID)
-                .addParameter("scope", "VALUABLE_ACCESS;LONG_ACCESS_TOKEN;PHOTO_CONTENT;GROUP_CONTENT")
+    public static String formAuthorizationUrl(String clientId, String redirectUri) throws URISyntaxException {
+        URI uri = new URIBuilder(AUTH_URI)
+                .addParameter("client_id", clientId)
+                .addParameter("scope", APP_SCOPE)
                 .addParameter("response_type", "code")
-                .addParameter("redirect_uri", REDIRECT_URI)
+                .addParameter("redirect_uri", redirectUri)
                 .build();
 
         return uri.toString();
     }
 
-    public static TokenPair getToken(String code) throws URISyntaxException, IOException, InterruptedException {
-
-        URI uri = new URIBuilder("https://api.ok.ru/oauth/token.do")
+    public static TokenPair getToken(String code, String clientId, String clientSecret, String redirectUri)
+            throws URISyntaxException, IOException, InterruptedException {
+        URI uri = new URIBuilder(GET_TOKEN_URI)
                 .addParameter("code", code)
-                .addParameter("client_id", APPLICATION_ID)
-                .addParameter("client_secret", APPLICATION_SECRET_KEY)
-                .addParameter("redirect_uri", REDIRECT_URI)
+                .addParameter("client_id", clientId)
+                .addParameter("client_secret", clientSecret)
+                .addParameter("redirect_uri", redirectUri)
                 .addParameter("grant_type", "authorization_code")
                 .build();
 

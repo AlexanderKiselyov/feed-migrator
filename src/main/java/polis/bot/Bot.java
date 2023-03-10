@@ -16,7 +16,10 @@ import polis.commands.NonCommand;
 import polis.commands.OkAuthCommand;
 import polis.commands.StartCommand;
 
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -26,6 +29,7 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final NonCommand nonCommand;
     private final Map<Long, State> states = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
+    private static final Properties properties = new Properties();
 
     public Bot(@Value("${bot.name}") String botName,  @Value("${bot.token}") String botToken) {
         super();
@@ -33,8 +37,10 @@ public class Bot extends TelegramLongPollingCommandBot {
         this.botToken = botToken;
         nonCommand = new NonCommand();
 
+        loadProperties();
+
         register(new StartCommand(State.Start.getIdentifier(), "Старт"));
-        register(new OkAuthCommand(State.OkAuth.getIdentifier(), "Авторизация в Одноклассниках"));
+        register(new OkAuthCommand(State.OkAuth.getIdentifier(), "Авторизация в Одноклассниках", properties));
     }
 
     @Override
@@ -69,7 +75,7 @@ public class Bot extends TelegramLongPollingCommandBot {
 
         State currentState = states.get(chatId);
 
-        String answer = nonCommand.nonCommandExecute(msg.getText(), currentState);
+        String answer = nonCommand.nonCommandExecute(msg.getText(), currentState, properties);
         setAnswer(chatId, userName, answer);
     }
 
@@ -89,6 +95,15 @@ public class Bot extends TelegramLongPollingCommandBot {
             execute(answer);
         } catch (TelegramApiException e) {
             logger.error(String.format("Cannot execute command of user %s: %s" , userName, e.getMessage()));
+        }
+    }
+
+    private void loadProperties() {
+        try {
+            properties.load(new FileReader(String.format("%s\\application.properties",
+                    System.getProperty("user.dir"))));
+        } catch (IOException e) {
+            logger.error(String.format("Cannot load file application.properties: %s", e.getMessage()));
         }
     }
 }
