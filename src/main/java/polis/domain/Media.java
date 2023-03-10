@@ -13,7 +13,10 @@ public abstract class Media {
     }
 
     public enum Type {
-        PHOTO("photo");
+        PHOTO("photo"),
+        TEXT("text"),
+        LINK("link"),
+        POLL("poll");
 
         public final String jsonValue;
 

@@ -1,21 +1,24 @@
 package polis;
 
 import polis.domain.*;
+import polis.domain.PollMedia.Answer;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+
+import static polis.domain.PollMedia.Option.ANONYMOUS_VOTING;
+import static polis.domain.PollMedia.Option.SINGLE_CHOICE;
 
 public class Main {
 
     public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException {
         //String token = authorize();
-        String token = "-s-38e8-RCfP9O0vUtbMqOGvT.At4S9uU-aJ3ljy3DcNemsTc";
+        String token = "-s-02M.sRBJ2bnCy0EeMyortYIO-5Ljg1zdL4iB-TDdwsaBb";
         long groupId = 70000001951728L;
         OKClient client = new OKClient();
 
@@ -23,7 +26,12 @@ public class Main {
                 List.of(new File("photo1.jpg"), new File("photo2.jpg"))
         );
         Attachment attachment = new Attachment(List.of(
-                new PhotoMedia(photoIds.stream().map(UploadedPhoto::new).toList())
+                new PhotoMedia(photoIds.stream().map(UploadedPhoto::new).toList()),
+                new TextMedia("Пост сделан при помощи Ondoklassniki api"),
+                new LinkMedia("https://apiok.ru"),
+                new PollMedia("Норм?",
+                        List.of(new Answer("Да"), new Answer("Нет")),
+                        List.of(SINGLE_CHOICE, ANONYMOUS_VOTING))
         ));
 
         System.out.println("Posting: ");
