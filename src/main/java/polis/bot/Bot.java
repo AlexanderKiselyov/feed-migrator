@@ -29,7 +29,7 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final NonCommand nonCommand;
     private final Map<Long, State> states = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
-    private static final Properties properties = new Properties();
+    private final Properties properties = new Properties();
 
     public Bot(@Value("${bot.name}") String botName,  @Value("${bot.token}") String botToken) {
         super();
@@ -39,8 +39,8 @@ public class Bot extends TelegramLongPollingCommandBot {
 
         loadProperties();
 
-        register(new StartCommand(State.Start.getIdentifier(), "Старт"));
-        register(new OkAuthCommand(State.OkAuth.getIdentifier(), "Авторизация в Одноклассниках", properties));
+        register(new StartCommand(State.Start.getIdentifier(), State.Start.getDescription()));
+        register(new OkAuthCommand(State.OkAuth.getIdentifier(), State.OkAuth.getDescription(), properties));
     }
 
     @Override

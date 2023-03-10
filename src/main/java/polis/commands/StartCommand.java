@@ -5,7 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
 public class StartCommand extends Command {
-    private static final String START_ANSWER = "Давайте начнём! Выберите /okauth, чтобы авторизоваться" +
+    private static final String START_ANSWER = "Давайте начнём! Выберите /okauth, чтобы авторизоваться " +
             "в социальной сети Одноклассники.";
 
     public StartCommand(String commandIdentifier, String description) {

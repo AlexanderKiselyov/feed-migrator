@@ -3,17 +3,23 @@ package polis.state;
 import java.util.Objects;
 
 public enum State {
-    Start("start"),
-    OkAuth("okauth");
+    Start("start", "Старт"),
+    OkAuth("okauth", "Авторизация в Одноклассниках");
 
     private final String identifier;
+    private final String description;
 
-    State(String identifier) {
+    State(String identifier, String description) {
         this.identifier = identifier;
+        this.description = description;
     }
 
     public String getIdentifier() {
         return identifier;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public static State findState(String text) {
