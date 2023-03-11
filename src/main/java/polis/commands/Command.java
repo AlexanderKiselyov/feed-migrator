@@ -22,7 +22,7 @@ abstract class Command extends BotCommand {
         try {
             absSender.execute(message);
         } catch (TelegramApiException e) {
-            logger.error(String.format("Cannot execute command %s of user %s: %s" , commandName, userName,
+            logger.error(String.format("Cannot execute command %s of user %s: %s", commandName, userName,
                     e.getMessage()));
         }
     }
