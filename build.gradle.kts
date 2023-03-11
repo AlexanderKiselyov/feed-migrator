@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    id("checkstyle")
 }
 
 group = "polis"
@@ -10,6 +11,7 @@ repositories {
 }
 
 dependencies {
+    implementation("com.puppycrawl.tools:checkstyle:10.3.3")
     implementation("commons-codec:commons-codec:1.15")
     implementation("org.apache.httpcomponents:httpclient:4.5.14")
     implementation("org.json:json:20230227")
@@ -29,4 +31,8 @@ tasks.withType<JavaCompile> {
 
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
+}
+
+tasks.withType<Checkstyle>().configureEach {
+    configFile = File("checkstyle.xml")
 }
