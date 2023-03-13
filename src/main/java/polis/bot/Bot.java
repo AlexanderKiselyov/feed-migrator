@@ -14,7 +14,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.NonCommand;
 import polis.commands.OkAuthCommand;
 import polis.commands.StartCommand;
-import polis.keyboards.Keyboard;
 import polis.state.State;
 
 import java.io.FileReader;
@@ -28,11 +27,12 @@ import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 public class Bot extends TelegramLongPollingCommandBot {
     private final String botName;
     private final String botToken;
+    private final StartCommand startCommand;
+    private final OkAuthCommand okAuthCommand;
     private final NonCommand nonCommand;
     private final Map<Long, State> states = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
     private final Properties properties = new Properties();
-    private static final String CHOOSE_COMMAND_MSG = "Выберите команду";
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
@@ -42,8 +42,10 @@ public class Bot extends TelegramLongPollingCommandBot {
 
         loadProperties();
 
-        register(new StartCommand(State.Start.getIdentifier(), State.Start.getDescription()));
-        register(new OkAuthCommand(State.OkAuth.getIdentifier(), State.OkAuth.getDescription(), properties));
+        startCommand = new StartCommand(State.Start.getIdentifier(), State.Start.getDescription());
+        register(startCommand);
+        okAuthCommand = new OkAuthCommand(State.OkAuth.getIdentifier(), State.OkAuth.getDescription(), properties);
+        register(okAuthCommand);
     }
 
     @Override
@@ -78,12 +80,7 @@ public class Bot extends TelegramLongPollingCommandBot {
 
         if (messageText.equals(GO_BACK_BUTTON_TEXT)) {
             states.put(chatId, State.getPrevState(states.get(chatId)));
-            SendMessage sendMessage = Keyboard.createSendMessage(chatId, CHOOSE_COMMAND_MSG, GO_BACK_BUTTON_TEXT);
-            try {
-                execute(sendMessage);
-            } catch (TelegramApiException e) {
-                logger.error(String.format("Cannot send message: %s", e));
-            }
+            startCommand.execute(this, msg.getFrom(), msg.getChat(), null);
             return;
         }
 
