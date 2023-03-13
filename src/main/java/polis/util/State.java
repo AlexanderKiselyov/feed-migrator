@@ -1,10 +1,11 @@
-package polis.state;
+package polis.util;
 
 import java.util.Objects;
 
 public enum State {
     Start("start", "Старт"),
-    OkAuth("okauth", "Авторизация в Одноклассниках");
+    OkAuth("okauth", "Авторизация в Одноклассниках"),
+    Sync("sync", "Синхронизация социальных сетей с ботом");
 
     private final String identifier;
     private final String description;

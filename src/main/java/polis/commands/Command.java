@@ -18,6 +18,7 @@ abstract class Command extends BotCommand {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
         message.setText(text);
+        message.disableWebPagePreview();
 
         try {
             absSender.execute(message);
