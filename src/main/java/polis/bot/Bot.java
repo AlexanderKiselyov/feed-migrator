@@ -11,27 +11,30 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.state.State;
 import polis.commands.NonCommand;
 import polis.commands.OkAuthCommand;
 import polis.commands.StartCommand;
+import polis.state.State;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
 public class Bot extends TelegramLongPollingCommandBot {
     private final String botName;
     private final String botToken;
+    private final StartCommand startCommand;
+    private final OkAuthCommand okAuthCommand;
     private final NonCommand nonCommand;
     private final Map<Long, State> states = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
     private final Properties properties = new Properties();
 
-    public Bot(@Value("${bot.name}") String botName,  @Value("${bot.token}") String botToken) {
+    public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
         this.botName = botName;
         this.botToken = botToken;
@@ -39,8 +42,10 @@ public class Bot extends TelegramLongPollingCommandBot {
 
         loadProperties();
 
-        register(new StartCommand(State.Start.getIdentifier(), State.Start.getDescription()));
-        register(new OkAuthCommand(State.OkAuth.getIdentifier(), State.OkAuth.getDescription(), properties));
+        startCommand = new StartCommand(State.Start.getIdentifier(), State.Start.getDescription());
+        register(startCommand);
+        okAuthCommand = new OkAuthCommand(State.OkAuth.getIdentifier(), State.OkAuth.getDescription(), properties);
+        register(okAuthCommand);
     }
 
     @Override
@@ -71,11 +76,18 @@ public class Bot extends TelegramLongPollingCommandBot {
     public void processNonCommandUpdate(Update update) {
         Message msg = update.getMessage();
         Long chatId = msg.getChatId();
-        String userName = getUserName(msg);
+        String messageText = msg.getText();
+
+        if (messageText.equals(GO_BACK_BUTTON_TEXT)) {
+            states.put(chatId, State.getPrevState(states.get(chatId)));
+            startCommand.execute(this, msg.getFrom(), msg.getChat(), null);
+            return;
+        }
 
         State currentState = states.get(chatId);
+        String userName = getUserName(msg);
 
-        String answer = nonCommand.nonCommandExecute(msg.getText(), currentState, properties);
+        String answer = nonCommand.nonCommandExecute(messageText, currentState, properties);
         setAnswer(chatId, userName, answer);
     }
 
@@ -94,7 +106,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         try {
             execute(answer);
         } catch (TelegramApiException e) {
-            logger.error(String.format("Cannot execute command of user %s: %s" , userName, e.getMessage()));
+            logger.error(String.format("Cannot execute command of user %s: %s", userName, e.getMessage()));
         }
     }
 
