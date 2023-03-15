@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -22,10 +23,13 @@ import polis.util.Substate;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
 public class Bot extends TelegramLongPollingCommandBot {
@@ -80,6 +84,19 @@ public class Bot extends TelegramLongPollingCommandBot {
         Message msg = update.getMessage();
         Long chatId = msg.getChatId();
         String userName = getUserName(msg);
+        String messageText = msg.getText();
+
+        IState previousState = State.getPrevState(states.get(chatId));
+        if (messageText.equals(GO_BACK_BUTTON_TEXT)) {
+            Collection<IBotCommand> commands = getRegisteredCommands();
+            for (IBotCommand command : commands) {
+                if (command.getCommandIdentifier().equals(previousState.getIdentifier())) {
+                    states.put(chatId, previousState);
+                    command.processMessage(this, msg, null);
+                    return;
+                }
+            }
+        }
 
         IState currentState = states.get(chatId);
         if (currentState instanceof State) {
@@ -88,7 +105,7 @@ public class Bot extends TelegramLongPollingCommandBot {
 
         currentState = states.get(chatId);
 
-        String answer = nonCommand.nonCommandExecute(msg.getText(), chatId, currentState);
+        String answer = nonCommand.nonCommandExecute(messageText, chatId, currentState);
         setAnswer(chatId, userName, answer);
     }
 

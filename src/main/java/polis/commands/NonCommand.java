@@ -148,7 +148,17 @@ public class NonCommand {
             }
 
             JSONObject object = new JSONObject(response.body());
+
+            if (!object.has("result")) {
+                return WRONG_LINK_OR_BOT_NOT_ADMIN;
+            }
+
             JSONObject result = object.getJSONObject("result");
+
+            if (!result.has("status")) {
+                return WRONG_LINK_OR_BOT_NOT_ADMIN;
+            }
+
             String status = result.getString("status");
             if (Objects.equals(status, "administrator")) {
                 return RIGHT_LINK;
@@ -192,6 +202,11 @@ public class NonCommand {
             }
 
             JSONObject object = array.getJSONObject(0);
+
+            if (!object.has("status")) {
+                return WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
+            }
+
             String status = object.getString("status");
             if (Objects.equals(status, "ADMIN") || Objects.equals(status, "MODERATOR")) {
                 return String.format(OK_GROUP_ADDED, State.Sync.getIdentifier());
@@ -226,6 +241,11 @@ public class NonCommand {
             }
 
             JSONObject object = new JSONObject(response.body());
+
+            if (!object.has("objectId")) {
+                return -1L;
+            }
+
             return object.getLong("objectId");
         } catch (URISyntaxException | IOException | InterruptedException e) {
             logger.error(String.format("Cannot create request: %s", e.getMessage()));
@@ -255,6 +275,11 @@ public class NonCommand {
             }
 
             JSONObject object = new JSONObject(response.body());
+
+            if (!object.has("uid")) {
+                return "";
+            }
+
             return object.getString("uid");
         } catch (URISyntaxException | IOException | InterruptedException e) {
             logger.error(String.format("Cannot create request: %s", e.getMessage()));

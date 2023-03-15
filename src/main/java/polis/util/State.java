@@ -1,5 +1,6 @@
 package polis.util;
 
+import java.util.Map;
 import java.util.Objects;
 
 public enum State implements IState {
@@ -9,6 +10,14 @@ public enum State implements IState {
 
     private final String identifier;
     private final String description;
+    private static final Map<IState, IState> prevStates = Map.of(
+            Start, Start,
+            OkAuth, Start,
+            Substate.OkAuth_AuthCode, OkAuth,
+            Substate.OkAuth_GroupSync, Substate.OkAuth_AuthCode,
+            Sync, Start,
+            Substate.Sync_TelegramChannel, Sync
+    );
 
     State(String identifier, String description) {
         this.identifier = identifier;
@@ -30,5 +39,9 @@ public enum State implements IState {
             }
         }
         return null;
+    }
+
+    public static IState getPrevState(IState currentState) {
+        return prevStates.get(currentState);
     }
 }
