@@ -14,7 +14,7 @@ public class StartCommand extends Command {
     private static final String COMMAND_SYMBOL = "/";
     private static final String STATE_DELIMITER = " - ";
     private static final String STRING_DELIMITER = "\n";
-    private String START_ANSWER = """
+    private String startAnswer = """
             Давайте начнём!
             С помощью бота Вы можете синхронизировать Ваш Telegram-канал с группой в Одноклассники
                             
@@ -24,7 +24,7 @@ public class StartCommand extends Command {
 
     public StartCommand(String commandIdentifier, String description) {
         super(commandIdentifier, description);
-        StringBuilder stringBuilder = new StringBuilder(START_ANSWER);
+        StringBuilder stringBuilder = new StringBuilder(startAnswer);
         for (State state : State.values()) {
             stringBuilder
                     .append(COMMAND_SYMBOL)
@@ -33,12 +33,12 @@ public class StartCommand extends Command {
                     .append(state.getDescription())
                     .append(STRING_DELIMITER);
         }
-        START_ANSWER = stringBuilder.toString();
+        startAnswer = stringBuilder.toString();
     }
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        SendMessage sendMessage = Keyboard.createSendMessage(chat.getId(), START_ANSWER);
+        SendMessage sendMessage = Keyboard.createSendMessage(chat.getId(), startAnswer);
         try {
             absSender.execute(sendMessage);
         } catch (TelegramApiException e) {

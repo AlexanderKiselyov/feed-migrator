@@ -83,7 +83,6 @@ public class Bot extends TelegramLongPollingCommandBot {
     public void processNonCommandUpdate(Update update) {
         Message msg = update.getMessage();
         Long chatId = msg.getChatId();
-        String userName = getUserName(msg);
         String messageText = msg.getText();
 
         IState previousState = State.getPrevState(states.get(chatId));
@@ -106,7 +105,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         currentState = states.get(chatId);
 
         String answer = nonCommand.nonCommandExecute(messageText, chatId, currentState);
-        setAnswer(chatId, userName, answer);
+        setAnswer(chatId, getUserName(msg), answer);
     }
 
     private String getUserName(Message msg) {
