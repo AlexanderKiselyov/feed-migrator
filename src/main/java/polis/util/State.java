@@ -2,7 +2,7 @@ package polis.util;
 
 import java.util.Objects;
 
-public enum State {
+public enum State implements IState {
     Start("start", "Старт"),
     OkAuth("okauth", "Авторизация в Одноклассниках"),
     Sync("sync", "Синхронизация социальных сетей с ботом");

@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 public class SyncCommand extends Command {
-    private static final String NOT_AUTHORIZED = "Вы не были авторизованы ни в одной сети. Пожалуйста, авторизуйтесь " +
-            "хотя бы в одной социальной сети и выберите команду /%s.";
+    private static final String NOT_AUTHORIZED = "Вы не были авторизованы ни в одной сети. Пожалуйста, авторизуйтесь "
+            + "хотя бы в одной социальной сети и выберите команду /%s.";
     private static final String AUTHORIZED = "Вы авторизованы в следующих социальных сетях: %s.";
     private static final String GET_TELEGRAM_CHANNEL_LINK = """
             Теперь необходимо выполнить следующие действия:

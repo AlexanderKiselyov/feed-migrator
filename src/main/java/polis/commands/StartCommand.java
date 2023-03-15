@@ -6,8 +6,8 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.util.State;
 
 public class StartCommand extends Command {
-    private static final String START_ANSWER = "Давайте начнём! Выберите /%s, чтобы авторизоваться в социальной сети " +
-            "Одноклассники.";
+    private static final String START_ANSWER = "Давайте начнём! Выберите /%s, чтобы авторизоваться в социальной сети "
+            + "Одноклассники.";
 
     public StartCommand(String commandIdentifier, String description) {
         super(commandIdentifier, description);

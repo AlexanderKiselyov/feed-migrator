@@ -12,11 +12,13 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.authorization.AuthData;
-import polis.commands.SyncCommand;
-import polis.util.State;
 import polis.commands.NonCommand;
 import polis.commands.OkAuthCommand;
 import polis.commands.StartCommand;
+import polis.commands.SyncCommand;
+import polis.util.IState;
+import polis.util.State;
+import polis.util.Substate;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -30,18 +32,19 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final String botName;
     private final String botToken;
     private final NonCommand nonCommand;
-    private final Map<Long, State> states = new ConcurrentHashMap<>();
+    private final Map<Long, IState> states = new ConcurrentHashMap<>();
     private final Map<Long, List<AuthData>> socialMedia = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
     private final Properties properties = new Properties();
 
-    public Bot(@Value("${bot.name}") String botName,  @Value("${bot.token}") String botToken) {
+    public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
         this.botName = botName;
         this.botToken = botToken;
-        nonCommand = new NonCommand();
 
         loadProperties();
+
+        nonCommand = new NonCommand(states, socialMedia, properties);
 
         register(new StartCommand(State.Start.getIdentifier(), State.Start.getDescription()));
         register(new OkAuthCommand(State.OkAuth.getIdentifier(), State.OkAuth.getDescription(), properties));
@@ -59,7 +62,7 @@ public class Bot extends TelegramLongPollingCommandBot {
     }
 
     /**
-     * Устанавливает бота в определенное состояние в зависимости от введенной пользователем команды
+     * Устанавливает бота в определенное состояние в зависимости от введенной пользователем команды.
      * @param message отправленное пользователем сообщение
      * @return false, так как боту необходимо всегда обработать входящее сообщение
      */
@@ -78,9 +81,14 @@ public class Bot extends TelegramLongPollingCommandBot {
         Long chatId = msg.getChatId();
         String userName = getUserName(msg);
 
-        State currentState = states.get(chatId);
+        IState currentState = states.get(chatId);
+        if (currentState instanceof State) {
+            states.put(chatId, Substate.nextSubstate(currentState));
+        }
 
-        String answer = nonCommand.nonCommandExecute(msg.getText(), chatId, currentState, properties, socialMedia);
+        currentState = states.get(chatId);
+
+        String answer = nonCommand.nonCommandExecute(msg.getText(), chatId, currentState);
         setAnswer(chatId, userName, answer);
     }
 
@@ -100,7 +108,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         try {
             execute(answer);
         } catch (TelegramApiException e) {
-            logger.error(String.format("Cannot execute command of user %s: %s" , userName, e.getMessage()));
+            logger.error(String.format("Cannot execute command of user %s: %s", userName, e.getMessage()));
         }
     }
 
