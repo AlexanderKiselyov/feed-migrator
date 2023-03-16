@@ -1,6 +1,4 @@
-package polis.authorization;
-
-import polis.util.SocialMedia;
+package polis.util;
 
 public class AuthData {
     private final SocialMedia socialMedia;

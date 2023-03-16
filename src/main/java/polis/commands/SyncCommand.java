@@ -3,7 +3,7 @@ package polis.commands;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import polis.authorization.AuthData;
+import polis.util.AuthData;
 import polis.util.State;
 
 import java.util.List;

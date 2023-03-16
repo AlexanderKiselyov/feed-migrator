@@ -1,8 +1,8 @@
 package polis.commands;
 
-import polis.authorization.AuthData;
 import polis.ok.OKDataCheck;
 import polis.telegram.TelegramDataCheck;
+import polis.util.AuthData;
 import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;

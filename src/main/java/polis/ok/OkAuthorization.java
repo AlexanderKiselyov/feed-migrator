@@ -1,4 +1,4 @@
-package polis.authorization;
+package polis.ok;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
