@@ -1,7 +1,5 @@
 package polis.commands;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -13,11 +11,10 @@ public class StartCommand extends Command {
     private static final String STRING_DELIMITER = "\n";
     private String startAnswer = """
             Давайте начнём!
-            С помощью бота Вы можете синхронизировать Ваш Telegram-канал с группой в Одноклассники
+            С помощью бота Вы можете синхронизировать Ваш Telegram-канал с группой в Одноклассники.
                             
             Команды:
             """;
-    private final Logger logger = LoggerFactory.getLogger(StartCommand.class);
 
     public StartCommand(String commandIdentifier, String description) {
         super(commandIdentifier, description);

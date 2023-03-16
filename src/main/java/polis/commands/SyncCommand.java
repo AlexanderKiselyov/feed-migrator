@@ -1,7 +1,5 @@
 package polis.commands;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -21,7 +19,6 @@ public class SyncCommand extends Command {
             2. Скопировать ссылку на телеграм-канал. Пример такой ссылки: https://t.me/exploitex
             3. Прислать ссылку в данный диалог.""";
     private final Map<Long, List<AuthData>> socialMedia;
-    private final Logger logger = LoggerFactory.getLogger(SyncCommand.class);
 
     public SyncCommand(String commandIdentifier, String description, Map<Long, List<AuthData>> socialMedia) {
         super(commandIdentifier, description);

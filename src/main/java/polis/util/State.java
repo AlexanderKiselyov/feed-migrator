@@ -14,7 +14,7 @@ public enum State implements IState {
             Start, Start,
             OkAuth, Start,
             Substate.OkAuth_AuthCode, OkAuth,
-            Substate.OkAuth_GroupSync, Substate.OkAuth_AuthCode,
+            Substate.OkAuth_GroupSync, OkAuth,
             Sync, Start,
             Substate.Sync_TelegramChannel, Sync
     );
