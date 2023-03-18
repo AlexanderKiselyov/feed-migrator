@@ -1,6 +1,5 @@
 plugins {
     java
-    checkstyle
 }
 
 group = "polis"
@@ -30,6 +29,3 @@ tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
 
-tasks.withType<Checkstyle>().configureEach {
-    configFile = File("checkstyle.xml")
-}

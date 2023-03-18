@@ -1,6 +1,5 @@
 plugins {
     id("java")
-    id("checkstyle")
 }
 
 group = "polis"
@@ -32,8 +31,4 @@ tasks.withType<JavaCompile> {
 
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
-}
-
-tasks.withType<Checkstyle>().configureEach {
-    configFile = File("checkstyle.xml")
 }

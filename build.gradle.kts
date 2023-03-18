@@ -33,6 +33,14 @@ tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
 
-tasks.withType<Checkstyle>().configureEach {
-    configFile = File("checkstyle.xml")
+subprojects {
+    apply(plugin = "checkstyle")
+    tasks.withType<Checkstyle>().configureEach {
+        configFile = project.rootDir.absoluteFile.resolve("checkstyle.xml")
+    }
+}
+
+tasks.register("checkstyleMainAll") {
+    group = "other"
+    dependsOn(subprojects.mapNotNull { it.tasks.findByName("checkstyleMain") })
 }
