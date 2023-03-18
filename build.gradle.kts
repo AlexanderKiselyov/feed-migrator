@@ -38,6 +38,10 @@ subprojects {
     tasks.withType<Checkstyle>().configureEach {
         configFile = project.rootDir.absoluteFile.resolve("checkstyle.xml")
     }
+
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
 }
 
 tasks.register("checkstyleMainAll") {
