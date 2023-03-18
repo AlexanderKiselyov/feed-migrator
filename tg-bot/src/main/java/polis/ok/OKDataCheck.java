@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import polis.ok.api.OkAuthorizator;
 import polis.util.AuthData;
 import polis.util.IState;
 import polis.util.SocialMedia;
@@ -48,6 +49,7 @@ public class OKDataCheck {
     private final Map<Long, IState> states;
     private final HttpClient client = HttpClient.newHttpClient();
     private final Logger logger = LoggerFactory.getLogger(OKDataCheck.class);
+    private final OkAuthorizator okAuthorizator = new OkAuthorizator();
 
     public OKDataCheck(Properties properties, Map<Long, List<AuthData>> socialMedia, Map<Long, IState> states) {
         this.properties = properties;
@@ -56,9 +58,9 @@ public class OKDataCheck {
     }
 
     public String getOKAuthCode(String text, Long chatId) {
-        OkAuthorization.TokenPair pair;
+        OkAuthorizator.TokenPair pair;
         try {
-            pair = OkAuthorization.getToken(text, properties.getProperty("okapp.id"),
+            pair = okAuthorizator.getToken(text, properties.getProperty("okapp.id"),
                     properties.getProperty("okapp.secret_key"), properties.getProperty("okapp.redirect_uri"));
             if (pair.accessToken() == null) {
                 return OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
@@ -76,7 +78,7 @@ public class OKDataCheck {
             states.put(chatId, Substate.nextSubstate(Substate.OkAuth_AuthCode));
 
             return OK_AUTH_STATE_ANSWER;
-        } catch (URISyntaxException | IOException | InterruptedException e) {
+        } catch (Exception e) {
             logger.error(String.format("Unknown error: %s", e.getMessage()));
             return OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
         }
