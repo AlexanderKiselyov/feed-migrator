@@ -2,8 +2,12 @@ package polis.ok.api;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.client.utils.URIBuilder;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -15,9 +19,10 @@ public final class OkAuthorizator {
     private static final String GET_TOKEN_URI = "https://api.ok.ru/oauth/token.do";
     private static final String APP_SCOPE = "VALUABLE_ACCESS;LONG_ACCESS_TOKEN;PHOTO_CONTENT;GROUP_CONTENT;VIDEO_CONTENT";
 
+    private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
     private final HttpClient client = HttpClient.newHttpClient();
 
-    public TokenPair getToken(String code) throws Exception {
+    public TokenPair getToken(String code) throws IOException, URISyntaxException, OkApiException {
         URI uri = new URIBuilder(GET_TOKEN_URI)
                 .addParameter("code", code)
                 .addParameter("client_id", OkAppProperties.APPLICATION_ID)
@@ -25,19 +30,28 @@ public final class OkAuthorizator {
                 .addParameter("redirect_uri", OkAppProperties.REDIRECT_URI)
                 .addParameter("grant_type", "authorization_code")
                 .build();
-
         HttpRequest request = HttpRequest.newBuilder().POST(HttpRequest.BodyPublishers.ofByteArray(new byte[]{}))
                 .uri(uri)
                 .build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        JSONObject responseJson = new JSONObject(response.body());
+        HttpResponse<String> response;
 
-        if (responseJson.has("error")) {
-            return new TokenPair(null, null);
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (InterruptedException e) {
+            logger.error("InterruptedException occurred", e);
+            throw new RuntimeException(e.getMessage());
         }
-        String accessToken = responseJson.getString("access_token");
-        String refreshToken = responseJson.getString("refresh_token");
-        return new TokenPair(accessToken, refreshToken);
+
+        TokenPair tokenPair = new TokenPair();
+        try {
+            JSONObject responseJson = new JSONObject(response.body());
+            OkExceptionsUtils.checkError(logger, responseJson, response);
+            tokenPair.accessToken = responseJson.getString("access_token");
+            tokenPair.refreshToken = responseJson.getString("refresh_token");
+        } catch (JSONException e) {
+            OkExceptionsUtils.handleResponseParsing(logger, e, response);
+        }
+        return tokenPair;
     }
 
     public static String formAuthorizationUrl() throws URISyntaxException {
@@ -62,6 +76,20 @@ public final class OkAuthorizator {
         return DigestUtils.md5Hex(sig);
     }
 
-    public record TokenPair(String accessToken, String refreshToken) {
+    public static class TokenPair {
+        private String accessToken;
+        private String refreshToken;
+
+        private TokenPair() {
+        }
+
+        public String accessToken() {
+            return accessToken;
+        }
+
+        public String refreshToken() {
+            return refreshToken;
+        }
+
     }
 }
