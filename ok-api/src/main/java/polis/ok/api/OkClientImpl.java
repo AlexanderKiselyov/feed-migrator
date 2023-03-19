@@ -30,6 +30,7 @@ public class OkClientImpl implements OKClient {
     private static final String UPLOAD_PHOTO = "photosV2.getUploadUrl";
     private static final String UPLOAD_VIDEO = "video.getUploadUrl";
 
+    private final org.apache.http.client.HttpClient advancedClient = HttpClientBuilder.create().build();
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -56,7 +57,6 @@ public class OkClientImpl implements OKClient {
     public List<String> uploadPhotos(String accessToken, long groupId, List<File> photos) throws Exception {
         PhotoUploadUrlResponse uploadUrlResponse = photoUploadUrl(accessToken, groupId, photos);
 
-        org.apache.http.client.HttpClient httpclient = HttpClientBuilder.create().build();
         HttpPost httpPost = new HttpPost(URI.create(uploadUrlResponse.uploadUrl));
         MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
         for (int i = 0; i < photos.size(); i++) {
@@ -64,7 +64,7 @@ public class OkClientImpl implements OKClient {
             multipartEntityBuilder.addPart("pic" + (i + 1), new FileBody(photo));
         }
         httpPost.setEntity(multipartEntityBuilder.build());
-        org.apache.http.HttpResponse response = httpclient.execute(httpPost);
+        org.apache.http.HttpResponse response = advancedClient.execute(httpPost);
 
         String responseString = responseAsString(response);
         JSONObject photoIds = new JSONObject(responseString).getJSONObject("photos");
@@ -80,12 +80,11 @@ public class OkClientImpl implements OKClient {
     public long uploadVideo(String accessToken, long groupId, File video) throws Exception {
         VideoUploadUrlResponse uploadUrlResponse = videoUploadUrl(accessToken, groupId, video.getName(), video.getTotalSpace());
 
-        org.apache.http.client.HttpClient httpclient = HttpClientBuilder.create().build();
         HttpPost httpPost = new HttpPost(URI.create(uploadUrlResponse.uploadUrl));
         MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
         multipartEntityBuilder.addPart("video", new FileBody(video));
         httpPost.setEntity(multipartEntityBuilder.build());
-        org.apache.http.HttpResponse response = httpclient.execute(httpPost);
+        org.apache.http.HttpResponse response = advancedClient.execute(httpPost);
 
         String responseString = responseAsString(response);
         System.out.println("video: " + responseString);
