@@ -1,5 +1,6 @@
 package polis.ok.api;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
 
@@ -11,8 +12,8 @@ import java.net.http.HttpResponse;
 
 public final class OkAuthorizator {
     private static final String AUTH_URI = "https://connect.ok.ru/oauth/authorize";
-    private static final String APP_SCOPE = "VALUABLE_ACCESS;LONG_ACCESS_TOKEN;PHOTO_CONTENT;GROUP_CONTENT;VIDEO_CONTENT";
     private static final String GET_TOKEN_URI = "https://api.ok.ru/oauth/token.do";
+    private static final String APP_SCOPE = "VALUABLE_ACCESS;LONG_ACCESS_TOKEN;PHOTO_CONTENT;GROUP_CONTENT;VIDEO_CONTENT";
 
     private final HttpClient client = HttpClient.newHttpClient();
 
@@ -48,6 +49,17 @@ public final class OkAuthorizator {
                 .build();
 
         return uri.toString();
+    }
+
+    static String sig(String accessToken, String methodName) {
+        String secretKey = DigestUtils.md5Hex(accessToken + OkAppProperties.APPLICATION_SECRET_KEY);
+        String sig = "application_key=" +
+                OkAppProperties.APPLICATION_KEY +
+                "format=jsonmethod=" +
+                methodName +
+                secretKey;
+
+        return DigestUtils.md5Hex(sig);
     }
 
     public record TokenPair(String accessToken, String refreshToken) {
