@@ -17,12 +17,12 @@ public final class OkAuthorizator {
 
     private final HttpClient client = HttpClient.newHttpClient();
 
-    public TokenPair getToken(String code, String clientId, String clientSecret, String redirectUri) throws Exception {
+    public TokenPair getToken(String code) throws Exception {
         URI uri = new URIBuilder(GET_TOKEN_URI)
                 .addParameter("code", code)
-                .addParameter("client_id", clientId)
-                .addParameter("client_secret", clientSecret)
-                .addParameter("redirect_uri", redirectUri)
+                .addParameter("client_id", OkAppProperties.APPLICATION_ID)
+                .addParameter("client_secret", OkAppProperties.APPLICATION_SECRET_KEY)
+                .addParameter("redirect_uri", OkAppProperties.REDIRECT_URI)
                 .addParameter("grant_type", "authorization_code")
                 .build();
 
@@ -40,12 +40,12 @@ public final class OkAuthorizator {
         return new TokenPair(accessToken, refreshToken);
     }
 
-    public static String formAuthorizationUrl(String clientId, String redirectUri) throws URISyntaxException {
+    public static String formAuthorizationUrl() throws URISyntaxException {
         URI uri = new URIBuilder(AUTH_URI)
-                .addParameter("client_id", clientId)
+                .addParameter("client_id", OkAppProperties.APPLICATION_ID)
                 .addParameter("scope", APP_SCOPE)
                 .addParameter("response_type", "code")
-                .addParameter("redirect_uri", redirectUri)
+                .addParameter("redirect_uri", OkAppProperties.REDIRECT_URI)
                 .build();
 
         return uri.toString();

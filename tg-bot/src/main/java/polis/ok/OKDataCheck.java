@@ -60,8 +60,7 @@ public class OKDataCheck {
     public String getOKAuthCode(String text, Long chatId) {
         OkAuthorizator.TokenPair pair;
         try {
-            pair = okAuthorizator.getToken(text, properties.getProperty("okapp.id"),
-                    properties.getProperty("okapp.secret_key"), properties.getProperty("okapp.redirect_uri"));
+            pair = okAuthorizator.getToken(text);
             if (pair.accessToken() == null) {
                 return OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
             }
