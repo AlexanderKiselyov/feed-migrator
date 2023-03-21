@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import polis.ok.api.OkAppProperties;
 import polis.ok.api.OkAuthorizator;
 import polis.util.AuthData;
 import polis.util.IState;
@@ -22,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
 
 public class OKDataCheck {
     private static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
@@ -44,15 +44,13 @@ public class OKDataCheck {
     private static final String USER_HAS_NO_RIGHTS = """
             Пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
-    private final Properties properties;
     private final Map<Long, List<AuthData>> socialMedia;
     private final Map<Long, IState> states;
     private final HttpClient client = HttpClient.newHttpClient();
     private final Logger logger = LoggerFactory.getLogger(OKDataCheck.class);
     private final OkAuthorizator okAuthorizator = new OkAuthorizator();
 
-    public OKDataCheck(Properties properties, Map<Long, List<AuthData>> socialMedia, Map<Long, IState> states) {
-        this.properties = properties;
+    public OKDataCheck(Map<Long, List<AuthData>> socialMedia, Map<Long, IState> states) {
         this.socialMedia = socialMedia;
         this.states = states;
     }
@@ -64,14 +62,14 @@ public class OKDataCheck {
             if (pair.accessToken() == null) {
                 return OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
             }
-            if (socialMedia.get(chatId) == null || socialMedia.get(chatId).isEmpty()) {
-                List<AuthData> newSocialMedia = new ArrayList<>(1);
-                newSocialMedia.add(new AuthData(SocialMedia.OK, pair.accessToken()));
-                socialMedia.put(chatId, newSocialMedia);
-            } else {
+            if (socialMedia.containsKey(chatId)) {
                 List<AuthData> currentSocialMedia = socialMedia.get(chatId);
                 currentSocialMedia.add(new AuthData(SocialMedia.OK, pair.accessToken()));
                 socialMedia.put(chatId, currentSocialMedia);
+            } else {
+                List<AuthData> newSocialMedia = new ArrayList<>(1);
+                newSocialMedia.add(new AuthData(SocialMedia.OK, pair.accessToken()));
+                socialMedia.put(chatId, newSocialMedia);
             }
 
             states.put(chatId, Substate.nextSubstate(Substate.OkAuth_AuthCode));
@@ -90,7 +88,7 @@ public class OKDataCheck {
             URI uri = new URIBuilder(OK_METHOD_DO)
                     .addParameter("method", "group.getUserGroupsByIds")
                     .addParameter("access_token", accessToken)
-                    .addParameter("application_key", properties.getProperty("okapp.app_key"))
+                    .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                     .addParameter("group_id", String.valueOf(groupId))
                     .addParameter("uids", uid)
                     .build();
@@ -136,7 +134,7 @@ public class OKDataCheck {
             URI uri = new URIBuilder(OK_METHOD_DO)
                     .addParameter("method", "url.getInfo")
                     .addParameter("access_token", accessToken)
-                    .addParameter("application_key", properties.getProperty("okapp.app_key"))
+                    .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                     .addParameter("url", groupLink)
                     .build();
 
@@ -170,7 +168,7 @@ public class OKDataCheck {
             URI uri = new URIBuilder(OK_METHOD_DO)
                     .addParameter("method", "users.getCurrentUser")
                     .addParameter("access_token", accessToken)
-                    .addParameter("application_key", properties.getProperty("okapp.app_key"))
+                    .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                     .addParameter("fields", "UID")
                     .build();
 

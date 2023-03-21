@@ -8,7 +8,6 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.ok.api.OkAuthorizator;
 
 import java.net.URISyntaxException;
-import java.util.Properties;
 
 public class OkAuthCommand extends Command {
     private static final String OK_AUTH_ANSWER = """
@@ -16,11 +15,9 @@ public class OkAuthCommand extends Command {
                     %s
                     После авторизации скопируйте код авторизации из адресной строки и отправьте его в этот диалог.""";
     private final Logger logger = LoggerFactory.getLogger(OkAuthCommand.class);
-    private final Properties properties;
 
-    public OkAuthCommand(String commandIdentifier, String description, Properties properties) {
+    public OkAuthCommand(String commandIdentifier, String description) {
         super(commandIdentifier, description);
-        this.properties = properties;
     }
 
     @Override

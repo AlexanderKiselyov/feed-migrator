@@ -6,28 +6,14 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.util.State;
 
 public class StartCommand extends Command {
-    private static final String COMMAND_SYMBOL = "/";
-    private static final String STATE_DELIMITER = " - ";
-    private static final String STRING_DELIMITER = "\n";
-    private String startAnswer = """
-            Давайте начнём!
-            С помощью бота Вы можете синхронизировать Ваш Telegram-канал с группой в Одноклассники.
-                            
-            Команды:
-            """;
+    // TODO Расширить список с соцсетями
+    private static final String startAnswer = String.format("""
+            Давайте начнём! С помощью бота Вы можете синхронизировать Ваш Telegram-канал с группой в Одноклассники.
+            Введите /%s и добавьте новый Телеграм-канал, из которого хотите публиковать посты в другие соцсети.
+            Или можете воспользоваться клавиатурой с командами.""", State.AddTgChannel.getIdentifier());
 
     public StartCommand(String commandIdentifier, String description) {
         super(commandIdentifier, description);
-        StringBuilder stringBuilder = new StringBuilder(startAnswer);
-        for (State state : State.values()) {
-            stringBuilder
-                    .append(COMMAND_SYMBOL)
-                    .append(state.getIdentifier())
-                    .append(STATE_DELIMITER)
-                    .append(state.getDescription())
-                    .append(STRING_DELIMITER);
-        }
-        startAnswer = stringBuilder.toString();
     }
 
     @Override

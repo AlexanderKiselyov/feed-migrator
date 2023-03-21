@@ -3,6 +3,7 @@ package polis.commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -20,6 +21,7 @@ abstract class Command extends BotCommand {
     void sendAnswer(AbsSender absSender, Long chatId, String commandName, String userName, String text) {
         SendMessage message = Keyboard.createSendMessage(chatId, text, GO_BACK_BUTTON_TEXT);
         message.setChatId(chatId.toString());
+        message.setParseMode(ParseMode.HTML);
         message.setText(text);
         message.disableWebPagePreview();
 

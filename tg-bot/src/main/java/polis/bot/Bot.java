@@ -12,21 +12,21 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import polis.commands.AddTgChannel;
+import polis.commands.MainMenu;
 import polis.commands.NonCommand;
 import polis.commands.OkAuthCommand;
 import polis.commands.StartCommand;
 import polis.commands.SyncCommand;
+import polis.commands.TgChannelDescription;
 import polis.util.AuthData;
 import polis.util.IState;
 import polis.util.State;
 import polis.util.Substate;
 
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
@@ -38,20 +38,23 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final NonCommand nonCommand;
     private final Map<Long, IState> states = new ConcurrentHashMap<>();
     private final Map<Long, List<AuthData>> socialMedia = new ConcurrentHashMap<>();
+    private final Map<Long, List<String>> tgChannels = new ConcurrentHashMap<>();
+    private final Map<Long, String> currentTgChannel = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
-    private final Properties properties = new Properties();
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
         this.botName = botName;
         this.botToken = botToken;
 
-        loadProperties();
-
-        nonCommand = new NonCommand(states, socialMedia, properties);
+        nonCommand = new NonCommand(states, socialMedia, tgChannels, currentTgChannel);
 
         register(new StartCommand(State.Start.getIdentifier(), State.Start.getDescription()));
-        register(new OkAuthCommand(State.OkAuth.getIdentifier(), State.OkAuth.getDescription(), properties));
+        register(new AddTgChannel(State.AddTgChannel.getIdentifier(), State.AddTgChannel.getDescription()));
+        register(new MainMenu(State.MainMenu.getIdentifier(), State.MainMenu.getDescription()));
+        register(new TgChannelDescription(State.TgChannelDescription.getIdentifier(),
+                State.TgChannelDescription.getDescription(), currentTgChannel));
+        register(new OkAuthCommand(State.OkAuth.getIdentifier(), State.OkAuth.getDescription()));
         register(new SyncCommand(State.Sync.getIdentifier(), State.Sync.getDescription(), socialMedia));
     }
 
@@ -125,15 +128,6 @@ public class Bot extends TelegramLongPollingCommandBot {
             execute(answer);
         } catch (TelegramApiException e) {
             logger.error(String.format("Cannot execute command of user %s: %s", userName, e.getMessage()));
-        }
-    }
-
-    private void loadProperties() {
-        try {
-            properties.load(new FileReader(String.format("%s\\application.properties",
-                    System.getProperty("user.dir"))));
-        } catch (IOException e) {
-            logger.error(String.format("Cannot load file application.properties: %s", e.getMessage()));
         }
     }
 }

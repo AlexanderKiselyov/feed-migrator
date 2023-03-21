@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collection;
 
-public final class VideoMedia extends Media{
+public final class VideoMedia extends Media {
 
     @JsonProperty("list")
     public Collection<Video> videos;

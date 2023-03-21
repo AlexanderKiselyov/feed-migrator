@@ -5,6 +5,9 @@ import java.util.Objects;
 
 public enum State implements IState {
     Start("start", "Старт"),
+    AddTgChannel("add_tg_channel", "Добавление Телеграм-канала"),
+    MainMenu("main_menu", "Главное меню"),
+    TgChannelDescription("tg_channel_description", "Информация по Телеграм-каналу"),
     OkAuth("okauth", "Авторизация в Одноклассниках"),
     Sync("sync", "Синхронизация социальных сетей с ботом");
 
