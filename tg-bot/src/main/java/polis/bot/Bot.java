@@ -8,6 +8,7 @@ import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingC
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -84,7 +85,19 @@ public class Bot extends TelegramLongPollingCommandBot {
 
     @Override
     public void processNonCommandUpdate(Update update) {
-        Message msg = update.getMessage();
+        Message msg;
+        if (update.hasCallbackQuery()) {
+            CallbackQuery callbackQuery = update.getCallbackQuery();
+            msg = callbackQuery.getMessage();
+            String data = callbackQuery.getData();
+            if (State.findState(data) != null) {
+                getRegisteredCommand(data).processMessage(this, msg, null);
+                return;
+            }
+        } else {
+            msg = update.getMessage();
+        }
+
         Long chatId = msg.getChatId();
         String messageText = msg.getText();
 
