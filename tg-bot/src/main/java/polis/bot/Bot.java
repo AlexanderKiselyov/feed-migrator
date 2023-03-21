@@ -143,8 +143,7 @@ public class Bot extends TelegramLongPollingCommandBot {
 
     private void loadProperties() {
         try {
-            properties.load(new FileReader(String.format("%s\\application.properties",
-                    System.getProperty("user.dir"))));
+            properties.load(new FileReader("application.properties"));
         } catch (IOException e) {
             logger.error(String.format("Cannot load file application.properties: %s", e.getMessage()));
         }
