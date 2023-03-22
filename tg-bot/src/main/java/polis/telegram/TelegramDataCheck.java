@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import polis.bot.BotProperties;
 import polis.util.State;
+import polis.util.TelegramChannel;
 
 import java.io.IOException;
 import java.net.URI;
@@ -38,8 +39,8 @@ public class TelegramDataCheck {
 
     }
 
-    public String checkTelegramChannelLink(String checkChatId, Long chatId, Map<Long, List<String>> tgChannels,
-                                           Map<Long, String> currentTgChannel) {
+    public String checkTelegramChannelLink(String checkChatId, Long chatId, Map<Long, List<TelegramChannel>> tgChannels,
+                                           Map<Long, TelegramChannel> currentTgChannel) {
         try {
             URI uri = new URIBuilder(String.format(GET_CHAT_MEMBER, BotProperties.TOKEN))
                     .addParameter("chat_id", String.format("@%s", checkChatId))
@@ -92,15 +93,15 @@ public class TelegramDataCheck {
             String status = result.getString("status");
             if (Objects.equals(status, "administrator")) {
                 if (tgChannels.containsKey(chatId)) {
-                    List<String> currentTelegramChannels = tgChannels.get(chatId);
-                    currentTelegramChannels.add(checkChatId);
+                    List<TelegramChannel> currentTelegramChannels = tgChannels.get(chatId);
+                    currentTelegramChannels.add(new TelegramChannel(checkChatId, null));
                     tgChannels.put(chatId, currentTelegramChannels);
                 } else {
-                    List<String> newTelegramChannel = new ArrayList<>(1);
-                    newTelegramChannel.add(checkChatId);
+                    List<TelegramChannel> newTelegramChannel = new ArrayList<>(1);
+                    newTelegramChannel.add(new TelegramChannel(checkChatId, null));
                     tgChannels.put(chatId, newTelegramChannel);
                 }
-                currentTgChannel.put(chatId, checkChatId);
+                currentTgChannel.put(chatId, new TelegramChannel(checkChatId, null));
                 return RIGHT_LINK;
             } else {
                 return BOT_NOT_ADMIN;

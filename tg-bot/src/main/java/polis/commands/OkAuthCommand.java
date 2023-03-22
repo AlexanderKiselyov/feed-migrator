@@ -24,7 +24,7 @@ public class OkAuthCommand extends Command {
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         try {
             String messageText = String.format(OK_AUTH_ANSWER, OkAuthorizator.formAuthorizationUrl());
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), messageText);
+            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), messageText, null);
         } catch (URISyntaxException e) {
             logger.error(String.format("Cannot form link: %s", e));
         }

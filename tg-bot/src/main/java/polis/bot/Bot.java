@@ -8,26 +8,33 @@ import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingC
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.AddTgChannel;
+import polis.commands.GroupDescription;
 import polis.commands.MainMenu;
 import polis.commands.NonCommand;
 import polis.commands.OkAuthCommand;
 import polis.commands.StartCommand;
 import polis.commands.SyncCommand;
 import polis.commands.TgChannelDescription;
+import polis.commands.TgChannelsList;
+import polis.commands.TgSyncGroups;
 import polis.util.AuthData;
 import polis.util.IState;
+import polis.util.SocialMediaGroup;
 import polis.util.State;
 import polis.util.Substate;
+import polis.util.TelegramChannel;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
@@ -39,8 +46,9 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final NonCommand nonCommand;
     private final Map<Long, IState> states = new ConcurrentHashMap<>();
     private final Map<Long, List<AuthData>> socialMedia = new ConcurrentHashMap<>();
-    private final Map<Long, List<String>> tgChannels = new ConcurrentHashMap<>();
-    private final Map<Long, String> currentTgChannel = new ConcurrentHashMap<>();
+    private final Map<Long, List<TelegramChannel>> tgChannels = new ConcurrentHashMap<>();
+    private final Map<Long, TelegramChannel> currentTgChannel = new ConcurrentHashMap<>();
+    private final Map<Long, SocialMediaGroup> currentGroup = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
@@ -55,6 +63,12 @@ public class Bot extends TelegramLongPollingCommandBot {
         register(new MainMenu(State.MainMenu.getIdentifier(), State.MainMenu.getDescription()));
         register(new TgChannelDescription(State.TgChannelDescription.getIdentifier(),
                 State.TgChannelDescription.getDescription(), currentTgChannel));
+        register(new TgChannelsList(State.TgChannelsList.getIdentifier(), State.TgChannelsList.getDescription(),
+                tgChannels));
+        register(new TgSyncGroups(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription(),
+                currentTgChannel));
+        register(new GroupDescription(State.GroupDescription.getIdentifier(), State.GroupDescription.getDescription(),
+                currentGroup));
         register(new OkAuthCommand(State.OkAuth.getIdentifier(), State.OkAuth.getDescription()));
         register(new SyncCommand(State.Sync.getIdentifier(), State.Sync.getDescription(), socialMedia));
     }
@@ -89,11 +103,18 @@ public class Bot extends TelegramLongPollingCommandBot {
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
             msg = callbackQuery.getMessage();
-            String data = callbackQuery.getData();
-            if (State.findState(data) != null) {
+            String data = callbackQuery.getData().replace("/", "");
+            if (State.findState(data) == null) {
+                try {
+                    parseInlineKeyboardData(data, msg);
+                } catch (TelegramApiException e) {
+                    logger.error(String.format("Cannot perform Telegram API operation: %s", e.getMessage()));
+                }
+
+            } else {
                 getRegisteredCommand(data).processMessage(this, msg, null);
-                return;
             }
+            return;
         } else {
             msg = update.getMessage();
         }
@@ -141,6 +162,85 @@ public class Bot extends TelegramLongPollingCommandBot {
             execute(answer);
         } catch (TelegramApiException e) {
             logger.error(String.format("Cannot execute command of user %s: %s", userName, e.getMessage()));
+        }
+    }
+
+    private void parseInlineKeyboardData(String data, Message msg) throws TelegramApiException {
+        Long chatId = msg.getChatId();
+        String[] dataParts = data.split(" ");
+        switch (dataParts[0]) {
+            case "tg_channel" -> {
+                if (dataParts.length != 3) {
+                    logger.error(String.format("Telegram channel data not of size 3. Inline keyboard data: %s", data));
+                }
+                if (Objects.equals(dataParts[2], "0")) {
+                    TelegramChannel currentTelegramChannel = null;
+                    for (TelegramChannel ch : tgChannels.get(chatId)) {
+                        if (Objects.equals(ch.getTelegramChannelId(), dataParts[1])) {
+                            currentTelegramChannel = ch;
+                            break;
+                        }
+                    }
+                    currentTgChannel.put(chatId, currentTelegramChannel);
+                    getRegisteredCommand(State.TgChannelDescription.getIdentifier()).processMessage(this, msg,
+                            null);
+                } else if (Objects.equals(dataParts[2], "1")) {
+                    List<TelegramChannel> channels = tgChannels.get(chatId);
+                    for (TelegramChannel ch : channels) {
+                        if (Objects.equals(ch.getTelegramChannelId(), dataParts[1])) {
+                            channels.remove(ch);
+                            break;
+                        }
+                    }
+                    if (channels.size() == 0) {
+                        currentTgChannel.remove(chatId);
+                    }
+                    tgChannels.put(chatId, channels);
+                    DeleteMessage lastMessage = new DeleteMessage();
+                    lastMessage.setChatId(chatId);
+                    lastMessage.setMessageId(msg.getMessageId());
+                    execute(lastMessage);
+                    getRegisteredCommand(State.TgChannelsList.getIdentifier()).processMessage(this, msg, null);
+                } else {
+                    logger.error(String.format("Wrong Telegram channel data. Inline keyboard data: %s", data));
+                }
+            }
+            case "group" -> {
+                if (dataParts.length != 3) {
+                    logger.error(String.format("Group data not of size 3. Inline keyboard data: %s", data));
+                }
+                if (Objects.equals(dataParts[2], "0")) {
+                    SocialMediaGroup currentSocialMedia = null;
+                    for (SocialMediaGroup smg : currentTgChannel.get(chatId).getGroups()) {
+                        if (Objects.equals(smg.getId(), dataParts[1])) {
+                            currentSocialMedia = smg;
+                            break;
+                        }
+                    }
+                    currentGroup.put(chatId, currentSocialMedia);
+                    getRegisteredCommand(State.GroupDescription.getIdentifier()).processMessage(this, msg,
+                            null);
+                } else if (Objects.equals(dataParts[2], "1")) {
+                    List<SocialMediaGroup> groups = currentTgChannel.get(chatId).getGroups();
+                    for (SocialMediaGroup smg : groups) {
+                        if (Objects.equals(smg.getId(), dataParts[1])) {
+                            currentTgChannel.get(chatId).deleteGroup(smg);
+                            break;
+                        }
+                    }
+                    if (groups.size() == 0) {
+                        currentGroup.remove(chatId);
+                    }
+                    DeleteMessage lastMessage = new DeleteMessage();
+                    lastMessage.setChatId(chatId);
+                    lastMessage.setMessageId(msg.getMessageId());
+                    execute(lastMessage);
+                    getRegisteredCommand(State.TgSyncGroups.getIdentifier()).processMessage(this, msg, null);
+                } else {
+                    logger.error(String.format("Wrong group data. Inline keyboard data: %s", data));
+                }
+            }
+            default -> logger.error(String.format("Unknown inline keyboard data: %s", data));
         }
     }
 }

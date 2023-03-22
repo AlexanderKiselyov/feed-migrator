@@ -29,7 +29,7 @@ public class SyncCommand extends Command {
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         if (socialMedia.get(chat.getId()) == null || socialMedia.get(chat.getId()).isEmpty()) {
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
-                    String.format(NOT_AUTHORIZED, State.Sync.getIdentifier()));
+                    String.format(NOT_AUTHORIZED, State.Sync.getIdentifier()), null);
         } else {
             List<AuthData> currentAuthData = socialMedia.get(chat.getId());
             StringBuilder sb = new StringBuilder();
@@ -40,9 +40,9 @@ public class SyncCommand extends Command {
                 sb.append(currentAuthData.get(i).getSocialMedia().getName());
             }
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
-                    String.format(AUTHORIZED, sb));
+                    String.format(AUTHORIZED, sb), null);
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
-                    GET_TELEGRAM_CHANNEL_LINK);
+                    GET_TELEGRAM_CHANNEL_LINK,null);
         }
     }
 }
