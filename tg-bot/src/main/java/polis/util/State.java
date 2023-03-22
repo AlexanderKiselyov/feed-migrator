@@ -44,6 +44,15 @@ public enum State implements IState {
         return null;
     }
 
+    public static State findStateByDescription(String text) {
+        for (State state : State.values()) {
+            if (Objects.equals(state.getDescription(), text)) {
+                return state;
+            }
+        }
+        return null;
+    }
+
     public static IState getPrevState(IState currentState) {
         return prevStates.get(currentState);
     }

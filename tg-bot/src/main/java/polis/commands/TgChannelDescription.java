@@ -5,7 +5,9 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
+import polis.util.Substate;
 
+import java.util.List;
 import java.util.Map;
 
 public class TgChannelDescription extends Command {
@@ -19,6 +21,10 @@ public class TgChannelDescription extends Command {
             State.MainMenu.getIdentifier());
     private final Map<Long, String> currentTgChannel;
     private final TelegramDataCheck telegramDataCheck;
+    private static final int rowsCount = 1;
+    private static final List<String> commandsForKeyboard = List.of(
+            State.MainMenu.getDescription() // TODO: Добавить синхр. группы и добавление группы
+    );
 
     public TgChannelDescription(String commandIdentifier, String description, Map<Long, String> currentTgChannel) {
         super(commandIdentifier, description);
@@ -34,9 +40,12 @@ public class TgChannelDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(TELEGRAM_CHANNEL_DESCRIPTION,
-                            telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()))));
+                            telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()))),
+                    rowsCount,
+                    commandsForKeyboard);
         } else {
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), NOT_VALID_CHANNEL);
+            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), NOT_VALID_CHANNEL,
+                    rowsCount, commandsForKeyboard);
         }
     }
 }

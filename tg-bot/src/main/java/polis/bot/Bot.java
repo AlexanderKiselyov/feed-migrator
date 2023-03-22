@@ -101,16 +101,19 @@ public class Bot extends TelegramLongPollingCommandBot {
         Long chatId = msg.getChatId();
         String messageText = msg.getText();
 
-        IState previousState = State.getPrevState(states.get(chatId));
+        State customCommand = State.findStateByDescription(messageText);
+        if (customCommand != null) {
+            IBotCommand command = getRegisteredCommand(customCommand.getIdentifier());
+            states.put(chatId, State.findState(command.getCommandIdentifier()));
+            command.processMessage(this, msg, null);
+            return;
+        }
+
         if (messageText.equals(GO_BACK_BUTTON_TEXT)) {
-            Collection<IBotCommand> commands = getRegisteredCommands();
-            for (IBotCommand command : commands) {
-                if (command.getCommandIdentifier().equals(previousState.getIdentifier())) {
-                    states.put(chatId, previousState);
-                    command.processMessage(this, msg, null);
-                    return;
-                }
-            }
+            IState previousState = State.getPrevState(states.get(chatId));
+            states.put(chatId, previousState);
+            getRegisteredCommand(previousState.getIdentifier()).processMessage(this, msg, null);
+            return;
         }
 
         IState currentState = states.get(chatId);

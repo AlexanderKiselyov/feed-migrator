@@ -7,9 +7,9 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.keyboards.Keyboard;
 
-import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
+import polis.keyboards.ReplyKeyboard;
+import java.util.List;
 
 abstract class Command extends BotCommand {
     private final Logger logger = LoggerFactory.getLogger(Command.class);
@@ -18,8 +18,10 @@ abstract class Command extends BotCommand {
         super(commandIdentifier, description);
     }
 
-    void sendAnswer(AbsSender absSender, Long chatId, String commandName, String userName, String text) {
-        SendMessage message = Keyboard.createSendMessage(chatId, text, GO_BACK_BUTTON_TEXT);
+    void sendAnswer(AbsSender absSender, Long chatId, String commandName, String userName, String text, int rowsCount,
+                    List<String> commandsList, String... optionalButtonsValues) {
+        SendMessage message = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, rowsCount, commandsList,
+                optionalButtonsValues);
         message.setChatId(chatId.toString());
         message.setParseMode(ParseMode.HTML);
         message.setText(text);
