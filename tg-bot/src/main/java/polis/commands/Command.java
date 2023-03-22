@@ -5,8 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import polis.keyboards.Keyboard;
 
 import polis.keyboards.ReplyKeyboard;
 import java.util.List;
@@ -18,6 +20,9 @@ abstract class Command extends BotCommand {
         super(commandIdentifier, description);
     }
 
+    void sendAnswer(AbsSender absSender, Long chatId, String commandName, String userName, String text,
+                    InlineKeyboardMarkup inlineKeyboardMarkup) {
+        SendMessage message = Keyboard.createSendMessage(chatId, text, GO_BACK_BUTTON_TEXT);
     void sendAnswer(AbsSender absSender, Long chatId, String commandName, String userName, String text, int rowsCount,
                     List<String> commandsList, String... optionalButtonsValues) {
         SendMessage message = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, rowsCount, commandsList,
@@ -26,6 +31,9 @@ abstract class Command extends BotCommand {
         message.setParseMode(ParseMode.HTML);
         message.setText(text);
         message.disableWebPagePreview();
+        if (inlineKeyboardMarkup != null) {
+            message.setReplyMarkup(inlineKeyboardMarkup);
+        }
 
         try {
             absSender.execute(message);

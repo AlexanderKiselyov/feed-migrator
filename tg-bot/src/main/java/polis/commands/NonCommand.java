@@ -7,6 +7,7 @@ import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
+import polis.util.TelegramChannel;
 
 import java.util.List;
 import java.util.Map;
@@ -18,13 +19,13 @@ public class NonCommand {
              Ссылка неверная.
              Пожалуйста, проверьте, что ссылка на канал является верной и введите ссылку еще раз.""";
     private final Map<Long, List<AuthData>> socialMedia;
-    private final Map<Long, List<String>> tgChannels;
-    private final Map<Long, String> currentTgChannel;
+    private final Map<Long, List<TelegramChannel>> tgChannels;
+    private final Map<Long, TelegramChannel> currentTgChannel;
     private final OKDataCheck okDataCheck;
     private final TelegramDataCheck telegramDataCheck;
 
     public NonCommand(Map<Long, IState> states, Map<Long, List<AuthData>> socialMedia,
-                      Map<Long, List<String>> tgChannels, Map<Long, String> currentChannel) {
+                      Map<Long, List<TelegramChannel>> tgChannels, Map<Long, TelegramChannel> currentChannel) {
         this.socialMedia = socialMedia;
         this.tgChannels = tgChannels;
         this.currentTgChannel = currentChannel;
