@@ -14,7 +14,8 @@ public class MainMenu extends Command {
             """;
     private static final int rowsCount = 1;
     private static final List<String> commandsForKeyboard = List.of(
-            State.AddTgChannel.getDescription() // TODO: Добавить удаление канала
+            State.TgChannelsList.getDescription(),
+            State.AddTgChannel.getDescription()
     );
 
     public MainMenu(String commandIdentifier, String description) {
@@ -24,6 +25,6 @@ public class MainMenu extends Command {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), MAIN_MENU, rowsCount,
-                commandsForKeyboard);
+                commandsForKeyboard, null);
     }
 }

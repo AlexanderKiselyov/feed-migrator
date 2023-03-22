@@ -6,7 +6,6 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
 import polis.util.TelegramChannel;
-import polis.util.Substate;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,8 @@ public class TgChannelDescription extends Command {
     private final TelegramDataCheck telegramDataCheck;
     private static final int rowsCount = 1;
     private static final List<String> commandsForKeyboard = List.of(
-            State.MainMenu.getDescription() // TODO: Добавить синхр. группы и добавление группы
+            State.TgSyncGroups.getDescription(),
+            State.MainMenu.getDescription() // TODO: добавить команду добавления группы
     );
 
     public TgChannelDescription(String commandIdentifier, String description, Map<Long,
@@ -36,18 +36,19 @@ public class TgChannelDescription extends Command {
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        if (currentTgChannel.containsKey(chat.getId()) && !currentTgChannel.get(chat.getId()).isEmpty()) {
+        if (currentTgChannel.containsKey(chat.getId()) && currentTgChannel.get(chat.getId()) != null) {
             sendAnswer(absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(TELEGRAM_CHANNEL_DESCRIPTION,
-                            telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()))),
+                            telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()).getTelegramChannelId())),
                     rowsCount,
-                    commandsForKeyboard);
+                    commandsForKeyboard,
+                    null);
         } else {
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), NOT_VALID_CHANNEL,
-                    rowsCount, commandsForKeyboard);
+                    rowsCount, commandsForKeyboard, null);
         }
     }
 }

@@ -1,11 +1,9 @@
 package polis.keyboards;
 
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import polis.util.State;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +14,6 @@ public class ReplyKeyboard extends Keyboard {
 
     public void getKeyboard(SendMessage sendMessage, int rowsCount, List<String> commands,
                             String... optionalButtonsValues) {
-        // TODO: Проверка, не пришел ли пустой список команд без доп. кнопок
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setSelective(true);
         replyKeyboardMarkup.setResizeKeyboard(true);

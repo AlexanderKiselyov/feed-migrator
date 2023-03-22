@@ -8,7 +8,6 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.ok.api.OkAuthorizator;
 
 import java.net.URISyntaxException;
-import java.util.List;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
@@ -18,9 +17,6 @@ public class OkAuthCommand extends Command {
                     %s
                     После авторизации скопируйте код авторизации из адресной строки и отправьте его в этот диалог.""";
     private final Logger logger = LoggerFactory.getLogger(OkAuthCommand.class);
-    private static final int rowsCount = 0;
-    private static final List<String> commandsForKeyboard = List.of(
-    );
 
     public OkAuthCommand(String commandIdentifier, String description) {
         super(commandIdentifier, description);
@@ -31,7 +27,7 @@ public class OkAuthCommand extends Command {
         try {
             String messageText = String.format(OK_AUTH_ANSWER, OkAuthorizator.formAuthorizationUrl());
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), messageText,
-                    rowsCount, commandsForKeyboard, GO_BACK_BUTTON_TEXT);
+                    rowsCount, commandsForKeyboard, null, GO_BACK_BUTTON_TEXT);
         } catch (URISyntaxException e) {
             logger.error(String.format("Cannot form link: %s", e));
         }

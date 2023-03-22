@@ -23,6 +23,10 @@ public class TgChannelsList extends Command {
             Пожалуйста, вернитесь в главное меню (/%s) и добавьте хотя бы один канал.""";
     private final Map<Long, List<TelegramChannel>> tgChannels;
     private final TelegramDataCheck telegramDataCheck;
+    private static final int rowsCount = 1;
+    private static final List<String> commandsForKeyboard = List.of(
+            State.MainMenu.getDescription()
+    );
 
     public TgChannelsList(String commandIdentifier, String description, Map<Long, List<TelegramChannel>> tgChannels) {
         super(commandIdentifier, description);
@@ -34,14 +38,17 @@ public class TgChannelsList extends Command {
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         if (tgChannels.containsKey(chat.getId()) && tgChannels.get(chat.getId()).size() != 0) {
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_CHANNELS_LIST,
-                    getUserChannelsMarkup(tgChannels.get(chat.getId())));
+                    rowsCount, commandsForKeyboard, null);
+            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_CHANNELS_LIST,
+                    0, commandsForKeyboard, getUserChannelsMarkup(tgChannels.get(chat.getId())));
         } else {
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
-                    String.format(NO_TG_CHANNELS, State.MainMenu.getIdentifier()), null);
+                    String.format(NO_TG_CHANNELS, State.MainMenu.getIdentifier()), rowsCount, commandsForKeyboard,
+                    null);
         }
-
     }
 
+    // TODO: переделаю это под метод из InlineKeyboard.java, а вызов будет в Command.java
     private InlineKeyboardMarkup getUserChannelsMarkup(List<TelegramChannel> channelIds) {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> channelsList = new ArrayList<>();

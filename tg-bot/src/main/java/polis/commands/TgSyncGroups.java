@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
+
 public class TgSyncGroups extends Command {
     private static final String TG_SYNC_GROUPS = """
             Список синхронизованных групп.
@@ -33,10 +35,14 @@ public class TgSyncGroups extends Command {
         if (currentTgChannel.get(chat.getId()) != null && currentTgChannel.get(chat.getId()).getGroups() != null
                 && currentTgChannel.get(chat.getId()).getGroups().size() != 0) {
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_SYNC_GROUPS,
+                    rowsCount, commandsForKeyboard,
                     getTgChannelGroupsMarkup(currentTgChannel.get(chat.getId()).getGroups()));
+            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_SYNC_GROUPS,
+                    rowsCount, commandsForKeyboard,null, GO_BACK_BUTTON_TEXT);
         } else {
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
-                    String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()), null);
+                    String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()), rowsCount,
+                    commandsForKeyboard, null, GO_BACK_BUTTON_TEXT);
         }
     }
 

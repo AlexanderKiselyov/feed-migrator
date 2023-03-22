@@ -25,6 +25,6 @@ public class StartCommand extends Command {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), startAnswer,
-                rowsCount, commandsForKeyboard);
+                rowsCount, commandsForKeyboard, null);
     }
 }

@@ -9,7 +9,7 @@ public enum State implements IState {
     MainMenu("main_menu", "Главное меню"),
     TgChannelDescription("tg_channel_description", "Информация по Телеграм-каналу"),
     TgChannelsList("tg_channels_list", "Список добавленных Телеграм-каналов"),
-    TgSyncGroups("tg_sync_groups", "Список синхронизованных с Телеграм-какналов групп"),
+    TgSyncGroups("tg_sync_groups", "Список синхронизованных с Телеграм-каналов групп"),
     GroupDescription("group_description", "Описание группы"),
     OkAuth("okauth", "Авторизация в Одноклассниках"),
     Sync("sync", "Синхронизация социальных сетей с ботом");

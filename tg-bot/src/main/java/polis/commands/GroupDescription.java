@@ -8,6 +8,8 @@ import polis.util.State;
 
 import java.util.Map;
 
+import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
+
 public class GroupDescription extends Command {
     private static final String GROUP_DESCRIPTION = """
             Выбрана группа <b>%s</b> из соцсети %s.""";
@@ -26,10 +28,12 @@ public class GroupDescription extends Command {
         if (currentGroup.get(chat.getId()) != null) {
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
                     String.format(GROUP_DESCRIPTION, currentGroup.get(chat.getId()).getName(),
-                            currentGroup.get(chat.getId()).getSocialMedia().getName()), null);
+                            currentGroup.get(chat.getId()).getSocialMedia().getName()), rowsCount,
+                    commandsForKeyboard, null, GO_BACK_BUTTON_TEXT);
         } else {
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
-                    String.format(NO_VALID_GROUP, State.TgChannelDescription.getIdentifier()), null);
+                    String.format(NO_VALID_GROUP, State.TgChannelDescription.getIdentifier()), rowsCount,
+                    commandsForKeyboard, null, GO_BACK_BUTTON_TEXT);
         }
     }
 }
