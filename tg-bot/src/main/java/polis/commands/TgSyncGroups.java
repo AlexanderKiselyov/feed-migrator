@@ -32,17 +32,38 @@ public class TgSyncGroups extends Command {
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        if (currentTgChannel.get(chat.getId()) != null && currentTgChannel.get(chat.getId()).getGroups() != null
-                && currentTgChannel.get(chat.getId()).getGroups().size() != 0) {
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_SYNC_GROUPS,
-                    rowsCount, commandsForKeyboard,
-                    getTgChannelGroupsMarkup(currentTgChannel.get(chat.getId()).getGroups()));
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_SYNC_GROUPS,
-                    rowsCount, commandsForKeyboard,null, GO_BACK_BUTTON_TEXT);
+        if (currentTgChannel.get(chat.getId()) != null 
+                && currentTgChannel.get(chat.getId()).getSynchronizedGroups() != null
+                && currentTgChannel.get(chat.getId()).getSynchronizedGroups().size() != 0) {
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    TG_SYNC_GROUPS,
+                    rowsCount,
+                    commandsForKeyboard,
+                    getTgChannelGroupsMarkup(currentTgChannel.get(chat.getId()).getSynchronizedGroups()));
+            sendAnswer(absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    TG_SYNC_GROUPS,
+                    rowsCount,
+                    commandsForKeyboard,
+                    null,
+                    GO_BACK_BUTTON_TEXT);
         } else {
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
-                    String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()), rowsCount,
-                    commandsForKeyboard, null, GO_BACK_BUTTON_TEXT);
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
+                    rowsCount,
+                    commandsForKeyboard,
+                    null,
+                    GO_BACK_BUTTON_TEXT);
         }
     }
 
@@ -51,7 +72,8 @@ public class TgSyncGroups extends Command {
         List<List<InlineKeyboardButton>> channelsList = new ArrayList<>();
         for (SocialMediaGroup socialMediaGroup : groups) {
             InlineKeyboardButton channel = new InlineKeyboardButton();
-            channel.setText(socialMediaGroup.getName());
+            channel.setText(String.format("%s (%s)", socialMediaGroup.getName(),
+                    socialMediaGroup.getSocialMedia().getName()));
             channel.setCallbackData(String.format("group %s %d", socialMediaGroup.getId(), 0));
             InlineKeyboardButton deleteChannel = new InlineKeyboardButton();
             deleteChannel.setText("Удалить");

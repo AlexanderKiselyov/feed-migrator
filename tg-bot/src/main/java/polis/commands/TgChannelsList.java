@@ -37,30 +37,50 @@ public class TgChannelsList extends Command {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         if (tgChannels.containsKey(chat.getId()) && tgChannels.get(chat.getId()).size() != 0) {
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_CHANNELS_LIST,
-                    rowsCount, commandsForKeyboard, null);
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_CHANNELS_LIST,
-                    0, commandsForKeyboard, getUserChannelsMarkup(tgChannels.get(chat.getId())));
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    TG_CHANNELS_LIST,
+                    rowsCount,
+                    commandsForKeyboard,
+                    null);
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    TG_CHANNELS_LIST,
+                    0,
+                    commandsForKeyboard,
+                    getUserChannelsMarkup(tgChannels.get(chat.getId())));
         } else {
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
-                    String.format(NO_TG_CHANNELS, State.MainMenu.getIdentifier()), rowsCount, commandsForKeyboard,
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    String.format(NO_TG_CHANNELS, State.MainMenu.getIdentifier()),
+                    rowsCount,
+                    commandsForKeyboard,
                     null);
         }
     }
 
     // TODO: переделаю это под метод из InlineKeyboard.java, а вызов будет в Command.java
-    private InlineKeyboardMarkup getUserChannelsMarkup(List<TelegramChannel> channelIds) {
+    private InlineKeyboardMarkup getUserChannelsMarkup(List<TelegramChannel> channels) {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> channelsList = new ArrayList<>();
-        for (TelegramChannel channelId : channelIds) {
-            InlineKeyboardButton channel = new InlineKeyboardButton();
-            channel.setText(telegramDataCheck.getChatTitle(channelId.getTelegramChannelId()));
-            channel.setCallbackData(String.format("tg_channel %s %d", channelId, 0));
+        for (TelegramChannel channel : channels) {
+            InlineKeyboardButton channelButton = new InlineKeyboardButton();
+            channelButton.setText(telegramDataCheck.getChatTitle(channel.getTelegramChannelId()));
+            channelButton.setCallbackData(String.format("tg_channel %s %d", channel.getTelegramChannelId(), 0));
             InlineKeyboardButton deleteChannel = new InlineKeyboardButton();
             deleteChannel.setText("Удалить");
-            deleteChannel.setCallbackData(String.format("tg_channel %s %d", channelId, 1));
+            deleteChannel.setCallbackData(String.format("tg_channel %s %d", channel.getTelegramChannelId(), 1));
             List<InlineKeyboardButton> channelActions = new ArrayList<>();
-            channelActions.add(channel);
+            channelActions.add(channelButton);
             channelActions.add(deleteChannel);
             channelsList.add(channelActions);
         }

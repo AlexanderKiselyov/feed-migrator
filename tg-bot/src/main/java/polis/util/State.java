@@ -11,18 +11,23 @@ public enum State implements IState {
     TgChannelsList("tg_channels_list", "Список добавленных Телеграм-каналов"),
     TgSyncGroups("tg_sync_groups", "Список синхронизованных с Телеграм-каналов групп"),
     GroupDescription("group_description", "Описание группы"),
-    OkAuth("okauth", "Авторизация в Одноклассниках"),
-    Sync("sync", "Синхронизация социальных сетей с ботом");
+    AddGroup("add_group", "Добавление новой группы"),
+    AddOkAccount("add_ok_account", "Добавление аккаунта Одноклассников"),
+    OkAccountDescription("ok_account_description", "Информация по аккаунту Одноклассников"),
+    AccountsList("accounts_list", "Список добавленных аккаунтов"),
+    OkAccountGroups("ok_account_groups", "Список групп аккаунта Одноклассников"),
+    AddOkGroup("add_ok_group", "Добавление группы Однокласников"),
+    OkGroupDescription("ok_group_description", "Описание группы Одноклассников"),
+    SyncOkTg("sync_ok_tg", "Синхронизация группы Одноклассников с Телеграм-каналом"),
+    SyncOkTgDescription("sync_ok_tg_description", "Описание синхронизации Телеграм-канала с группой");
 
     private final String identifier;
     private final String description;
     private static final Map<IState, IState> prevStates = Map.of(
             Start, Start,
-            OkAuth, Start,
-            Substate.OkAuth_AuthCode, OkAuth,
-            Substate.OkAuth_GroupSync, OkAuth,
-            Sync, Start,
-            Substate.Sync_TelegramChannel, Sync
+            Substate.AddOkAccount_AuthCode, AddOkAccount,
+            SyncOkTg, Start,
+            Substate.Sync_TelegramChannel, SyncOkTg
     );
 
     State(String identifier, String description) {

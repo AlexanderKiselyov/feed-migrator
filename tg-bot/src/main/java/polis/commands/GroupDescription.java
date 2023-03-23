@@ -26,14 +26,28 @@ public class GroupDescription extends Command {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         if (currentGroup.get(chat.getId()) != null) {
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
                     String.format(GROUP_DESCRIPTION, currentGroup.get(chat.getId()).getName(),
-                            currentGroup.get(chat.getId()).getSocialMedia().getName()), rowsCount,
-                    commandsForKeyboard, null, GO_BACK_BUTTON_TEXT);
+                            currentGroup.get(chat.getId()).getSocialMedia().getName()),
+                    rowsCount,
+                    commandsForKeyboard,
+                    null,
+                    GO_BACK_BUTTON_TEXT);
         } else {
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
-                    String.format(NO_VALID_GROUP, State.TgChannelDescription.getIdentifier()), rowsCount,
-                    commandsForKeyboard, null, GO_BACK_BUTTON_TEXT);
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    String.format(NO_VALID_GROUP, State.TgChannelDescription.getIdentifier()),
+                    rowsCount,
+                    commandsForKeyboard,
+                    null,
+                    GO_BACK_BUTTON_TEXT);
         }
     }
 }

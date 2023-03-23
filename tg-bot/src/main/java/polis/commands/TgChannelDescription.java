@@ -37,7 +37,8 @@ public class TgChannelDescription extends Command {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         if (currentTgChannel.containsKey(chat.getId()) && currentTgChannel.get(chat.getId()) != null) {
-            sendAnswer(absSender,
+            sendAnswer(
+                    absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
@@ -47,8 +48,15 @@ public class TgChannelDescription extends Command {
                     commandsForKeyboard,
                     null);
         } else {
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), NOT_VALID_CHANNEL,
-                    rowsCount, commandsForKeyboard, null);
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    NOT_VALID_CHANNEL,
+                    rowsCount,
+                    commandsForKeyboard,
+                    null);
         }
     }
 }
