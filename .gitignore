@@ -1,1 +1,5 @@
 .idea
+tg-bot/build
+ok-api/build
+.gradle
+application.properties

@@ -37,14 +37,35 @@ public class TgChannelsList extends Command {
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_CHANNELS_LIST,
                     rowsCount, commandsForKeyboard, null);
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_CHANNELS_LIST,
-                    0, commandsForKeyboard, getUserChannelsArray(tgChannels.get(chat.getId())));
+                    0, commandsForKeyboard, getUserChannelsMarkup(tgChannels.get(chat.getId())));
         } else {
-            sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(),
-                    String.format(NO_TG_CHANNELS, State.MainMenu.getIdentifier()), rowsCount, commandsForKeyboard,
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    String.format(NO_TG_CHANNELS, State.MainMenu.getIdentifier()),
+                    rowsCount,
+                    commandsForKeyboard,
                     null);
         }
     }
 
+    // TODO: переделаю это под метод из InlineKeyboard.java, а вызов будет в Command.java
+    private InlineKeyboardMarkup getUserChannelsMarkup(List<TelegramChannel> channels) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> channelsList = new ArrayList<>();
+        for (TelegramChannel channel : channels) {
+            InlineKeyboardButton channelButton = new InlineKeyboardButton();
+            channelButton.setText(telegramDataCheck.getChatTitle(channel.getTelegramChannelId()));
+            channelButton.setCallbackData(String.format("tg_channel %s %d", channel.getTelegramChannelId(), 0));
+            InlineKeyboardButton deleteChannel = new InlineKeyboardButton();
+            deleteChannel.setText("Удалить");
+            deleteChannel.setCallbackData(String.format("tg_channel %s %d", channel.getTelegramChannelId(), 1));
+            List<InlineKeyboardButton> channelActions = new ArrayList<>();
+            channelActions.add(channelButton);
+            channelActions.add(deleteChannel);
+            channelsList.add(channelActions);
     private String[] getUserChannelsArray(List<TelegramChannel> channelIds) {
         String[] buttons = new String[channelIds.size() * 4];
         for (int i = 0; i < channelIds.size(); i++) {

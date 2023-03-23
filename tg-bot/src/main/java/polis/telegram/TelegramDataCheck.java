@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import polis.bot.BotProperties;
+import polis.commands.NonCommand;
 import polis.util.State;
 import polis.util.TelegramChannel;
 
@@ -39,8 +40,10 @@ public class TelegramDataCheck {
 
     }
 
-    public String checkTelegramChannelLink(String checkChatId, Long chatId, Map<Long, List<TelegramChannel>> tgChannels,
-                                           Map<Long, TelegramChannel> currentTgChannel) {
+    public NonCommand.AnswerPair checkTelegramChannelLink(String checkChatId,
+                                                          Long chatId,
+                                                          Map<Long, List<TelegramChannel>> tgChannels,
+                                                          Map<Long, TelegramChannel> currentTgChannel) {
         try {
             URI uri = new URIBuilder(String.format(GET_CHAT_MEMBER, BotProperties.TOKEN))
                     .addParameter("chat_id", String.format("@%s", checkChatId))
@@ -63,7 +66,7 @@ public class TelegramDataCheck {
                                 Request headers: %s
                                 Response: %s""";
                 logError(request, response, errorMessage);
-                return WRONG_LINK_OR_BOT_NOT_ADMIN;
+                return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
             }
 
             JSONObject object = new JSONObject(response.body());
@@ -75,7 +78,7 @@ public class TelegramDataCheck {
                                 Request headers: %s
                                 Response: %s""";
                 logError(request, response, errorMessage);
-                return WRONG_LINK_OR_BOT_NOT_ADMIN;
+                return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
             }
 
             JSONObject result = object.getJSONObject("result");
@@ -87,7 +90,7 @@ public class TelegramDataCheck {
                                 Request headers: %s
                                 Response: %s""";
                 logError(request, response, errorMessage);
-                return WRONG_LINK_OR_BOT_NOT_ADMIN;
+                return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
             }
 
             String status = result.getString("status");
@@ -102,13 +105,13 @@ public class TelegramDataCheck {
                     tgChannels.put(chatId, newTelegramChannel);
                 }
                 currentTgChannel.put(chatId, new TelegramChannel(checkChatId, null));
-                return RIGHT_LINK;
+                return new NonCommand.AnswerPair(RIGHT_LINK, false);
             } else {
-                return BOT_NOT_ADMIN;
+                return new NonCommand.AnswerPair(BOT_NOT_ADMIN, true);
             }
         } catch (URISyntaxException | IOException | InterruptedException e) {
             logger.error(String.format("Cannot create request: %s", e.getMessage()));
-            return WRONG_LINK_OR_BOT_NOT_ADMIN;
+            return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
         }
     }
 
