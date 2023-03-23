@@ -2,14 +2,11 @@ package polis.commands;
 
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.util.SocialMediaGroup;
 import polis.util.State;
 import polis.util.TelegramChannel;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +33,7 @@ public class TgSyncGroups extends Command {
                 && currentTgChannel.get(chat.getId()).getGroups().size() != 0) {
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_SYNC_GROUPS,
                     rowsCount, commandsForKeyboard,
-                    getTgChannelGroupsMarkup(currentTgChannel.get(chat.getId()).getGroups()));
+                    getTgChannelGroupsArray(currentTgChannel.get(chat.getId()).getGroups()));
             sendAnswer(absSender, chat.getId(), this.getCommandIdentifier(), user.getUserName(), TG_SYNC_GROUPS,
                     rowsCount, commandsForKeyboard,null, GO_BACK_BUTTON_TEXT);
         } else {
@@ -46,22 +43,16 @@ public class TgSyncGroups extends Command {
         }
     }
 
-    private InlineKeyboardMarkup getTgChannelGroupsMarkup(List<SocialMediaGroup> groups) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> channelsList = new ArrayList<>();
-        for (SocialMediaGroup socialMediaGroup : groups) {
-            InlineKeyboardButton channel = new InlineKeyboardButton();
-            channel.setText(socialMediaGroup.getName());
-            channel.setCallbackData(String.format("group %s %d", socialMediaGroup.getId(), 0));
-            InlineKeyboardButton deleteChannel = new InlineKeyboardButton();
-            deleteChannel.setText("Удалить");
-            deleteChannel.setCallbackData(String.format("group %s %d", socialMediaGroup.getId(), 1));
-            List<InlineKeyboardButton> channelActions = new ArrayList<>();
-            channelActions.add(channel);
-            channelActions.add(deleteChannel);
-            channelsList.add(channelActions);
+    private String[] getTgChannelGroupsArray(List<SocialMediaGroup> groups) {
+        String[] buttons = new String[groups.size() * 4];
+        for (int i = 0; i < groups.size(); i++) {
+            int tmpIndex = i * 4;
+            buttons[tmpIndex] = groups.get(i).getName();
+            buttons[tmpIndex + 1] = String.format("group %s %d", groups.get(i).getId(), 0);
+            buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
+            buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getId(), 1);
         }
-        inlineKeyboardMarkup.setKeyboard(channelsList);
-        return inlineKeyboardMarkup;
+
+        return buttons;
     }
 }

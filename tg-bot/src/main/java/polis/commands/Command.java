@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
 import java.util.List;
 
@@ -23,23 +24,23 @@ abstract class Command extends BotCommand {
     }
 
     void sendAnswer(AbsSender absSender, Long chatId, String commandName, String userName, String text, int rowsCount,
-                    List<String> commandsList, InlineKeyboardMarkup inlineKeyboardMarkup,
+                    List<String> commandsList, String[] inlineKeyboardCommands,
                     String... optionalButtonsValues) {
         SendMessage message;
-        // TODO: Сделаю, чтобы отправлялась inline-клавиатура (и поменяем ее передачу в командах)
-        if (rowsCount == 0 && optionalButtonsValues.length == 0) {
+        boolean hasInlineKeyboard = inlineKeyboardCommands != null && inlineKeyboardCommands.length != 0;
+        if (rowsCount == 0 && optionalButtonsValues.length == 0 && !hasInlineKeyboard) {
             message = new SendMessage();
-        } else {
+        } else if (!hasInlineKeyboard) {
             message = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, rowsCount, commandsList,
                     optionalButtonsValues);
+        } else {
+            message = InlineKeyboard.INSTANCE.createSendMessage(chatId, text, inlineKeyboardCommands.length / 4,
+                    commandsList);
         }
         message.setChatId(chatId.toString());
         message.setParseMode(ParseMode.HTML);
         message.setText(text);
         message.disableWebPagePreview();
-        if (inlineKeyboardMarkup != null) {
-            message.setReplyMarkup(inlineKeyboardMarkup);
-        }
 
         try {
             absSender.execute(message);

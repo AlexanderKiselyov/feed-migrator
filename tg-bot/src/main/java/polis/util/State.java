@@ -4,15 +4,15 @@ import java.util.Map;
 import java.util.Objects;
 
 public enum State implements IState {
-    Start("start", "Старт"),
-    AddTgChannel("add_tg_channel", "Добавление Телеграм-канала"),
-    MainMenu("main_menu", "Главное меню"),
-    TgChannelDescription("tg_channel_description", "Информация по Телеграм-каналу"),
-    TgChannelsList("tg_channels_list", "Список добавленных Телеграм-каналов"),
-    TgSyncGroups("tg_sync_groups", "Список синхронизованных с Телеграм-каналов групп"),
-    GroupDescription("group_description", "Описание группы"),
-    OkAuth("okauth", "Авторизация в Одноклассниках"),
-    Sync("sync", "Синхронизация социальных сетей с ботом");
+    Start("start", "\uD83D\uDC4B Старт"),
+    AddTgChannel("add_tg_channel", "➕ Добавление Телеграм-канала"),
+    MainMenu("main_menu", "\uD83E\uDDED Главное меню"),
+    TgChannelDescription("tg_channel_description", "\uD83D\uDCC3 Информация по Телеграм-каналу"),
+    TgChannelsList("tg_channels_list", "✅\uD83C\uDFAF\uD83E\uDEAA Список добавленных Телеграм-каналов"),
+    TgSyncGroups("tg_sync_groups", "✅\uD83C\uDFAF Список синхронизованных с Телеграм-каналов групп"),
+    GroupDescription("group_description", "\uD83D\uDCD1 Описание группы"),
+    OkAuth("okauth", "\uD83C\uDF10\uD83E\uDEAA Авторизация в Одноклассниках"),
+    Sync("sync", "\uD83D\uDD04 Синхронизация социальных сетей с ботом");
 
     private final String identifier;
     private final String description;
