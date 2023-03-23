@@ -34,7 +34,7 @@ public class AddOkAccount extends Command {
                     messageText,
                     rowsCount,
                     commandsForKeyboard,
-                    null,
+                    null, null,
                     GO_BACK_BUTTON_TEXT);
         } catch (URISyntaxException e) {
             logger.error(String.format("Cannot form link: %s", e));

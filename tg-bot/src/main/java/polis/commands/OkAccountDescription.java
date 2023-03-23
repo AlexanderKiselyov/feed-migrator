@@ -6,7 +6,10 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.util.AuthData;
 import polis.util.State;
 
+import java.util.List;
 import java.util.Map;
+
+import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 public class OkAccountDescription extends Command {
     private static final String ACCOUNT_DESCRIPTION = """
@@ -15,6 +18,11 @@ public class OkAccountDescription extends Command {
             Невозможно получить информацию по текущему аккаунту.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
     private final Map<Long, AuthData> currentSocialMediaAccount;
+    private static final int rowsCount = 1;
+    private static final List<String> commandsForKeyboard = List.of(
+            State.OkAccountGroups.getDescription(),
+            State.AddOkGroup.getDescription()
+    );
 
     public OkAccountDescription(String commandIdentifier, String description,
                                 Map<Long, AuthData> currentSocialMediaAccount) {
@@ -32,7 +40,8 @@ public class OkAccountDescription extends Command {
                     String.format(ACCOUNT_DESCRIPTION, currentSocialMediaAccount.get(chat.getId()).getUsername()),
                     rowsCount,
                     commandsForKeyboard,
-                    null);
+                    null,null,
+                    GO_BACK_BUTTON_TEXT);
         } else {
             sendAnswer(absSender,
                     chat.getId(),
@@ -41,7 +50,8 @@ public class OkAccountDescription extends Command {
                     String.format(NOT_VALID_ACCOUNT, State.AddGroup.getIdentifier()),
                     rowsCount,
                     commandsForKeyboard,
-                    null);
+                    null,null,
+                    GO_BACK_BUTTON_TEXT);
         }
     }
 }

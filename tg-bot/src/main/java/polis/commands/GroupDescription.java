@@ -35,7 +35,7 @@ public class GroupDescription extends Command {
                             currentGroup.get(chat.getId()).getSocialMedia().getName()),
                     rowsCount,
                     commandsForKeyboard,
-                    null,
+                    null,null,
                     GO_BACK_BUTTON_TEXT);
         } else {
             sendAnswer(
@@ -46,7 +46,7 @@ public class GroupDescription extends Command {
                     String.format(NO_VALID_GROUP, State.TgChannelDescription.getIdentifier()),
                     rowsCount,
                     commandsForKeyboard,
-                    null,
+                    null,null,
                     GO_BACK_BUTTON_TEXT);
         }
     }

@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
+
 public class SyncOkTg extends Command {
     private static final String SYNC_OK_TG = """
             Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.
@@ -24,6 +26,7 @@ public class SyncOkTg extends Command {
     private final Map<Long, TelegramChannel> currentTgChannel;
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup;
     private final TelegramDataCheck telegramDataCheck;
+    private static final int rowsCount = 1;
 
     public SyncOkTg(String commandIdentifier, String description, Map<Long, TelegramChannel> currentTgChannel,
                     Map<Long, SocialMediaGroup> currentSocialMediaGroup) {
@@ -47,8 +50,23 @@ public class SyncOkTg extends Command {
                             currentSocialMediaGroup.get(chat.getId()).getName(),
                             currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName()
                     ),
-                    0,
+                    super.rowsCount,
                     commandsForKeyboard,
+                    null,null,
+                    GO_BACK_BUTTON_TEXT);
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    String.format(
+                            SYNC_OK_TG,
+                            telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()).getTelegramChannelId()),
+                            currentSocialMediaGroup.get(chat.getId()).getName(),
+                            currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName()
+                    ),
+                    rowsCount,
+                    commandsForKeyboard,null,
                     yesNoMarkup());
         } else {
             sendAnswer(
@@ -60,10 +78,21 @@ public class SyncOkTg extends Command {
                             NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP,
                             State.MainMenu.getIdentifier()
                     ),
-                    0,
+                    super.rowsCount,
                     commandsForKeyboard,
-                    null);
+                    null, null,
+                    GO_BACK_BUTTON_TEXT);
         }
+    }
+
+    // TODO: рефакторинг и перенос функционала inline-клавиатуры в класс InlineKeyboard в процессе
+    private String[] yesNoList() {
+        return new String[] {
+                "Да",
+                "yesNo 0",
+                "Нет",
+                "yesNo 1"
+        };
     }
 
     private InlineKeyboardMarkup yesNoMarkup() {

@@ -4,6 +4,8 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
+import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
+
 public class AddOkGroup extends Command {
     private static final String ADD_OK_GROUP = """
             Чтобы добавить новую группу, введите в чат ссылку на нее.
@@ -24,6 +26,7 @@ public class AddOkGroup extends Command {
                 ADD_OK_GROUP,
                 rowsCount,
                 commandsForKeyboard,
-                null);
+                null,null,
+                GO_BACK_BUTTON_TEXT);
     }
 }

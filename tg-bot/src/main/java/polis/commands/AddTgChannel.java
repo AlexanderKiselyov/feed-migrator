@@ -15,6 +15,7 @@ public class AddTgChannel extends Command {
             3. Прислать ссылку в данный диалог.""";
     private static final int rowsCount = 1;
     private static final List<String> commandsForKeyboard = List.of(
+            // TODO: Добавить проверку, и если канал успешно добавлен - добавить кнопку tg_channel_description
             State.MainMenu.getDescription()
     );
 
@@ -31,7 +32,7 @@ public class AddTgChannel extends Command {
                 user.getUserName(),
                 ADD_TELEGRAM_CHANNEL,
                 rowsCount,
-                commandsForKeyboard,
+                commandsForKeyboard, null,
                 null);
     }
 }

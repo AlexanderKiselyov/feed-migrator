@@ -12,7 +12,7 @@ public class MainMenu extends Command {
     private static final String MAIN_MENU = """
             Добро пожаловать в главное меню!
             """;
-    private static final int rowsCount = 1;
+    private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
             State.TgChannelsList.getDescription(),
             State.AddTgChannel.getDescription()
@@ -31,7 +31,7 @@ public class MainMenu extends Command {
                 user.getUserName(),
                 MAIN_MENU,
                 rowsCount,
-                commandsForKeyboard,
+                commandsForKeyboard,null,
                 null);
     }
 }

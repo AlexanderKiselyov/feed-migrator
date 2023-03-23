@@ -12,9 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
+
 public class AccountsList extends Command {
+    // TODO: Добавить текст, чтобы отправлять два сообщения (для двух разных клавиатур)
     private static final String ACCOUNTS_LIST = """
             Список аккаунтов:""";
+    private static final String ACCOUNTS_LIST_INLINE = "TODO сообщение";
     private static final String NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST = """
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
@@ -27,16 +31,27 @@ public class AccountsList extends Command {
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        if (socialMediaAccounts.containsKey(chat.getId()) && socialMediaAccounts.get(chat.getId()).size() != 0) {
+        List<AuthData> authDataList = socialMediaAccounts.get(chat.getId());
+        if (socialMediaAccounts.containsKey(chat.getId()) && authDataList.size() != 0) {
             sendAnswer(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     ACCOUNTS_LIST,
-                    0,
+                    rowsCount,
                     commandsForKeyboard,
-                    getAccountsMarkup(socialMediaAccounts.get(chat.getId())));
+                    null, null,
+                    GO_BACK_BUTTON_TEXT);
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    ACCOUNTS_LIST_INLINE,
+                    authDataList.size(),
+                    commandsForKeyboard, null,
+                    getAccountsMarkup(authDataList));
         } else {
             sendAnswer(
                     absSender,
@@ -46,8 +61,25 @@ public class AccountsList extends Command {
                     String.format(NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST, State.AddGroup.getIdentifier()),
                     rowsCount,
                     commandsForKeyboard,
-                    null);
+                    null,null,
+                    GO_BACK_BUTTON_TEXT);
         }
+    }
+
+    // TODO: рефакторинг и перенос функционала inline-клавиатуры в класс InlineKeyboard в процессе
+    private String[] getAccountsArray(List<AuthData> socialMediaAccounts) {
+        String[] buttons = new String[socialMediaAccounts.size() * 2];
+        for (int i = 0; i < socialMediaAccounts.size(); i++) {
+            int tmpIndex = i * 2;
+            buttons[tmpIndex] = String.format("%s (%s)", socialMediaAccounts.get(i).getUsername(),
+                    socialMediaAccounts.get(i).getSocialMedia().getName());
+            buttons[tmpIndex + 1] = String.format("account %s %s %s",
+                    socialMediaAccounts.get(i).getSocialMedia().getName(),
+                    socialMediaAccounts.get(i).getAccessToken(),
+                    socialMediaAccounts.get(i).getUsername());
+        }
+
+        return buttons;
     }
 
     private InlineKeyboardMarkup getAccountsMarkup(List<AuthData> socialMediaAccounts) {

@@ -21,10 +21,11 @@ public class TgChannelDescription extends Command {
             State.MainMenu.getIdentifier());
     private final Map<Long, TelegramChannel> currentTgChannel;
     private final TelegramDataCheck telegramDataCheck;
-    private static final int rowsCount = 1;
+    private static final int rowsCount = 3;
     private static final List<String> commandsForKeyboard = List.of(
             State.TgSyncGroups.getDescription(),
-            State.MainMenu.getDescription() // TODO: добавить команду добавления группы
+            State.AddGroup.getDescription(),
+            State.MainMenu.getDescription()
     );
 
     public TgChannelDescription(String commandIdentifier, String description, Map<Long,
@@ -45,7 +46,7 @@ public class TgChannelDescription extends Command {
                     String.format(TELEGRAM_CHANNEL_DESCRIPTION,
                             telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()).getTelegramChannelId())),
                     rowsCount,
-                    commandsForKeyboard,
+                    commandsForKeyboard,null,
                     null);
         } else {
             sendAnswer(
@@ -55,7 +56,7 @@ public class TgChannelDescription extends Command {
                     user.getUserName(),
                     NOT_VALID_CHANNEL,
                     rowsCount,
-                    commandsForKeyboard,
+                    commandsForKeyboard,null,
                     null);
         }
     }
