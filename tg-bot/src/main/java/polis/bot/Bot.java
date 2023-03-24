@@ -276,13 +276,17 @@ public class Bot extends TelegramLongPollingCommandBot {
                 }
             }
             case "account" -> {
-                switch (dataParts[1]) {
-                    case "OK" -> {
+                if (Objects.equals(dataParts[1], SocialMedia.OK.getName())) {
+                    if (dataParts.length == 5) {
+                        currentSocialMediaAccount.put(chatId, new AuthData(SocialMedia.OK, dataParts[2],
+                                String.format("%s %s", dataParts[3], dataParts[4])));
+                    } else {
                         currentSocialMediaAccount.put(chatId, new AuthData(SocialMedia.OK, dataParts[2], dataParts[3]));
-                        getRegisteredCommand(State.OkAccountDescription.getIdentifier())
-                                .processMessage(this, msg, null);
                     }
-                    default -> logger.error(String.format("Unknown social media. Inline keyboard data: %s", data));
+                    getRegisteredCommand(State.OkAccountDescription.getIdentifier())
+                            .processMessage(this, msg, null);
+                } else {
+                    logger.error(String.format("Unknown social media. Inline keyboard data: %s", data));
                 }
             }
             case "yesNo" -> {
