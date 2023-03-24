@@ -20,6 +20,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,7 +29,8 @@ public class OKDataCheck {
     private static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
             "Введенный код авторизации не верный. Пожалуйста, попробуйте еще раз.";
     private static final String OK_AUTH_STATE_ANSWER = """
-            Вы были успешно авторизованы в социальной сети Одноклассники.""";
+            Вы были успешно авторизованы в социальной сети Одноклассники.
+            Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
     private static final String OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = "Ошибка на сервере. Попробуйте еще раз.";
     private static final String OK_GROUP_ADDED = """
             Группа была успешно добавлена.
@@ -63,11 +65,14 @@ public class OKDataCheck {
             }
             AuthData newAccount = new AuthData(SocialMedia.OK, pair.accessToken(), getOKUsername(pair.accessToken()));
             currentSocialMediaAccount.put(chatId, newAccount);
+            socialMediaAccounts.computeIfAbsent(chatId, k -> new ArrayList<>());
             socialMediaAccounts.get(chatId).add(newAccount);
 
             states.put(chatId, Substate.nextSubstate(State.OkAccountDescription));
 
-            return new NonCommand.AnswerPair(OK_AUTH_STATE_ANSWER, false);
+            return new NonCommand.AnswerPair(
+                    String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
+                    false);
         } catch (Exception e) {
             logger.error(String.format("Unknown error: %s", e.getMessage()));
             return new NonCommand.AnswerPair(OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, true);

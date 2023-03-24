@@ -16,7 +16,7 @@ import java.util.Objects;
 
 public class NonCommand {
     private static final String START_STATE_ANSWER = "Не могу распознать команду. Попробуйте еще раз.";
-    private static final String BOT_WRONG_STATE_ANSWER = "Неверное состояние бота. Попробуйте еще раз.";
+    private static final String BOT_WRONG_STATE_ANSWER = "Неверная команда бота. Попробуйте еще раз.";
     private static final String WRONG_LINK_TELEGRAM = """
              Ссылка неверная.
              Пожалуйста, проверьте, что ссылка на канал является верной и введите ссылку еще раз.""";
