@@ -13,7 +13,7 @@ import java.util.Map;
 public class TgChannelDescription extends Command {
     // TODO добавить описание вариантов дальнейших действий
     private static final String TELEGRAM_CHANNEL_DESCRIPTION = """
-            Текущий выбранный телеграм-канал <b>%s</b>.
+            Текущий выбранный телеграм - канал "<b>%s</b>".
             """;
     private static final String NOT_VALID_CHANNEL = String.format("""
             Телеграм-канал не был выбран.

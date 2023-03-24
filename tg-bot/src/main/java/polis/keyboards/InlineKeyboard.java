@@ -1,5 +1,6 @@
 package polis.keyboards;
 
+import javassist.compiler.ast.Symbol;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -15,7 +16,7 @@ public class InlineKeyboard extends Keyboard {
     public synchronized void getKeyboard(SendMessage sendMessage, int rowsCount, List<String> commands,
                                          String... optionalButtonsValues) {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-
+        System.out.println("Start inline keyboard rows = " + rowsCount + " values count = " + optionalButtonsValues.length);
         int buttonsAtTheRow = (int) Math.ceil((double) optionalButtonsValues.length / rowsCount);
 
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
@@ -34,5 +35,6 @@ public class InlineKeyboard extends Keyboard {
 
         inlineKeyboardMarkup.setKeyboard(keyboard);
         sendMessage.setReplyMarkup(inlineKeyboardMarkup);
+        System.out.println("Keyboard created rows: " + keyboard.size());
     }
 }
