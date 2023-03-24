@@ -21,7 +21,7 @@ public class SyncOkTg extends Command {
             Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.
             Хотите ли Вы синхронизироовать их?""";
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
-            Невозможно свзяать Телеграм-канал и группу.
+            Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private final Map<Long, TelegramChannel> currentTgChannel;
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup;

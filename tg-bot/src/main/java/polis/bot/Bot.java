@@ -27,6 +27,7 @@ import polis.commands.OkAccountGroups;
 import polis.commands.OkGroupDescription;
 import polis.commands.StartCommand;
 import polis.commands.SyncOkTg;
+import polis.commands.SyncOkTgDescription;
 import polis.commands.TgChannelDescription;
 import polis.commands.TgChannelsList;
 import polis.commands.TgSyncGroups;
@@ -98,6 +99,8 @@ public class Bot extends TelegramLongPollingCommandBot {
                 State.OkGroupDescription.getDescription(), currentSocialMediaGroup));
         register(new SyncOkTg(State.SyncOkTg.getIdentifier(), State.SyncOkTg.getDescription(),
                 currentTgChannel, currentSocialMediaGroup));
+        register(new SyncOkTgDescription(State.SyncOkTgDescription.getIdentifier(),
+                State.SyncOkTgDescription.getDescription(), currentTgChannel, currentSocialMediaGroup));
     }
 
     @Override
@@ -173,11 +176,14 @@ public class Bot extends TelegramLongPollingCommandBot {
         NonCommand.AnswerPair answer = nonCommand.nonCommandExecute(messageText, chatId, currState);
         if (answer.getError()) {
             msg.setText(answer.getAnswer());
-            getRegisteredCommand(currState.getIdentifier()).processMessage(this, msg, null);
+            if (currState != null) {
+                getRegisteredCommand(currState.getIdentifier()).processMessage(this, msg, null);
+                return;
+            }
         } else {
-            setAnswer(chatId, getUserName(msg), answer.getAnswer());
             currentState.put(chatId, Substate.nextSubstate(currState));
         }
+        setAnswer(chatId, getUserName(msg), answer.getAnswer());
     }
 
     private String getUserName(Message msg) {
