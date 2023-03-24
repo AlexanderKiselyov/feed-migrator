@@ -18,7 +18,7 @@ public class OkGroupDescription extends Command {
             Не удалось получить группу Одноклассников.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup;
-    private static final int rowsCount = 1;
+    private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
             State.SyncOkTg.getDescription()
     );

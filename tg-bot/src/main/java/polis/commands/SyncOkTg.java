@@ -18,7 +18,8 @@ import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 public class SyncOkTg extends Command {
     private static final String SYNC_OK_TG = """
-            Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.
+            Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";
+    private static final String SYNC_OK_TG_INLINE = """
             Хотите ли Вы синхронизироовать их?""";
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
             Невозможно свзяать Телеграм-канал и группу.
@@ -60,7 +61,7 @@ public class SyncOkTg extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(
-                            SYNC_OK_TG,
+                            SYNC_OK_TG_INLINE,
                             telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()).getTelegramChannelId()),
                             currentSocialMediaGroup.get(chat.getId()).getName(),
                             currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName()

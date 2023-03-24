@@ -17,7 +17,8 @@ import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 public class TgSyncGroups extends Command {
     private static final String TG_SYNC_GROUPS = """
-            Список синхронизованных групп.
+            Список синхронизованных групп.""";
+    private static final String TG_SYNC_GROUPS_INLINE = """
             Для выбора определенной группы - нажмите на нужную группу.
             Для удаления группы - нажмите 'Удалить' справа от группы.""";
     private static final String NO_SYNC_GROUPS = """
@@ -36,15 +37,6 @@ public class TgSyncGroups extends Command {
         if (telegramChannel != null && telegramChannel.getSynchronizedGroups() != null
                 && telegramChannel.getSynchronizedGroups().size() != 0) {
             List<SocialMediaGroup> synchronizedGroups = telegramChannel.getSynchronizedGroups();
-            sendAnswer(
-                    absSender,
-                    chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
-                    TG_SYNC_GROUPS,
-                    synchronizedGroups.size(),
-                    commandsForKeyboard, null,
-                    getTgChannelGroupsMarkup(synchronizedGroups));
             sendAnswer(absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
@@ -54,6 +46,15 @@ public class TgSyncGroups extends Command {
                     commandsForKeyboard,
                     null,null,
                     GO_BACK_BUTTON_TEXT);
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    TG_SYNC_GROUPS_INLINE,
+                    synchronizedGroups.size(),
+                    commandsForKeyboard, null,
+                    getTgChannelGroupsMarkup(synchronizedGroups));
         } else {
             sendAnswer(
                     absSender,
