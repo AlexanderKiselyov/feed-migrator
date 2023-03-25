@@ -7,14 +7,21 @@ import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.ok.api.OKClient;
 import polis.ok.api.OkApiException;
-import polis.ok.domain.*;
+import polis.ok.domain.Attachment;
+import polis.ok.domain.Photo;
+import polis.ok.domain.PhotoMedia;
+import polis.ok.domain.PollMedia;
+import polis.ok.domain.TextMedia;
+import polis.ok.domain.VideoMedia;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class OkPostingHelper extends PostingHelper {
     private final Bot bot;
@@ -63,10 +70,10 @@ public class OkPostingHelper extends PostingHelper {
                 try {
                     photoPathResponse = bot.tgApiHelper.retrieveFilePath(bot.botToken, tgPhoto.getFileId());
                 } catch (URISyntaxException e) {
-                    bot.setAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: " + e.getMessage());
+                    bot.sendAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: " + e.getMessage());
                     throw e;
                 } catch (IOException e) {
-                    bot.setAnswer(chatId, "Проблемы при получении от сервера Телеграмма расположения фотографий: " + e.getMessage());
+                    bot.sendAnswer(chatId, "Проблемы при получении от сервера Телеграмма расположения фотографий: " + e.getMessage());
                     throw e;
                 }
 
@@ -85,13 +92,13 @@ public class OkPostingHelper extends PostingHelper {
                 okClient.uploadPhotos(accessToken, groupId, photos)
                         .stream().map(Photo::new).forEach(photoMedia::addPhoto);
             } catch (URISyntaxException e) {
-                bot.setAnswer(chatId, "Проблема при формировании url, проверьте введённые данные: " + e.getMessage());
+                bot.sendAnswer(chatId, "Проблема при формировании url, проверьте введённые данные: " + e.getMessage());
                 throw e;
             } catch (OkApiException e) {
-                bot.setAnswer(chatId, "Проблема при загрузке фото из Телеграмма " + e.getMessage());
+                bot.sendAnswer(chatId, "Проблема при загрузке фото из Телеграмма " + e.getMessage());
                 throw e;
             } catch (IOException e) {
-                bot.setAnswer(chatId, "Проблемы с сетью при загрузке фото в Одноклассники: " + e.getMessage());
+                bot.sendAnswer(chatId, "Проблемы с сетью при загрузке фото в Одноклассники: " + e.getMessage());
                 throw e;
             }
             attachment.addMedia(photoMedia);
@@ -108,10 +115,10 @@ public class OkPostingHelper extends PostingHelper {
             try {
                 videoPathResponse = bot.tgApiHelper.retrieveFilePath(bot.botToken, fileId);
             } catch (URISyntaxException e) {
-                bot.setAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: " + e.getMessage());
+                bot.sendAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: " + e.getMessage());
                 throw e;
             } catch (IOException e) {
-                bot.setAnswer(chatId, "Проблемы при получении расположения видео: " + e.getMessage());
+                bot.sendAnswer(chatId, "Проблемы при получении расположения видео: " + e.getMessage());
                 throw e;
             }
             File file;
@@ -120,20 +127,20 @@ public class OkPostingHelper extends PostingHelper {
                 String origExtension = filePath.substring(filePath.lastIndexOf('.'));
                 file = withExtension(origExtension, bot.downloadFile(filePath));
             } catch (TelegramApiException e) {
-                bot.setAnswer(chatId, "Проблема при загрузке видео из Телеграмма " + e.getMessage());
+                bot.sendAnswer(chatId, "Проблема при загрузке видео из Телеграмма " + e.getMessage());
                 throw e;
             }
             long videoId;
             try {
                 videoId = okClient.uploadVideo(accessToken, groupId, file);
             } catch (URISyntaxException e) {
-                bot.setAnswer(chatId, "Проблема при формировании url, проверьте введённые данные: " + e.getMessage());
+                bot.sendAnswer(chatId, "Проблема при формировании url, проверьте введённые данные: " + e.getMessage());
                 throw e;
             } catch (OkApiException e) {
-                bot.setAnswer(chatId, e.getMessage());
+                bot.sendAnswer(chatId, e.getMessage());
                 throw e;
             } catch (IOException e) {
-                bot.setAnswer(chatId, "Проблемы с сетью при загрузке видео в Одноклассники: " + e.getMessage());
+                bot.sendAnswer(chatId, "Проблемы с сетью при загрузке видео в Одноклассники: " + e.getMessage());
                 throw e;
             }
             attachment.addMedia(new VideoMedia(Collections.singletonList(new polis.ok.domain.Video(videoId))));
