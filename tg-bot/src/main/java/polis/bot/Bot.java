@@ -42,20 +42,20 @@ import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
 public class Bot extends TelegramLongPollingCommandBot {
+    private final String botName;
+    private final String botToken;
     private final NonCommand nonCommand;
     private final Map<Long, IState> states = new ConcurrentHashMap<>();
     private final Map<Long, List<AuthData>> socialMedia = new ConcurrentHashMap<>();
+    private final Logger logger = LoggerFactory.getLogger(Bot.class);
     private final Properties properties = new Properties();
-    private final OkPostingHelper helper = new OkPostingHelper(this, new OkClientImpl());
-    final String botName;
-    final String botToken;
-    final Logger logger = LoggerFactory.getLogger(Bot.class);
-    final TgApiHelper tgApiHelper = new TgApiHelper();
+    private final OkPostingHelper helper;
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
         this.botName = botName;
         this.botToken = botToken;
+        this.helper = new OkPostingHelper(this, botToken, new TgApiHelper(), new OkClientImpl());
 
         loadProperties();
 

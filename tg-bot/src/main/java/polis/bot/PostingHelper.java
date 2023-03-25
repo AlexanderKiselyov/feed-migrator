@@ -11,9 +11,13 @@ import java.util.List;
 
 abstract class PostingHelper {
     final Bot bot;
+    final String botToken;
+    final TgApiHelper tgApiHelper;
 
-    PostingHelper(Bot bot) {
+    PostingHelper(Bot bot, String botToken, TgApiHelper tgApiHelper) {
         this.bot = bot;
+        this.botToken = botToken;
+        this.tgApiHelper = tgApiHelper;
     }
 
     abstract Post newPost(long chatId, long groupId, String accessToken);

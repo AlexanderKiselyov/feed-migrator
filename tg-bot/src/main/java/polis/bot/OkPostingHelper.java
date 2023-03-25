@@ -24,12 +24,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class OkPostingHelper extends PostingHelper {
-    private final Bot bot;
     private final OKClient okClient;
 
-    public OkPostingHelper(Bot bot, OKClient okClient) {
-        super(bot);
-        this.bot = bot;
+    public OkPostingHelper(Bot bot, String botToken, TgApiHelper tgApiHelper, OKClient okClient) {
+        super(bot, botToken, tgApiHelper);
         this.okClient = okClient;
     }
 
@@ -68,7 +66,7 @@ public class OkPostingHelper extends PostingHelper {
             for (PhotoSize tgPhoto : tgPhotos) {
                 TgApiHelper.GetFilePathResponse photoPathResponse;
                 try {
-                    photoPathResponse = bot.tgApiHelper.retrieveFilePath(bot.botToken, tgPhoto.getFileId());
+                    photoPathResponse = tgApiHelper.retrieveFilePath(botToken, tgPhoto.getFileId());
                 } catch (URISyntaxException e) {
                     bot.sendAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: " + e.getMessage());
                     throw e;
@@ -113,7 +111,7 @@ public class OkPostingHelper extends PostingHelper {
             String fileId = video.getFileId();
             TgApiHelper.GetFilePathResponse videoPathResponse;
             try {
-                videoPathResponse = bot.tgApiHelper.retrieveFilePath(bot.botToken, fileId);
+                videoPathResponse = tgApiHelper.retrieveFilePath(botToken, fileId);
             } catch (URISyntaxException e) {
                 bot.sendAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: " + e.getMessage());
                 throw e;
