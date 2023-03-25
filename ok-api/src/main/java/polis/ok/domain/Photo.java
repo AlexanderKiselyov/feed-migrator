@@ -1,6 +1,8 @@
 package polis.ok.domain;
 
-public class Photo {
+import java.io.Serializable;
+
+public final class Photo implements Serializable {
     public final String id;
 
     public Photo(String id) {

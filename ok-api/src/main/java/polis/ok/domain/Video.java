@@ -1,6 +1,8 @@
 package polis.ok.domain;
 
-public class Video {
+import java.io.Serializable;
+
+public final class Video implements Serializable {
     public final long id;
 
     public Video(long id) {
