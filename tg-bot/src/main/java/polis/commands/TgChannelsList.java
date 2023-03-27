@@ -2,14 +2,11 @@ package polis.commands;
 
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
 import polis.util.TelegramChannel;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +43,7 @@ public class TgChannelsList extends Command {
                     TG_CHANNELS_LIST,
                     rowsCount,
                     commandsForKeyboard,
-                    null, null);
+                    null);
             sendAnswer(
                     absSender,
                     chat.getId(),
@@ -54,8 +51,8 @@ public class TgChannelsList extends Command {
                     user.getUserName(),
                     TG_CHANNELS_LIST_INLINE,
                     channels.size(),
-                    commandsForKeyboard, null,
-                    getUserChannelsMarkup(channels)); //
+                    commandsForKeyboard,
+                    getUserChannelsArray(channels));
         } else {
             sendAnswer(
                     absSender,
@@ -64,42 +61,22 @@ public class TgChannelsList extends Command {
                     user.getUserName(),
                     String.format(NO_TG_CHANNELS, State.MainMenu.getIdentifier()),
                     rowsCount,
-                    commandsForKeyboard, null,
+                    commandsForKeyboard,
                     null);
         }
     }
 
-    // TODO: рефакторинг и перенос функционала inline-клавиатуры в класс InlineKeyboard в процессе
     private String[] getUserChannelsArray(List<TelegramChannel> channels) {
         String[] buttons = new String[channels.size() * 4];
         for (int i = 0; i < channels.size(); i++) {
             int tmpIndex = i * 4;
-            buttons[tmpIndex] = telegramDataCheck.getChatTitle(channels.get(i).getTelegramChannelId());
-            buttons[tmpIndex + 1] = String.format("tg_channel %s %d", channels.get(i), 0);
+            String telegramChannelId = channels.get(i).getTelegramChannelId();
+            buttons[tmpIndex] = telegramDataCheck.getChatTitle(telegramChannelId);
+            buttons[tmpIndex + 1] = String.format("tg_channel %s %d", telegramChannelId, 0);
             buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
-            buttons[tmpIndex + 3] = String.format("tg_channel %s %d", channels.get(i), 1);
+            buttons[tmpIndex + 3] = String.format("tg_channel %s %d", telegramChannelId, 1);
         }
 
         return buttons;
-    }
-
-    // TODO: переделаю это под метод из InlineKeyboard.java, а вызов будет в Command.java
-    private InlineKeyboardMarkup getUserChannelsMarkup(List<TelegramChannel> channels) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> channelsList = new ArrayList<>();
-        for (TelegramChannel channel : channels) {
-            InlineKeyboardButton channelButton = new InlineKeyboardButton();
-            channelButton.setText(telegramDataCheck.getChatTitle(channel.getTelegramChannelId()));
-            channelButton.setCallbackData(String.format("tg_channel %s %d", channel.getTelegramChannelId(), 0));
-            InlineKeyboardButton deleteChannel = new InlineKeyboardButton();
-            deleteChannel.setText("Удалить");
-            deleteChannel.setCallbackData(String.format("tg_channel %s %d", channel.getTelegramChannelId(), 1));
-            List<InlineKeyboardButton> channelActions = new ArrayList<>();
-            channelActions.add(channelButton);
-            channelActions.add(deleteChannel);
-            channelsList.add(channelActions);
-        }
-        inlineKeyboardMarkup.setKeyboard(channelsList);
-        return inlineKeyboardMarkup;
     }
 }

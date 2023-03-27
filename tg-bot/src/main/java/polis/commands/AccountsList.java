@@ -2,13 +2,10 @@ package polis.commands;
 
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.util.AuthData;
 import polis.util.State;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +38,7 @@ public class AccountsList extends Command {
                     ACCOUNTS_LIST,
                     rowsCount,
                     commandsForKeyboard,
-                    null, null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
             sendAnswer(
                     absSender,
@@ -50,8 +47,8 @@ public class AccountsList extends Command {
                     user.getUserName(),
                     ACCOUNTS_LIST_INLINE,
                     authDataList.size(),
-                    commandsForKeyboard, null,
-                    getAccountsMarkup(authDataList));
+                    commandsForKeyboard,
+                    getAccountsArray(authDataList));
         } else {
             sendAnswer(
                     absSender,
@@ -59,9 +56,9 @@ public class AccountsList extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST, State.AddGroup.getIdentifier()),
-                    rowsCount,
-                    commandsForKeyboard,
-                    null,null,
+                    1,
+                    List.of(State.AddGroup.getDescription()),
+                    null,
                     GO_BACK_BUTTON_TEXT);
         }
     }
@@ -80,24 +77,5 @@ public class AccountsList extends Command {
         }
 
         return buttons;
-    }
-
-    private InlineKeyboardMarkup getAccountsMarkup(List<AuthData> socialMediaAccounts) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> channelsList = new ArrayList<>();
-        for (AuthData socialMediaAccount : socialMediaAccounts) {
-            InlineKeyboardButton channel = new InlineKeyboardButton();
-            channel.setText(String.format("%s (%s)", socialMediaAccount.getUsername(),
-                    socialMediaAccount.getSocialMedia().getName()));
-            channel.setCallbackData(String.format("account %s %s %s",
-                    socialMediaAccount.getSocialMedia().getName(),
-                    socialMediaAccount.getAccessToken(),
-                    socialMediaAccount.getUsername()));
-            List<InlineKeyboardButton> accountActions = new ArrayList<>();
-            accountActions.add(channel);
-            channelsList.add(accountActions);
-        }
-        inlineKeyboardMarkup.setKeyboard(channelsList);
-        return inlineKeyboardMarkup;
     }
 }

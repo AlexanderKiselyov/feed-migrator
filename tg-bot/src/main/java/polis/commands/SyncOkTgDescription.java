@@ -46,9 +46,9 @@ public class SyncOkTgDescription extends Command {
                             currentSocialMediaGroup.get(chat.getId()).getName(),
                             currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName()
                     ),
-                    super.rowsCount,
+                    rowsCount,
                     commandsForKeyboard,
-                    null,null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
         } else {
             sendAnswer(
@@ -60,9 +60,9 @@ public class SyncOkTgDescription extends Command {
                             NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP_DESCRIPTION,
                             State.MainMenu.getIdentifier()
                     ),
-                    super.rowsCount,
+                    rowsCount,
                     commandsForKeyboard,
-                    null, null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
         }
     }

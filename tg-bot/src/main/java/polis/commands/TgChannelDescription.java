@@ -46,7 +46,7 @@ public class TgChannelDescription extends Command {
                     String.format(TELEGRAM_CHANNEL_DESCRIPTION,
                             telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()).getTelegramChannelId())),
                     rowsCount,
-                    commandsForKeyboard,null,
+                    commandsForKeyboard,
                     null);
         } else {
             sendAnswer(
@@ -56,7 +56,7 @@ public class TgChannelDescription extends Command {
                     user.getUserName(),
                     NOT_VALID_CHANNEL,
                     rowsCount,
-                    commandsForKeyboard,null,
+                    commandsForKeyboard,
                     null);
         }
     }

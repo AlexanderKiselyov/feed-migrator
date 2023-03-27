@@ -31,7 +31,7 @@ public class StartCommand extends Command {
                 user.getUserName(),
                 startAnswer,
                 rowsCount,
-                commandsForKeyboard,null,
+                commandsForKeyboard,
                 null);
     }
 }

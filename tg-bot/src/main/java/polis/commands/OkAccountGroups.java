@@ -2,22 +2,20 @@ package polis.commands;
 
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.util.AuthData;
 import polis.util.State;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static polis.bot.Bot.NO_CALLBACK_TEXT;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 public class OkAccountGroups extends Command {
     // TODO: Добавить текст, чтобы отправлять два сообщения (для двух разных клавиатур)
     private static final String OK_ACCOUNT_GROUPS = """
-            Список групп OK аккаунта <b>/%s</b>:""";
+            Список групп OK аккаунта <b>%s</b>:""";
     private static final String OK_ACCOUNT_GROUPS_INLINE = "TODO сообщение";
     private static final String NOT_VALID_SOCIAL_MEDIA_GROUPS_LIST = """
             Список групп ОК аккаунта пустой.
@@ -42,7 +40,7 @@ public class OkAccountGroups extends Command {
                     String.format(OK_ACCOUNT_GROUPS, currentSocialMediaAccount.get(chat.getId()).getUsername()),
                     rowsCount,
                     commandsForKeyboard,
-                    null,null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
             sendAnswer(
                     absSender,
@@ -51,8 +49,8 @@ public class OkAccountGroups extends Command {
                     user.getUserName(),
                     OK_ACCOUNT_GROUPS_INLINE,
                     groupLinks.size(),
-                    commandsForKeyboard, null,
-                    getGroupsMarkup(groupLinks));
+                    commandsForKeyboard,
+                    getGroupsArray(groupLinks));
         } else {
             sendAnswer(
                     absSender,
@@ -60,34 +58,20 @@ public class OkAccountGroups extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NOT_VALID_SOCIAL_MEDIA_GROUPS_LIST, State.MainMenu.getIdentifier()),
-                    rowsCount,
-                    commandsForKeyboard,
-                    null,null,
+                    1,
+                    List.of(State.MainMenu.getDescription()), // TODO: Ошибка при возврате в текущий аккаунт
+                    null,
                     GO_BACK_BUTTON_TEXT);
         }
     }
 
-    // TODO: рефакторинг и перенос функционала inline-клавиатуры в класс InlineKeyboard в процессе
     private String[] getGroupsArray(List<String> groupLinks) {
-        String[] buttons = new String[groupLinks.size()];
-        for (int i = 0; i < groupLinks.size(); i++) {
+        String[] buttons = new String[groupLinks.size() * 2];
+        for (int i = 0; i < groupLinks.size(); i += 2) {
             buttons[i] = groupLinks.get(i);
+            buttons[i + 1] = NO_CALLBACK_TEXT;
         }
 
         return buttons;
-    }
-
-    private InlineKeyboardMarkup getGroupsMarkup(List<String> groupLinks) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> channelsList = new ArrayList<>();
-        for (String groupLink : groupLinks) {
-            InlineKeyboardButton channel = new InlineKeyboardButton();
-            channel.setText(groupLink);
-            List<InlineKeyboardButton> groupActions = new ArrayList<>();
-            groupActions.add(channel);
-            channelsList.add(groupActions);
-        }
-        inlineKeyboardMarkup.setKeyboard(channelsList);
-        return inlineKeyboardMarkup;
     }
 }

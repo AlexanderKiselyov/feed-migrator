@@ -2,14 +2,11 @@ package polis.commands;
 
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.util.SocialMediaGroup;
 import polis.util.State;
 import polis.util.TelegramChannel;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +41,7 @@ public class TgSyncGroups extends Command {
                     TG_SYNC_GROUPS,
                     rowsCount,
                     commandsForKeyboard,
-                    null,null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
             sendAnswer(
                     absSender,
@@ -53,8 +50,8 @@ public class TgSyncGroups extends Command {
                     user.getUserName(),
                     TG_SYNC_GROUPS_INLINE,
                     synchronizedGroups.size(),
-                    commandsForKeyboard, null,
-                    getTgChannelGroupsMarkup(synchronizedGroups));
+                    commandsForKeyboard,
+                    getTgChannelGroupsArray(synchronizedGroups));
         } else {
             sendAnswer(
                     absSender,
@@ -62,9 +59,9 @@ public class TgSyncGroups extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
-                    rowsCount,
-                    commandsForKeyboard,
-                    null,null,
+                    1,
+                    List.of(State.TgChannelDescription.getDescription()),
+                    null,
                     GO_BACK_BUTTON_TEXT);
         }
     }
@@ -82,25 +79,5 @@ public class TgSyncGroups extends Command {
         }
 
         return buttons;
-    }
-
-    private InlineKeyboardMarkup getTgChannelGroupsMarkup(List<SocialMediaGroup> groups) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> channelsList = new ArrayList<>();
-        for (SocialMediaGroup socialMediaGroup : groups) {
-            InlineKeyboardButton channel = new InlineKeyboardButton();
-            channel.setText(String.format("%s (%s)", socialMediaGroup.getName(),
-                    socialMediaGroup.getSocialMedia().getName()));
-            channel.setCallbackData(String.format("group %s %d", socialMediaGroup.getId(), 0));
-            InlineKeyboardButton deleteChannel = new InlineKeyboardButton();
-            deleteChannel.setText("Удалить");
-            deleteChannel.setCallbackData(String.format("group %s %d", socialMediaGroup.getId(), 1));
-            List<InlineKeyboardButton> channelActions = new ArrayList<>();
-            channelActions.add(channel);
-            channelActions.add(deleteChannel);
-            channelsList.add(channelActions);
-        }
-        inlineKeyboardMarkup.setKeyboard(channelsList);
-        return inlineKeyboardMarkup;
     }
 }

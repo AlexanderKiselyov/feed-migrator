@@ -60,6 +60,7 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final Map<Long, AuthData> currentSocialMediaAccount = new ConcurrentHashMap<>();
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
+    public static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
@@ -162,6 +163,10 @@ public class Bot extends TelegramLongPollingCommandBot {
 
         if (messageText.equals(GO_BACK_BUTTON_TEXT)) {
             IState previousState = State.getPrevState(currentState.get(chatId));
+            if (previousState == null) {
+                logger.error("Previous state = null, tmp state = {}", currentState.get(chatId).getIdentifier());
+                return;
+            }
             currentState.put(chatId, previousState);
             getRegisteredCommand(previousState.getIdentifier()).processMessage(this, msg, null);
             return;
@@ -277,12 +282,16 @@ public class Bot extends TelegramLongPollingCommandBot {
             }
             case "account" -> {
                 if (Objects.equals(dataParts[1], SocialMedia.OK.getName())) {
-                    if (dataParts.length == 5) {
-                        currentSocialMediaAccount.put(chatId, new AuthData(SocialMedia.OK, dataParts[2],
-                                String.format("%s %s", dataParts[3], dataParts[4])));
-                    } else {
-                        currentSocialMediaAccount.put(chatId, new AuthData(SocialMedia.OK, dataParts[2], dataParts[3]));
+                    if (dataParts.length < 4) {
+                        logger.error(String.format("Wrong account-callback data: %s", data));
+                        return;
                     }
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (int i = 3; i < dataParts.length; i++) {
+                        stringBuilder.append(dataParts[i]);
+                    }
+                    currentSocialMediaAccount.put(chatId, new AuthData(SocialMedia.OK, dataParts[2],
+                            stringBuilder.toString()));
                     getRegisteredCommand(State.OkAccountDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 } else {
@@ -305,6 +314,8 @@ public class Bot extends TelegramLongPollingCommandBot {
                     getRegisteredCommand(State.OkGroupDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 }
+            }
+            case NO_CALLBACK_TEXT -> {
             }
             default -> logger.error(String.format("Unknown inline keyboard data: %s", data));
         }

@@ -28,11 +28,11 @@ import java.util.Objects;
 public class OKDataCheck {
     private static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
             "Введенный код авторизации не верный. Пожалуйста, попробуйте еще раз.";
-    private static final String OK_AUTH_STATE_ANSWER = """
+    public static final String OK_AUTH_STATE_ANSWER = """
             Вы были успешно авторизованы в социальной сети Одноклассники.
             Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
     private static final String OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = "Ошибка на сервере. Попробуйте еще раз.";
-    private static final String OK_GROUP_ADDED = """
+    public static final String OK_GROUP_ADDED = """
             Группа была успешно добавлена.
             Выберите /%s, чтобы продолжить настройку постинга.""";
     private static final String OK_METHOD_DO = "https://api.ok.ru/fb.do";

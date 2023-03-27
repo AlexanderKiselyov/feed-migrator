@@ -31,7 +31,7 @@ public class MainMenu extends Command {
                 user.getUserName(),
                 MAIN_MENU,
                 rowsCount,
-                commandsForKeyboard,null,
+                commandsForKeyboard,
                 null);
     }
 }

@@ -2,16 +2,12 @@ package polis.commands;
 
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.telegram.TelegramDataCheck;
 import polis.util.SocialMediaGroup;
 import polis.util.State;
 import polis.util.TelegramChannel;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
@@ -53,7 +49,7 @@ public class SyncOkTg extends Command {
                     ),
                     super.rowsCount,
                     commandsForKeyboard,
-                    null,null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
             sendAnswer(
                     absSender,
@@ -67,8 +63,8 @@ public class SyncOkTg extends Command {
                             currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName()
                     ),
                     rowsCount,
-                    commandsForKeyboard,null,
-                    yesNoMarkup());
+                    commandsForKeyboard,
+                    yesNoList());
         } else {
             sendAnswer(
                     absSender,
@@ -81,12 +77,11 @@ public class SyncOkTg extends Command {
                     ),
                     super.rowsCount,
                     commandsForKeyboard,
-                    null, null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
         }
     }
 
-    // TODO: рефакторинг и перенос функционала inline-клавиатуры в класс InlineKeyboard в процессе
     private String[] yesNoList() {
         return new String[] {
                 "Да",
@@ -94,22 +89,5 @@ public class SyncOkTg extends Command {
                 "Нет",
                 "yesNo 1"
         };
-    }
-
-    private InlineKeyboardMarkup yesNoMarkup() {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
-        InlineKeyboardButton yes = new InlineKeyboardButton();
-        yes.setText("Да");
-        yes.setCallbackData("yesNo 0");
-        InlineKeyboardButton no = new InlineKeyboardButton();
-        no.setText("Нет");
-        no.setCallbackData("yesNo 1");
-        List<InlineKeyboardButton> buttonsActions = new ArrayList<>();
-        buttonsActions.add(yes);
-        buttonsActions.add(no);
-        buttons.add(buttonsActions);
-        inlineKeyboardMarkup.setKeyboard(buttons);
-        return inlineKeyboardMarkup;
     }
 }

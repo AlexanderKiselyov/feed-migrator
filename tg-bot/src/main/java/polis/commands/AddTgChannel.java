@@ -32,7 +32,7 @@ public class AddTgChannel extends Command {
                 user.getUserName(),
                 ADD_TELEGRAM_CHANNEL,
                 rowsCount,
-                commandsForKeyboard, null,
+                commandsForKeyboard,
                 null);
     }
 }

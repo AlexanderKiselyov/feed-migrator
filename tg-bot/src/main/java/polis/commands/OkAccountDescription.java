@@ -18,7 +18,7 @@ public class OkAccountDescription extends Command {
             Невозможно получить информацию по текущему аккаунту.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
     private final Map<Long, AuthData> currentSocialMediaAccount;
-    private static final int rowsCount = 1;
+    private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
             State.OkAccountGroups.getDescription(),
             State.AddOkGroup.getDescription()
@@ -40,7 +40,7 @@ public class OkAccountDescription extends Command {
                     String.format(ACCOUNT_DESCRIPTION, currentSocialMediaAccount.get(chat.getId()).getUsername()),
                     rowsCount,
                     commandsForKeyboard,
-                    null,null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
         } else {
             sendAnswer(absSender,
@@ -50,7 +50,7 @@ public class OkAccountDescription extends Command {
                     String.format(NOT_VALID_ACCOUNT, State.AddGroup.getIdentifier()),
                     rowsCount,
                     commandsForKeyboard,
-                    null,null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
         }
     }

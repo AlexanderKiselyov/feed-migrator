@@ -44,7 +44,7 @@ public class AddGroup extends Command {
                             telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()).getTelegramChannelId())),
                     rowsCount,
                     commandsForKeyboard,
-                    null, null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
         } else {
             sendAnswer(
@@ -55,7 +55,7 @@ public class AddGroup extends Command {
                     String.format(NOT_VALID_TG_CHANNEL, State.MainMenu.getIdentifier()),
                     rowsCount,
                     commandsForKeyboard,
-                    null, null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
         }
     }

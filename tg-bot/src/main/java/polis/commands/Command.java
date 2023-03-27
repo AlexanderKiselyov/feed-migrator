@@ -5,10 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
 import java.util.List;
 
@@ -23,22 +23,17 @@ abstract class Command extends BotCommand {
     }
 
     void sendAnswer(AbsSender absSender, Long chatId, String commandName, String userName, String text, int rowsCount,
-                    List<String> commandsList, String[] inlineKeyboardCommands, InlineKeyboardMarkup inlineKeyboard,
-                    String... optionalButtonsValues) {
+                    List<String> commandsList, String[] inlineKeyboardCommands, String... optionalButtonsValues) {
         SendMessage message;
-        boolean hasInlineKeyboard = inlineKeyboardCommands != null && inlineKeyboardCommands.length != 0
-                || inlineKeyboard != null;
+        boolean hasInlineKeyboard = inlineKeyboardCommands != null && inlineKeyboardCommands.length != 0;
         if (rowsCount == 0 && optionalButtonsValues.length == 0 && !hasInlineKeyboard) {
             message = new SendMessage();
         } else if (!hasInlineKeyboard) {
             message = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, rowsCount, commandsList,
                     optionalButtonsValues);
         } else {
-            // TODO: рефакторинг и перенос функционала inline-клавиатуры в класс InlineKeyboard в процессе
-//            message = InlineKeyboard.INSTANCE.createSendMessage(chatId, text, inlineKeyboardCommands.length / 4,
-//                    commandsList);
-            message = new SendMessage();
-            message.setReplyMarkup(inlineKeyboard);
+            message = InlineKeyboard.INSTANCE.createSendMessage(chatId, text, rowsCount,
+                    commandsList, inlineKeyboardCommands);
         }
         message.setChatId(chatId.toString());
         message.setParseMode(ParseMode.HTML);

@@ -26,7 +26,7 @@ public class AddOkGroup extends Command {
                 ADD_OK_GROUP,
                 rowsCount,
                 commandsForKeyboard,
-                null,null,
+                null,
                 GO_BACK_BUTTON_TEXT);
     }
 }

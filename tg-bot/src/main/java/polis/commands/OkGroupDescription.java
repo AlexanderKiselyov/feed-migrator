@@ -18,7 +18,7 @@ public class OkGroupDescription extends Command {
             Не удалось получить группу Одноклассников.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup;
-    private static final int rowsCount = 2;
+    private static final int rowsCount = 1;
     private static final List<String> commandsForKeyboard = List.of(
             State.SyncOkTg.getDescription()
     );
@@ -40,7 +40,7 @@ public class OkGroupDescription extends Command {
                     String.format(OK_GROUP_DESCRIPTION, currentSocialMediaGroup.get(chat.getId()).getName()),
                     rowsCount,
                     commandsForKeyboard,
-                    null,null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
         } else {
             sendAnswer(
@@ -51,7 +51,7 @@ public class OkGroupDescription extends Command {
                     String.format(NOT_VALID_SOCIAL_MEDIA, State.MainMenu.getIdentifier()),
                     rowsCount,
                     commandsForKeyboard,
-                    null,null,
+                    null,
                     GO_BACK_BUTTON_TEXT);
         }
     }
