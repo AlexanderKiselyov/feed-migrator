@@ -66,7 +66,6 @@ public class TgSyncGroups extends Command {
         }
     }
 
-    // TODO: рефакторинг и перенос функционала inline-клавиатуры в класс InlineKeyboard в процессе
     private String[] getTgChannelGroupsArray(List<SocialMediaGroup> groups) {
         String[] buttons = new String[groups.size() * 4];
         for (int i = 0; i < groups.size(); i++) {

@@ -63,16 +63,14 @@ public class AccountsList extends Command {
         }
     }
 
-    // TODO: рефакторинг и перенос функционала inline-клавиатуры в класс InlineKeyboard в процессе
     private String[] getAccountsArray(List<AuthData> socialMediaAccounts) {
         String[] buttons = new String[socialMediaAccounts.size() * 2];
         for (int i = 0; i < socialMediaAccounts.size(); i++) {
             int tmpIndex = i * 2;
             buttons[tmpIndex] = String.format("%s (%s)", socialMediaAccounts.get(i).getUsername(),
                     socialMediaAccounts.get(i).getSocialMedia().getName());
-            buttons[tmpIndex + 1] = String.format("account %s %s %s",
+            buttons[tmpIndex + 1] = String.format("account %s %s",
                     socialMediaAccounts.get(i).getSocialMedia().getName(),
-                    socialMediaAccounts.get(i).getAccessToken(),
                     socialMediaAccounts.get(i).getUsername());
         }
 

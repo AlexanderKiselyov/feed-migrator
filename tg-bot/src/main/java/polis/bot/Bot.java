@@ -116,6 +116,7 @@ public class Bot extends TelegramLongPollingCommandBot {
 
     /**
      * Устанавливает бота в определенное состояние в зависимости от введенной пользователем команды.
+     *
      * @param message отправленное пользователем сообщение
      * @return false, так как боту необходимо всегда обработать входящее сообщение
      */
@@ -282,16 +283,27 @@ public class Bot extends TelegramLongPollingCommandBot {
             }
             case "account" -> {
                 if (Objects.equals(dataParts[1], SocialMedia.OK.getName())) {
-                    if (dataParts.length < 4) {
+                    if (dataParts.length < 3) {
                         logger.error(String.format("Wrong account-callback data: %s", data));
                         return;
                     }
-                    StringBuilder stringBuilder = new StringBuilder();
+                    StringBuilder stringBuilder = new StringBuilder(dataParts[2]);
                     for (int i = 3; i < dataParts.length; i++) {
-                        stringBuilder.append(dataParts[i]);
+                        stringBuilder
+                                .append(" ")
+                                .append(dataParts[i]);
                     }
-                    currentSocialMediaAccount.put(chatId, new AuthData(SocialMedia.OK, dataParts[2],
-                            stringBuilder.toString()));
+                    List<AuthData> accountData = socialMediaAccounts.get(chatId).stream().filter((account) ->
+                                    account.getSocialMedia().equals(SocialMedia.OK)
+                                            && account.getUsername().equals(stringBuilder.toString()))
+                            .toList();
+                    if (accountData.size() != 1) {
+                        logger.error(String.format("There is less or more than 1 account with such data: %s", data));
+                        return;
+                    }
+                    // TODO: Получение аккаунта не по названию (Имя Фамилия), а по id
+                    currentSocialMediaAccount.put(chatId, new AuthData(SocialMedia.OK,
+                            accountData.get(0).getAccessToken(), stringBuilder.toString()));
                     getRegisteredCommand(State.OkAccountDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 } else {
