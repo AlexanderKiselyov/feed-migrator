@@ -3,6 +3,7 @@ package polis.commands;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.ok.OKDataCheck;
 import polis.util.AuthData;
 import polis.util.State;
 
@@ -20,10 +21,13 @@ public class AccountsList extends Command {
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
     private final Map<Long, List<AuthData>> socialMediaAccounts;
+    private final OKDataCheck okDataCheck;
 
-    public AccountsList(String commandIdentifier, String description, Map<Long, List<AuthData>> socialMediaAccounts) {
+    public AccountsList(String commandIdentifier, String description, Map<Long, List<AuthData>> socialMediaAccounts,
+                        OKDataCheck okDataCheck) {
         super(commandIdentifier, description);
         this.socialMediaAccounts = socialMediaAccounts;
+        this.okDataCheck = okDataCheck;
     }
 
     @Override
@@ -68,12 +72,14 @@ public class AccountsList extends Command {
         String[] buttons = new String[socialMediaAccounts.size() * 2];
         for (int i = 0; i < socialMediaAccounts.size(); i++) {
             int tmpIndex = i * 2;
-            buttons[tmpIndex] = String.format("%s (%s)", socialMediaAccounts.get(i).getUsername(),
+            buttons[tmpIndex] = String.format("%s (%s)",
+                    okDataCheck.getOKUsername(socialMediaAccounts.get(i).getAccessToken()),
                     socialMediaAccounts.get(i).getSocialMedia().getName());
-            buttons[tmpIndex + 1] = String.format("account %s %s %s",
+            buttons[tmpIndex + 1] = String.format("account %s %d %s %s",
                     socialMediaAccounts.get(i).getSocialMedia().getName(),
+                    socialMediaAccounts.get(i).getTokenId(),
                     socialMediaAccounts.get(i).getAccessToken(),
-                    socialMediaAccounts.get(i).getUsername());
+                    socialMediaAccounts.get(i).getRefreshToken());
         }
 
         return buttons;

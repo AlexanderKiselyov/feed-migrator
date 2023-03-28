@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TelegramChannel {
-    private final String telegramChannelId;
+    private final Long telegramChannelId;
     private List<SocialMediaGroup> synchronizedGroups;
 
-    public TelegramChannel(String telegramChannelId, List<SocialMediaGroup> synchronizedGroups) {
+    public TelegramChannel(Long telegramChannelId, List<SocialMediaGroup> synchronizedGroups) {
         this.synchronizedGroups = synchronizedGroups;
         this.telegramChannelId = telegramChannelId;
     }
 
-    public String getTelegramChannelId() {
+    public Long getTelegramChannelId() {
         return telegramChannelId;
     }
 

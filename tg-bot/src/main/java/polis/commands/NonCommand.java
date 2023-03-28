@@ -60,7 +60,8 @@ public class NonCommand {
             }
             String checkChatId = text.split("/")[split.length - 1];
 
-            return telegramDataCheck.checkTelegramChannelLink(checkChatId, chatId, tgChannels, currentTgChannel);
+            return telegramDataCheck.checkTelegramChannelLink(Long.getLong(checkChatId), chatId, tgChannels,
+                    currentTgChannel);
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
             return okDataCheck.getOKAuthCode(text, chatId);
         } else if (state.equals(Substate.AddOkGroup_AddGroup)) {
@@ -72,16 +73,21 @@ public class NonCommand {
 
             Long groupId = okDataCheck.getOKGroupId(text, accessToken);
 
-            String groupName = okDataCheck.getOKGroupName(groupId, accessToken);
-
             AnswerPair answer = okDataCheck.checkOKGroupAdminRights(accessToken, groupId);
 
             if (!answer.getError()) {
                 currentSocialMediaGroup.put(chatId,
-                        new SocialMediaGroup(String.valueOf(groupId), groupName, SocialMedia.OK));
+                        new SocialMediaGroup(groupId,
+                                currentSocialMediaAccount.get(chatId).getTokenId(), SocialMedia.OK));
                 for (AuthData authData : socialMediaAccounts.get(chatId)) {
                     if (Objects.equals(authData.getAccessToken(), accessToken)) {
-                        authData.addGroupLink(text);
+                        for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
+                            if (Objects.equals(tgChannel.getTelegramChannelId(),
+                                    currentTgChannel.get(chatId).getTelegramChannelId())) {
+                                tgChannel.addGroup(new SocialMediaGroup(groupId,
+                                        authData.getTokenId(), authData.getSocialMedia()));
+                            }
+                        }
                         break;
                     }
                 }

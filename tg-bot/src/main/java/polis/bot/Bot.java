@@ -23,7 +23,6 @@ import polis.commands.GroupDescription;
 import polis.commands.MainMenu;
 import polis.commands.NonCommand;
 import polis.commands.OkAccountDescription;
-import polis.commands.OkAccountGroups;
 import polis.commands.OkGroupDescription;
 import polis.commands.StartCommand;
 import polis.commands.SyncOkTg;
@@ -53,10 +52,11 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final String botToken;
     private final OKDataCheck okDataCheck;
     private final NonCommand nonCommand;
-    private final Map<Long, IState> currentState = new ConcurrentHashMap<>();
-    private final Map<Long, List<TelegramChannel>> tgChannels = new ConcurrentHashMap<>();
-    private final Map<Long, TelegramChannel> currentTgChannel = new ConcurrentHashMap<>();
     private final Map<Long, List<AuthData>> socialMediaAccounts = new ConcurrentHashMap<>();
+    private final Map<Long, List<TelegramChannel>> tgChannels = new ConcurrentHashMap<>();
+    private final Map<Long, Long> tgChannelsOwners = new ConcurrentHashMap<>();
+    private final Map<Long, IState> currentState = new ConcurrentHashMap<>();
+    private final Map<Long, TelegramChannel> currentTgChannel = new ConcurrentHashMap<>();
     private final Map<Long, AuthData> currentSocialMediaAccount = new ConcurrentHashMap<>();
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
@@ -84,24 +84,24 @@ public class Bot extends TelegramLongPollingCommandBot {
         register(new TgChannelsList(State.TgChannelsList.getIdentifier(), State.TgChannelsList.getDescription(),
                 tgChannels));
         register(new TgSyncGroups(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription(),
-                currentTgChannel));
+                currentTgChannel, socialMediaAccounts, okDataCheck));
         register(new GroupDescription(State.GroupDescription.getIdentifier(), State.GroupDescription.getDescription(),
-                currentSocialMediaGroup));
+                currentSocialMediaGroup, currentSocialMediaAccount, okDataCheck));
         register(new AddGroup(State.AddGroup.getIdentifier(), State.AddGroup.getDescription(), currentTgChannel));
         register(new AddOkAccount(State.AddOkAccount.getIdentifier(), State.AddOkAccount.getDescription()));
         register(new OkAccountDescription(State.OkAccountDescription.getIdentifier(),
-                State.OkAccountDescription.getDescription(), currentSocialMediaAccount));
+                State.OkAccountDescription.getDescription(), currentSocialMediaAccount, okDataCheck));
         register(new AccountsList(State.AccountsList.getIdentifier(), State.AccountsList.getDescription(),
-                socialMediaAccounts));
-        register(new OkAccountGroups(State.OkAccountGroups.getIdentifier(), State.OkAccountGroups.getDescription(),
-                currentSocialMediaAccount));
+                socialMediaAccounts, okDataCheck));
         register(new AddOkGroup(State.AddOkGroup.getIdentifier(), State.AddOkGroup.getDescription()));
         register(new OkGroupDescription(State.OkGroupDescription.getIdentifier(),
-                State.OkGroupDescription.getDescription(), currentSocialMediaGroup));
+                State.OkGroupDescription.getDescription(), currentSocialMediaGroup, currentSocialMediaAccount,
+                okDataCheck));
         register(new SyncOkTg(State.SyncOkTg.getIdentifier(), State.SyncOkTg.getDescription(),
-                currentTgChannel, currentSocialMediaGroup));
+                currentTgChannel, currentSocialMediaGroup, currentSocialMediaAccount, okDataCheck));
         register(new SyncOkTgDescription(State.SyncOkTgDescription.getIdentifier(),
-                State.SyncOkTgDescription.getDescription(), currentTgChannel, currentSocialMediaGroup));
+                State.SyncOkTgDescription.getDescription(), currentTgChannel, currentSocialMediaGroup,
+                currentSocialMediaAccount, okDataCheck));
     }
 
     @Override
@@ -219,7 +219,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 if (Objects.equals(dataParts[2], "0")) {
                     TelegramChannel currentTelegramChannel = null;
                     for (TelegramChannel ch : tgChannels.get(chatId)) {
-                        if (Objects.equals(ch.getTelegramChannelId(), dataParts[1])) {
+                        if (Objects.equals(String.valueOf(ch.getTelegramChannelId()), dataParts[1])) {
                             currentTelegramChannel = ch;
                             break;
                         }
@@ -230,7 +230,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 } else if (Objects.equals(dataParts[2], "1")) {
                     List<TelegramChannel> channels = tgChannels.get(chatId);
                     for (TelegramChannel ch : channels) {
-                        if (Objects.equals(ch.getTelegramChannelId(), dataParts[1])) {
+                        if (Objects.equals(String.valueOf(ch.getTelegramChannelId()), dataParts[1])) {
                             channels.remove(ch);
                             break;
                         }
@@ -252,7 +252,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 if (Objects.equals(dataParts[2], "0")) {
                     SocialMediaGroup currentSocialMedia = null;
                     for (SocialMediaGroup smg : currentTgChannel.get(chatId).getSynchronizedGroups()) {
-                        if (Objects.equals(smg.getId(), dataParts[1])) {
+                        if (Objects.equals(String.valueOf(smg.getId()), dataParts[1])) {
                             currentSocialMedia = smg;
                             break;
                         }
@@ -263,7 +263,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 } else if (Objects.equals(dataParts[2], "1")) {
                     List<SocialMediaGroup> groups = currentTgChannel.get(chatId).getSynchronizedGroups();
                     for (SocialMediaGroup smg : groups) {
-                        if (Objects.equals(smg.getId(), dataParts[1])) {
+                        if (Objects.equals(String.valueOf(smg.getId()), dataParts[1])) {
                             currentTgChannel.get(chatId).deleteGroup(smg);
                             break;
                         }
@@ -282,16 +282,12 @@ public class Bot extends TelegramLongPollingCommandBot {
             }
             case "account" -> {
                 if (Objects.equals(dataParts[1], SocialMedia.OK.getName())) {
-                    if (dataParts.length < 4) {
+                    if (dataParts.length < 5) {
                         logger.error(String.format("Wrong account-callback data: %s", data));
                         return;
                     }
-                    StringBuilder stringBuilder = new StringBuilder();
-                    for (int i = 3; i < dataParts.length; i++) {
-                        stringBuilder.append(dataParts[i]);
-                    }
-                    currentSocialMediaAccount.put(chatId, new AuthData(SocialMedia.OK, dataParts[2],
-                            stringBuilder.toString()));
+                    currentSocialMediaAccount.put(chatId, new AuthData(SocialMedia.OK, Integer.getInteger(dataParts[2]),
+                            dataParts[3], dataParts[4]));
                     getRegisteredCommand(State.OkAccountDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 } else {
@@ -311,6 +307,22 @@ public class Bot extends TelegramLongPollingCommandBot {
                     getRegisteredCommand(State.SyncOkTgDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 } else {
+                    boolean isFound = false;
+                    for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
+                        if (Objects.equals(tgChannel.getTelegramChannelId(),
+                                currentTgChannel.get(chatId).getTelegramChannelId())) {
+                            for (SocialMediaGroup group : tgChannel.getSynchronizedGroups()) {
+                                if (Objects.equals(group.getId(), currentSocialMediaGroup.get(chatId).getId())) {
+                                    tgChannel.deleteGroup(group);
+                                    isFound = true;
+                                    break;
+                                }
+                            }
+                            if (isFound) {
+                                break;
+                            }
+                        }
+                    }
                     getRegisteredCommand(State.OkGroupDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 }

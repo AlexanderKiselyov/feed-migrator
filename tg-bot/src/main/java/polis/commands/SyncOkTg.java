@@ -3,7 +3,9 @@ package polis.commands;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.ok.OKDataCheck;
 import polis.telegram.TelegramDataCheck;
+import polis.util.AuthData;
 import polis.util.SocialMediaGroup;
 import polis.util.State;
 import polis.util.TelegramChannel;
@@ -22,15 +24,23 @@ public class SyncOkTg extends Command {
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private final Map<Long, TelegramChannel> currentTgChannel;
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup;
+    private final Map<Long, AuthData> currentSocialMediaAccount;
     private final TelegramDataCheck telegramDataCheck;
+    private final OKDataCheck okDataCheck;
     private static final int rowsCount = 1;
 
-    public SyncOkTg(String commandIdentifier, String description, Map<Long, TelegramChannel> currentTgChannel,
-                    Map<Long, SocialMediaGroup> currentSocialMediaGroup) {
+    public SyncOkTg(String commandIdentifier,
+                    String description,
+                    Map<Long, TelegramChannel> currentTgChannel,
+                    Map<Long, SocialMediaGroup> currentSocialMediaGroup,
+                    Map<Long, AuthData> currentSocialMediaAccount,
+                    OKDataCheck okDataCheck) {
         super(commandIdentifier, description);
         this.currentTgChannel = currentTgChannel;
         this.currentSocialMediaGroup = currentSocialMediaGroup;
         telegramDataCheck = new TelegramDataCheck();
+        this.okDataCheck = okDataCheck;
+        this.currentSocialMediaAccount = currentSocialMediaAccount;
     }
 
     @Override
@@ -44,7 +54,8 @@ public class SyncOkTg extends Command {
                     String.format(
                             SYNC_OK_TG,
                             telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()).getTelegramChannelId()),
-                            currentSocialMediaGroup.get(chat.getId()).getName(),
+                            okDataCheck.getOKGroupName(currentSocialMediaGroup.get(chat.getId()).getId(),
+                                    currentSocialMediaAccount.get(chat.getId()).getAccessToken()),
                             currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName()
                     ),
                     super.rowsCount,
@@ -56,12 +67,7 @@ public class SyncOkTg extends Command {
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    String.format(
-                            SYNC_OK_TG_INLINE,
-                            telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()).getTelegramChannelId()),
-                            currentSocialMediaGroup.get(chat.getId()).getName(),
-                            currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName()
-                    ),
+                    SYNC_OK_TG_INLINE,
                     rowsCount,
                     commandsForKeyboard,
                     yesNoList());

@@ -1,17 +1,18 @@
 package polis.util;
 
 public class SocialMediaGroup {
-    private final String id;
-    private final String name;
+    private final Long id;
+    // TODO изменить тип данных на Long при добавлении БД
+    private final Integer tokenId;
     private final SocialMedia socialMedia;
 
-    public SocialMediaGroup(String id, String name, SocialMedia socialMedia) {
+    public SocialMediaGroup(Long id, Integer tokenId, SocialMedia socialMedia) {
         this.id = id;
-        this.name = name;
+        this.tokenId = tokenId;
         this.socialMedia = socialMedia;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
@@ -19,7 +20,7 @@ public class SocialMediaGroup {
         return socialMedia;
     }
 
-    public String getName() {
-        return name;
+    public Integer getTokenId() {
+        return tokenId;
     }
 }

@@ -40,7 +40,7 @@ public class TelegramDataCheck {
 
     }
 
-    public NonCommand.AnswerPair checkTelegramChannelLink(String checkChatId,
+    public NonCommand.AnswerPair checkTelegramChannelLink(Long checkChatId,
                                                           Long chatId,
                                                           Map<Long, List<TelegramChannel>> tgChannels,
                                                           Map<Long, TelegramChannel> currentTgChannel) {
@@ -115,7 +115,7 @@ public class TelegramDataCheck {
         }
     }
 
-    public String getChatTitle(String chatId) {
+    public String getChatTitle(Long chatId) {
         try {
             URI uri = new URIBuilder(String.format(GET_CHAT_TITLE, BotProperties.TOKEN))
                     .addParameter("chat_id", String.format("@%s", chatId))

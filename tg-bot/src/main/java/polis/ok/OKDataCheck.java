@@ -63,7 +63,8 @@ public class OKDataCheck {
             if (pair.accessToken() == null) {
                 return new NonCommand.AnswerPair(OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER, true);
             }
-            AuthData newAccount = new AuthData(SocialMedia.OK, pair.accessToken(), getOKUsername(pair.accessToken()));
+            AuthData newAccount = new AuthData(SocialMedia.OK, socialMediaAccounts.size() + 1,
+                    pair.accessToken(), pair.refreshToken());
             currentSocialMediaAccount.put(chatId, newAccount);
             socialMediaAccounts.computeIfAbsent(chatId, k -> new ArrayList<>());
             socialMediaAccounts.get(chatId).add(newAccount);

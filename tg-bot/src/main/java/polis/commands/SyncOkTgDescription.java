@@ -3,7 +3,9 @@ package polis.commands;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.ok.OKDataCheck;
 import polis.telegram.TelegramDataCheck;
+import polis.util.AuthData;
 import polis.util.SocialMediaGroup;
 import polis.util.State;
 import polis.util.TelegramChannel;
@@ -21,14 +23,20 @@ public class SyncOkTgDescription extends Command {
     private final Map<Long, TelegramChannel> currentTgChannel;
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup;
     private final TelegramDataCheck telegramDataCheck;
+    private final Map<Long, AuthData> currentSocialMediaAccount;
+    private final OKDataCheck okDataCheck;
 
     public SyncOkTgDescription(String commandIdentifier,
                                String description,
                                Map<Long, TelegramChannel> currentTgChannel,
-                               Map<Long, SocialMediaGroup> currentSocialMediaGroup) {
+                               Map<Long, SocialMediaGroup> currentSocialMediaGroup,
+                               Map<Long, AuthData> currentSocialMediaAccount,
+                               OKDataCheck okDataCheck) {
         super(commandIdentifier, description);
         this.currentTgChannel = currentTgChannel;
         this.currentSocialMediaGroup = currentSocialMediaGroup;
+        this.currentSocialMediaAccount = currentSocialMediaAccount;
+        this.okDataCheck = okDataCheck;
         telegramDataCheck = new TelegramDataCheck();
     }
 
@@ -43,7 +51,8 @@ public class SyncOkTgDescription extends Command {
                     String.format(
                             SYNC_OK_TG_DESCRIPTION,
                             telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()).getTelegramChannelId()),
-                            currentSocialMediaGroup.get(chat.getId()).getName(),
+                            okDataCheck.getOKGroupName(currentSocialMediaGroup.get(chat.getId()).getId(),
+                                    currentSocialMediaAccount.get(chat.getId()).getAccessToken()),
                             currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName()
                     ),
                     rowsCount,
