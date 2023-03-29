@@ -141,7 +141,6 @@ public class Bot extends TelegramLongPollingCommandBot {
                 } catch (TelegramApiException e) {
                     logger.error(String.format("Cannot perform Telegram API operation: %s", e.getMessage()));
                 }
-
             } else {
                 getRegisteredCommand(data).processMessage(this, msg, null);
             }
@@ -269,18 +268,21 @@ public class Bot extends TelegramLongPollingCommandBot {
                         logger.error(String.format("Cannot find such a social media group id: %s", dataParts[1]));
                     }
                 } else if (Objects.equals(dataParts[2], "1")) {
-                    List<SocialMediaGroup> groups = currentTgChannel.get(chatId).getSynchronizedGroups();
-                    for (SocialMediaGroup smg : groups) {
-                        if (Objects.equals(String.valueOf(smg.getId()), dataParts[1])) {
-                            currentTgChannel.get(chatId).deleteGroup(smg);
-                            for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
-                                if (Objects.equals(tgChannel.getTelegramChannelId(),
-                                        currentTgChannel.get(chatId).getTelegramChannelId())) {
-                                    tgChannel.deleteGroup(smg);
+                    boolean isFound = false;
+                    for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
+                        if (Objects.equals(tgChannel.getTelegramChannelId(),
+                                currentTgChannel.get(chatId).getTelegramChannelId())) {
+                            for (SocialMediaGroup smg : tgChannel.getSynchronizedGroups()) {
+                                if (Objects.equals(String.valueOf(smg.getId()), dataParts[1])) {
+                                    currentTgChannel.get(chatId).deleteGroup(smg.getId());
+                                    tgChannel.deleteGroup(smg.getId());
+                                    isFound = true;
                                     break;
                                 }
                             }
-                            break;
+                            if (isFound) {
+                                break;
+                            }
                         }
                     }
                     DeleteMessage lastMessage = new DeleteMessage();
@@ -293,29 +295,22 @@ public class Bot extends TelegramLongPollingCommandBot {
                 }
             }
             case "account" -> {
-                if (Objects.equals(dataParts[1], SocialMedia.OK.getName())) {
-                    if (dataParts.length < 5) {
-                        logger.error(String.format("Wrong account-callback data: %s", data));
-                        return;
-                    }
-                    currentSocialMediaAccount.put(chatId, new AuthData(SocialMedia.OK, Integer.getInteger(dataParts[2]),
-                            dataParts[3], dataParts[4]));
-                    getRegisteredCommand(State.OkAccountDescription.getIdentifier())
-                            .processMessage(this, msg, null);
-                } else {
-                    logger.error(String.format("Unknown social media. Inline keyboard data: %s", data));
+                if (dataParts.length < 2) {
+                    logger.error(String.format("Wrong account-callback data: %s", data));
+                    return;
                 }
+                for (AuthData account : socialMediaAccounts.get(chatId)) {
+                    if (Objects.equals(String.valueOf(account.getTokenId()), dataParts[1])) {
+                        currentSocialMediaAccount.put(chatId, account);
+                        break;
+                    }
+                }
+
+                getRegisteredCommand(State.OkAccountDescription.getIdentifier())
+                        .processMessage(this, msg, null);
             }
             case "yesNo" -> {
                 if (Objects.equals(dataParts[1], "0")) {
-                    currentTgChannel.get(chatId).addGroup(currentSocialMediaGroup.get(chatId));
-                    for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
-                        if (Objects.equals(tgChannel.getTelegramChannelId(),
-                                currentTgChannel.get(chatId).getTelegramChannelId())) {
-                            tgChannel.addGroup(currentSocialMediaGroup.get(chatId));
-                            break;
-                        }
-                    }
                     getRegisteredCommand(State.SyncOkTgDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 } else {
@@ -323,9 +318,10 @@ public class Bot extends TelegramLongPollingCommandBot {
                     for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
                         if (Objects.equals(tgChannel.getTelegramChannelId(),
                                 currentTgChannel.get(chatId).getTelegramChannelId())) {
-                            for (SocialMediaGroup group : tgChannel.getSynchronizedGroups()) {
-                                if (Objects.equals(group.getId(), currentSocialMediaGroup.get(chatId).getId())) {
-                                    tgChannel.deleteGroup(group);
+                            for (SocialMediaGroup smg : tgChannel.getSynchronizedGroups()) {
+                                if (Objects.equals(String.valueOf(smg.getId()), dataParts[1])) {
+                                    currentTgChannel.get(chatId).deleteGroup(smg.getId());
+                                    tgChannel.deleteGroup(smg.getId());
                                     isFound = true;
                                     break;
                                 }
@@ -335,6 +331,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                             }
                         }
                     }
+                    currentSocialMediaGroup.remove(chatId);
                     getRegisteredCommand(State.OkGroupDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 }

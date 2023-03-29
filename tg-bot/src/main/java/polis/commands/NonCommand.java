@@ -24,6 +24,9 @@ public class NonCommand {
     private static final String WRONG_OK_ACCOUNT = """
             Неверный аккаунт Одноклассников.
             Пожалуйста, вернитесь в главное меню (%s) и следуйте дальнейшим инструкциям.""";
+    private static final String SAME_SOCIAL_MEDIA = """
+            Социальная сеть %s уже была синхронизирована с текущим телеграм каналом.
+            Пожалуйста, выберите другую социальную сеть и попробуйте снова.""";
     private final Map<Long, AuthData> currentSocialMediaAccount;
     private final Map<Long, List<TelegramChannel>> tgChannels;
     private final Map<Long, TelegramChannel> currentTgChannel;
@@ -65,14 +68,14 @@ public class NonCommand {
             if (!answer.getError()) {
                 if (tgChannels.containsKey(chatId)) {
                     List<TelegramChannel> currentTelegramChannels = tgChannels.get(chatId);
-                    currentTelegramChannels.add(new TelegramChannel(chatId, new ArrayList<>(1)));
+                    currentTelegramChannels.add(new TelegramChannel(chatId, checkChannelLink, new ArrayList<>(1)));
                     tgChannels.put(chatId, currentTelegramChannels);
                 } else {
                     List<TelegramChannel> newTelegramChannel = new ArrayList<>(1);
-                    newTelegramChannel.add(new TelegramChannel(chatId, new ArrayList<>(1)));
+                    newTelegramChannel.add(new TelegramChannel(chatId, checkChannelLink, new ArrayList<>(1)));
                     tgChannels.put(chatId, newTelegramChannel);
                 }
-                currentTgChannel.put(chatId, new TelegramChannel(chatId, new ArrayList<>(1)));
+                currentTgChannel.put(chatId, new TelegramChannel(chatId, checkChannelLink, new ArrayList<>(1)));
             }
             return answer;
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
@@ -89,9 +92,13 @@ public class NonCommand {
             AnswerPair answer = okDataCheck.checkOKGroupAdminRights(accessToken, groupId);
 
             if (!answer.getError()) {
-                currentSocialMediaGroup.put(chatId,
-                        new SocialMediaGroup(groupId,
-                                currentSocialMediaAccount.get(chatId).getTokenId(), SocialMedia.OK));
+                SocialMediaGroup newGroup = new SocialMediaGroup(groupId,
+                        currentSocialMediaAccount.get(chatId).getTokenId(), SocialMedia.OK);
+                currentSocialMediaGroup.put(chatId, newGroup);
+                if (!currentTgChannel.get(chatId).addGroup(newGroup)) {
+                    return new AnswerPair(String.format(SAME_SOCIAL_MEDIA, newGroup.getSocialMedia().getName()), true);
+                }
+                boolean isFound = false;
                 for (AuthData authData : socialMediaAccounts.get(chatId)) {
                     if (Objects.equals(authData.getAccessToken(), accessToken)) {
                         for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
@@ -99,9 +106,13 @@ public class NonCommand {
                                     currentTgChannel.get(chatId).getTelegramChannelId())) {
                                 tgChannel.addGroup(new SocialMediaGroup(groupId,
                                         authData.getTokenId(), authData.getSocialMedia()));
+                                isFound = true;
+                                break;
                             }
                         }
-                        break;
+                        if (isFound) {
+                            break;
+                        }
                     }
                 }
             }

@@ -29,6 +29,7 @@ public enum State implements IState {
             Map.entry(Start, Start),
             Map.entry(Substate.AddOkAccount_AuthCode, AddOkAccount),
             Map.entry(Substate.Sync_TelegramChannel, SyncOkTg),
+            Map.entry(Substate.AddOkGroup_AddGroup, AddOkGroup),
             Map.entry(TgSyncGroups, TgChannelDescription),
             Map.entry(GroupDescription, TgChannelDescription),
             Map.entry(AddOkAccount, AddGroup),

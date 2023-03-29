@@ -50,7 +50,9 @@ public class SyncOkTgDescription extends Command {
                     user.getUserName(),
                     String.format(
                             SYNC_OK_TG_DESCRIPTION,
-                            telegramDataCheck.getChatTitle(currentTgChannel.get(chat.getId()).getTelegramChannelId()),
+                            telegramDataCheck.getChatTitle(
+                                    currentTgChannel.get(chat.getId()).getTelegramChannelUsername()
+                            ),
                             okDataCheck.getOKGroupName(currentSocialMediaGroup.get(chat.getId()).getId(),
                                     currentSocialMediaAccount.get(chat.getId()).getAccessToken()),
                             currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName()

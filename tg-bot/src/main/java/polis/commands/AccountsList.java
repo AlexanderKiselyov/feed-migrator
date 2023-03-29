@@ -75,11 +75,7 @@ public class AccountsList extends Command {
             buttons[tmpIndex] = String.format("%s (%s)",
                     okDataCheck.getOKUsername(socialMediaAccounts.get(i).getAccessToken()),
                     socialMediaAccounts.get(i).getSocialMedia().getName());
-            buttons[tmpIndex + 1] = String.format("account %s %d %s %s",
-                    socialMediaAccounts.get(i).getSocialMedia().getName(),
-                    socialMediaAccounts.get(i).getTokenId(),
-                    socialMediaAccounts.get(i).getAccessToken(),
-                    socialMediaAccounts.get(i).getRefreshToken());
+            buttons[tmpIndex + 1] = String.format("account %d", socialMediaAccounts.get(i).getTokenId());
         }
 
         return buttons;

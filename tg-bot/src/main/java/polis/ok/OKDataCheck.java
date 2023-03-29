@@ -44,15 +44,15 @@ public class OKDataCheck {
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
     private final Map<Long, AuthData> currentSocialMediaAccount;
     private final Map<Long, List<AuthData>> socialMediaAccounts;
-    private final Map<Long, IState> states;
+    private final Map<Long, IState> currentState;
     private final HttpClient client = HttpClient.newHttpClient();
     private final Logger logger = LoggerFactory.getLogger(OKDataCheck.class);
     private final OkAuthorizator okAuthorizator = new OkAuthorizator();
 
-    public OKDataCheck(Map<Long, AuthData> currentSocialMediaAccount, Map<Long, IState> states, Map<Long,
+    public OKDataCheck(Map<Long, AuthData> currentSocialMediaAccount, Map<Long, IState> currentState, Map<Long,
             List<AuthData>> socialMediaAccounts) {
         this.currentSocialMediaAccount = currentSocialMediaAccount;
-        this.states = states;
+        this.currentState = currentState;
         this.socialMediaAccounts = socialMediaAccounts;
     }
 
@@ -63,13 +63,14 @@ public class OKDataCheck {
             if (pair.accessToken() == null) {
                 return new NonCommand.AnswerPair(OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER, true);
             }
+
             AuthData newAccount = new AuthData(SocialMedia.OK, socialMediaAccounts.size() + 1,
                     pair.accessToken(), pair.refreshToken());
             currentSocialMediaAccount.put(chatId, newAccount);
             socialMediaAccounts.computeIfAbsent(chatId, k -> new ArrayList<>());
             socialMediaAccounts.get(chatId).add(newAccount);
 
-            states.put(chatId, Substate.nextSubstate(State.OkAccountDescription));
+            currentState.put(chatId, Substate.nextSubstate(State.OkAccountDescription));
 
             return new NonCommand.AnswerPair(
                     String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),

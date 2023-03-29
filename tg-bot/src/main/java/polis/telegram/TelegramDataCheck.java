@@ -98,10 +98,10 @@ public class TelegramDataCheck {
         }
     }
 
-    public String getChatTitle(Long chatId) {
+    public String getChatTitle(String chatUsername) {
         try {
             URI uri = new URIBuilder(String.format(GET_CHAT_TITLE, BotProperties.TOKEN))
-                    .addParameter("chat_id", String.format("@%s", chatId))
+                    .addParameter("chat_id", String.format("@%s", chatUsername))
                     .build();
 
             HttpRequest request = HttpRequest

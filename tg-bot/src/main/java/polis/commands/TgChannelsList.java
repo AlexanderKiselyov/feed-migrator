@@ -70,8 +70,9 @@ public class TgChannelsList extends Command {
         String[] buttons = new String[channels.size() * 4];
         for (int i = 0; i < channels.size(); i++) {
             int tmpIndex = i * 4;
+            String telegramChannelUsername = channels.get(i).getTelegramChannelUsername();
             Long telegramChannelId = channels.get(i).getTelegramChannelId();
-            buttons[tmpIndex] = telegramDataCheck.getChatTitle(telegramChannelId);
+            buttons[tmpIndex] = telegramDataCheck.getChatTitle(telegramChannelUsername);
             buttons[tmpIndex + 1] = String.format("tg_channel %s %d", telegramChannelId, 0);
             buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
             buttons[tmpIndex + 3] = String.format("tg_channel %s %d", telegramChannelId, 1);
