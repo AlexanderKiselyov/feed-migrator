@@ -224,9 +224,13 @@ public class Bot extends TelegramLongPollingCommandBot {
                             break;
                         }
                     }
-                    currentTgChannel.put(chatId, currentTelegramChannel);
-                    getRegisteredCommand(State.TgChannelDescription.getIdentifier()).processMessage(this, msg,
-                            null);
+                    if (currentTelegramChannel != null) {
+                        currentTgChannel.put(chatId, currentTelegramChannel);
+                        getRegisteredCommand(State.TgChannelDescription.getIdentifier()).processMessage(this, msg,
+                                null);
+                    } else {
+                        logger.error(String.format("Cannot find such a telegram channel id: %s", dataParts[1]));
+                    }
                 } else if (Objects.equals(dataParts[2], "1")) {
                     List<TelegramChannel> channels = tgChannels.get(chatId);
                     for (TelegramChannel ch : channels) {
@@ -257,19 +261,27 @@ public class Bot extends TelegramLongPollingCommandBot {
                             break;
                         }
                     }
-                    currentSocialMediaGroup.put(chatId, currentSocialMedia);
-                    getRegisteredCommand(State.GroupDescription.getIdentifier()).processMessage(this, msg,
-                            null);
+                    if (currentSocialMedia != null) {
+                        currentSocialMediaGroup.put(chatId, currentSocialMedia);
+                        getRegisteredCommand(State.GroupDescription.getIdentifier()).processMessage(this, msg,
+                                null);
+                    } else {
+                        logger.error(String.format("Cannot find such a social media group id: %s", dataParts[1]));
+                    }
                 } else if (Objects.equals(dataParts[2], "1")) {
                     List<SocialMediaGroup> groups = currentTgChannel.get(chatId).getSynchronizedGroups();
                     for (SocialMediaGroup smg : groups) {
                         if (Objects.equals(String.valueOf(smg.getId()), dataParts[1])) {
                             currentTgChannel.get(chatId).deleteGroup(smg);
+                            for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
+                                if (Objects.equals(tgChannel.getTelegramChannelId(),
+                                        currentTgChannel.get(chatId).getTelegramChannelId())) {
+                                    tgChannel.deleteGroup(smg);
+                                    break;
+                                }
+                            }
                             break;
                         }
-                    }
-                    if (groups.size() == 0) {
-                        currentSocialMediaGroup.remove(chatId);
                     }
                     DeleteMessage lastMessage = new DeleteMessage();
                     lastMessage.setChatId(chatId);
@@ -328,6 +340,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 }
             }
             case NO_CALLBACK_TEXT -> {
+                //TODO обработать данный случай
             }
             default -> logger.error(String.format("Unknown inline keyboard data: %s", data));
         }

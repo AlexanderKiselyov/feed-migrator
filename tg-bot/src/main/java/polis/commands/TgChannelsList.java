@@ -52,7 +52,7 @@ public class TgChannelsList extends Command {
                     TG_CHANNELS_LIST_INLINE,
                     channels.size(),
                     commandsForKeyboard,
-                    getUserChannelsArray(channels));
+                    getUserTgChannelsArray(channels));
         } else {
             sendAnswer(
                     absSender,
@@ -66,7 +66,7 @@ public class TgChannelsList extends Command {
         }
     }
 
-    private String[] getUserChannelsArray(List<TelegramChannel> channels) {
+    private String[] getUserTgChannelsArray(List<TelegramChannel> channels) {
         String[] buttons = new String[channels.size() * 4];
         for (int i = 0; i < channels.size(); i++) {
             int tmpIndex = i * 4;

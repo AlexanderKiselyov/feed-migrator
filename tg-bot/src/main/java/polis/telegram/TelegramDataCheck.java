@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import polis.bot.BotProperties;
 import polis.commands.NonCommand;
 import polis.util.State;
-import polis.util.TelegramChannel;
 
 import java.io.IOException;
 import java.net.URI;
@@ -15,9 +14,6 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class TelegramDataCheck {
@@ -40,13 +36,10 @@ public class TelegramDataCheck {
 
     }
 
-    public NonCommand.AnswerPair checkTelegramChannelLink(Long checkChatId,
-                                                          Long chatId,
-                                                          Map<Long, List<TelegramChannel>> tgChannels,
-                                                          Map<Long, TelegramChannel> currentTgChannel) {
+    public NonCommand.AnswerPair checkTelegramChannelLink(String checkChannelLink) {
         try {
             URI uri = new URIBuilder(String.format(GET_CHAT_MEMBER, BotProperties.TOKEN))
-                    .addParameter("chat_id", String.format("@%s", checkChatId))
+                    .addParameter("chat_id", String.format("@%s", checkChannelLink))
                     .addParameter("user_id", String.format("%s", BotProperties.ID))
                     .build();
 
@@ -95,16 +88,6 @@ public class TelegramDataCheck {
 
             String status = result.getString("status");
             if (Objects.equals(status, "administrator")) {
-                if (tgChannels.containsKey(chatId)) {
-                    List<TelegramChannel> currentTelegramChannels = tgChannels.get(chatId);
-                    currentTelegramChannels.add(new TelegramChannel(checkChatId, null));
-                    tgChannels.put(chatId, currentTelegramChannels);
-                } else {
-                    List<TelegramChannel> newTelegramChannel = new ArrayList<>(1);
-                    newTelegramChannel.add(new TelegramChannel(checkChatId, null));
-                    tgChannels.put(chatId, newTelegramChannel);
-                }
-                currentTgChannel.put(chatId, new TelegramChannel(checkChatId, null));
                 return new NonCommand.AnswerPair(RIGHT_LINK, false);
             } else {
                 return new NonCommand.AnswerPair(BOT_NOT_ADMIN, true);

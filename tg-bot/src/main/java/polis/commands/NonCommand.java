@@ -10,6 +10,7 @@ import polis.util.State;
 import polis.util.Substate;
 import polis.util.TelegramChannel;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -58,10 +59,21 @@ public class NonCommand {
             if (split.length < 2) {
                 return new AnswerPair(WRONG_LINK_TELEGRAM, true);
             }
-            String checkChatId = text.split("/")[split.length - 1];
+            String checkChannelLink = text.split("/")[split.length - 1];
 
-            return telegramDataCheck.checkTelegramChannelLink(Long.getLong(checkChatId), chatId, tgChannels,
-                    currentTgChannel);
+            AnswerPair answer = telegramDataCheck.checkTelegramChannelLink(checkChannelLink);
+            if (!answer.getError()) {
+                if (tgChannels.containsKey(chatId)) {
+                    List<TelegramChannel> currentTelegramChannels = tgChannels.get(chatId);
+                    currentTelegramChannels.add(new TelegramChannel(chatId, new ArrayList<>(1)));
+                    tgChannels.put(chatId, currentTelegramChannels);
+                } else {
+                    List<TelegramChannel> newTelegramChannel = new ArrayList<>(1);
+                    newTelegramChannel.add(new TelegramChannel(chatId, new ArrayList<>(1)));
+                    tgChannels.put(chatId, newTelegramChannel);
+                }
+                currentTgChannel.put(chatId, new TelegramChannel(chatId, new ArrayList<>(1)));
+            }
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
             return okDataCheck.getOKAuthCode(text, chatId);
         } else if (state.equals(Substate.AddOkGroup_AddGroup)) {

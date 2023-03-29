@@ -84,7 +84,7 @@ public class TgSyncGroups extends Command {
         String[] buttons = new String[groups.size() * 4];
         for (int i = 0; i < groups.size(); i++) {
             int tmpIndex = i * 4;
-            String groupName = "";
+            String groupName = null;
             switch (groups.get(i).getSocialMedia()) {
                 case OK -> {
                     for (AuthData socialMediaAccount : socialMediaAccounts) {
@@ -97,11 +97,13 @@ public class TgSyncGroups extends Command {
                 }
                 default -> logger.error(String.format("Social media not found: %s", groups.get(i).getSocialMedia()));
             }
-            buttons[tmpIndex] = String.format("%s (%s)", groupName,
-                    groups.get(i).getSocialMedia().getName());
-            buttons[tmpIndex + 1] = String.format("group %s %d", groups.get(i).getId(), 0);
-            buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
-            buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getId(), 1);
+            if (groupName != null) {
+                buttons[tmpIndex] = String.format("%s (%s)", groupName,
+                        groups.get(i).getSocialMedia().getName());
+                buttons[tmpIndex + 1] = String.format("group %s %d", groups.get(i).getId(), 0);
+                buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
+                buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getId(), 1);
+            }
         }
 
         return buttons;
