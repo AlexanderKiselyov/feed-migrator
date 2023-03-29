@@ -74,6 +74,7 @@ public class NonCommand {
                 }
                 currentTgChannel.put(chatId, new TelegramChannel(chatId, new ArrayList<>(1)));
             }
+            return answer;
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
             return okDataCheck.getOKAuthCode(text, chatId);
         } else if (state.equals(Substate.AddOkGroup_AddGroup)) {
