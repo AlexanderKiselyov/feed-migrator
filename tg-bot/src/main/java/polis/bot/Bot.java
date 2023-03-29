@@ -30,10 +30,10 @@ import polis.commands.SyncOkTgDescription;
 import polis.commands.TgChannelDescription;
 import polis.commands.TgChannelsList;
 import polis.commands.TgSyncGroups;
+import polis.keyboards.ReplyKeyboard;
 import polis.ok.OKDataCheck;
 import polis.util.AuthData;
 import polis.util.IState;
-import polis.util.SocialMedia;
 import polis.util.SocialMediaGroup;
 import polis.util.State;
 import polis.util.Substate;
@@ -45,9 +45,20 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
+import static polis.ok.OKDataCheck.OK_AUTH_STATE_ANSWER;
+import static polis.ok.OKDataCheck.OK_GROUP_ADDED;
+import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
 
 @Component
 public class Bot extends TelegramLongPollingCommandBot {
+    private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.of(
+            String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
+            List.of(State.OkAccountDescription.getDescription()),
+            String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()),
+            List.of(State.SyncOkTg.getDescription()),
+            RIGHT_LINK,
+            List.of(State.TgChannelDescription.getDescription())
+    );
     private final String botName;
     private final String botToken;
     private final OKDataCheck okDataCheck;
@@ -60,7 +71,11 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final Map<Long, AuthData> currentSocialMediaAccount = new ConcurrentHashMap<>();
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
-    public static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
+    private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
+    private static final String GROUP_CALLBACK_TEXT = "group";
+    private static final String ACCOUNT_CALLBACK_TEXT = "account";
+    private static final String YES_NO_CALLBACK_TEXT = "yesNo";
+    private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
@@ -116,6 +131,7 @@ public class Bot extends TelegramLongPollingCommandBot {
 
     /**
      * Устанавливает бота в определенное состояние в зависимости от введенной пользователем команды.
+     *
      * @param message отправленное пользователем сообщение
      * @return false, так как боту необходимо всегда обработать входящее сообщение
      */
@@ -134,17 +150,22 @@ public class Bot extends TelegramLongPollingCommandBot {
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
             msg = callbackQuery.getMessage();
-            String data = callbackQuery.getData().replace("/", "");
-            if (State.findState(data) == null) {
+            String callbackQueryData = callbackQuery.getData();
+            if (callbackQueryData.startsWith(ACCOUNT_CALLBACK_TEXT) || callbackQueryData.startsWith(GROUP_CALLBACK_TEXT)
+                    || callbackQueryData.startsWith(TG_CHANNEL_CALLBACK_TEXT)
+                    || callbackQueryData.startsWith(YES_NO_CALLBACK_TEXT)
+                    || callbackQueryData.equals(NO_CALLBACK_TEXT)) {
                 try {
-                    parseInlineKeyboardData(data, msg);
+                    parseInlineKeyboardData(callbackQueryData, msg);
                 } catch (TelegramApiException e) {
                     logger.error(String.format("Cannot perform Telegram API operation: %s", e.getMessage()));
                 }
-            } else {
-                getRegisteredCommand(data).processMessage(this, msg, null);
+                return;
+            } else if (callbackQueryData.startsWith("/")) {
+                getRegisteredCommand(callbackQueryData.replace("/", ""))
+                        .processMessage(this, msg, null);
+                return;
             }
-            return;
         } else {
             msg = update.getMessage();
         }
@@ -198,10 +219,16 @@ public class Bot extends TelegramLongPollingCommandBot {
 
     private void setAnswer(Long chatId, String userName, String text) {
         SendMessage answer = new SendMessage();
-        answer.setText(text);
-        answer.setParseMode(ParseMode.HTML);
+
+        if (BUTTONS_TEXT_MAP.containsKey(text)) {
+            answer = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, 1, BUTTONS_TEXT_MAP.get(text),
+                    GO_BACK_BUTTON_TEXT);
+        } else {
+            answer.setParseMode(ParseMode.HTML);
+            answer.disableWebPagePreview();
+        }
         answer.setChatId(chatId.toString());
-        answer.disableWebPagePreview();
+        answer.setText(text);
 
         try {
             execute(answer);
@@ -214,7 +241,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         Long chatId = msg.getChatId();
         String[] dataParts = data.split(" ");
         switch (dataParts[0]) {
-            case "tg_channel" -> {
+            case TG_CHANNEL_CALLBACK_TEXT -> {
                 if (Objects.equals(dataParts[2], "0")) {
                     TelegramChannel currentTelegramChannel = null;
                     for (TelegramChannel ch : tgChannels.get(chatId)) {
@@ -251,7 +278,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                     logger.error(String.format("Wrong Telegram channel data. Inline keyboard data: %s", data));
                 }
             }
-            case "group" -> {
+            case GROUP_CALLBACK_TEXT -> {
                 if (Objects.equals(dataParts[2], "0")) {
                     SocialMediaGroup currentSocialMedia = null;
                     for (SocialMediaGroup smg : currentTgChannel.get(chatId).getSynchronizedGroups()) {
@@ -294,7 +321,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                     logger.error(String.format("Wrong group data. Inline keyboard data: %s", data));
                 }
             }
-            case "account" -> {
+            case ACCOUNT_CALLBACK_TEXT -> {
                 if (dataParts.length < 2) {
                     logger.error(String.format("Wrong account-callback data: %s", data));
                     return;
@@ -309,7 +336,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 getRegisteredCommand(State.OkAccountDescription.getIdentifier())
                         .processMessage(this, msg, null);
             }
-            case "yesNo" -> {
+            case YES_NO_CALLBACK_TEXT -> {
                 if (Objects.equals(dataParts[1], "0")) {
                     getRegisteredCommand(State.SyncOkTgDescription.getIdentifier())
                             .processMessage(this, msg, null);

@@ -13,10 +13,9 @@ import java.util.Map;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 public class AccountsList extends Command {
-    // TODO: Добавить текст, чтобы отправлять два сообщения (для двух разных клавиатур)
     private static final String ACCOUNTS_LIST = """
             Список аккаунтов:""";
-    private static final String ACCOUNTS_LIST_INLINE = "TODO сообщение";
+    private static final String ACCOUNTS_LIST_INLINE = "Чтобы выбрать аккаунт, нажмите на соответствующую кнопку";
     private static final String NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST = """
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
@@ -67,7 +66,6 @@ public class AccountsList extends Command {
         }
     }
 
-    // TODO: рефакторинг и перенос функционала inline-клавиатуры в класс InlineKeyboard в процессе
     private String[] getAccountsArray(List<AuthData> socialMediaAccounts) {
         String[] buttons = new String[socialMediaAccounts.size() * 2];
         for (int i = 0; i < socialMediaAccounts.size(); i++) {
