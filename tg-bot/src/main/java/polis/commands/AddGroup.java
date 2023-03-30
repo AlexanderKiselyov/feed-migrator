@@ -41,8 +41,8 @@ public class AddGroup extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(ADD_GROUP,
-                            telegramDataCheck.getChatTitle(
-                                    currentTgChannel.get(chat.getId()).getTelegramChannelUsername()
+                            telegramDataCheck.getChatParameter(
+                                    currentTgChannel.get(chat.getId()).getTelegramChannelUsername(), "title"
                             )
                     ),
                     rowsCount,

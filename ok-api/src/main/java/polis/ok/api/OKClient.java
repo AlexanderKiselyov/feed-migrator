@@ -9,9 +9,12 @@ import java.util.List;
 
 public interface OKClient {
 
-    void postMediaTopic(String accessToken, long groupId, Attachment attachment) throws URISyntaxException, IOException, OkApiException;
+    void postMediaTopic(String accessToken, long groupId, Attachment attachment)
+            throws URISyntaxException, IOException, OkApiException;
 
-    long uploadVideo(String accessToken, long groupId, File video) throws URISyntaxException, IOException, OkApiException;
+    long uploadVideo(String accessToken, long groupId, File video)
+            throws URISyntaxException, IOException, OkApiException;
 
-    List<String> uploadPhotos(String accessToken, long groupId, List<File> photos) throws URISyntaxException, IOException, OkApiException;
+    List<String> uploadPhotos(String accessToken, long groupId, List<File> photos)
+            throws URISyntaxException, IOException, OkApiException;
 }

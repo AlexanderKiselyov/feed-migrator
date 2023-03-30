@@ -44,8 +44,8 @@ public class TgChannelDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(TELEGRAM_CHANNEL_DESCRIPTION,
-                            telegramDataCheck.getChatTitle(
-                                    currentTgChannel.get(chat.getId()).getTelegramChannelUsername()
+                            telegramDataCheck.getChatParameter(
+                                    currentTgChannel.get(chat.getId()).getTelegramChannelUsername(), "title"
                             ),
                             State.TgSyncGroups.getIdentifier(),
                             State.AddGroup.getIdentifier()

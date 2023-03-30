@@ -40,7 +40,8 @@ public class OkClientImpl implements OKClient {
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public void postMediaTopic(String accessToken, long groupId, Attachment attachment) throws URISyntaxException, IOException, OkApiException {
+    public void postMediaTopic(String accessToken, long groupId, Attachment attachment)
+            throws URISyntaxException, IOException, OkApiException {
         URI uri = new URIBuilder("https://api.ok.ru/fb.do")
                 .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                 .addParameter("attachment", mapper.writeValueAsString(attachment))
@@ -64,7 +65,8 @@ public class OkClientImpl implements OKClient {
         }
     }
 
-    public List<String> uploadPhotos(String accessToken, long groupId, List<File> photos) throws URISyntaxException, IOException, OkApiException {
+    public List<String> uploadPhotos(String accessToken, long groupId, List<File> photos)
+            throws URISyntaxException, IOException, OkApiException {
         PhotoUploadUrlResponse uploadUrlResponse = photoUploadUrl(accessToken, groupId, photos);
 
         HttpPost httpPost = new HttpPost(URI.create(uploadUrlResponse.uploadUrl));
@@ -93,8 +95,10 @@ public class OkClientImpl implements OKClient {
         }
     }
 
-    public long uploadVideo(String accessToken, long groupId, File video) throws URISyntaxException, IOException, OkApiException {
-        VideoUploadUrlResponse uploadUrlResponse = videoUploadUrl(accessToken, groupId, video.getName(), video.getTotalSpace());
+    public long uploadVideo(String accessToken, long groupId, File video)
+            throws URISyntaxException, IOException, OkApiException {
+        VideoUploadUrlResponse uploadUrlResponse = videoUploadUrl(accessToken, groupId, video.getName(),
+                video.getTotalSpace());
 
         HttpPost httpPost = new HttpPost(URI.create(uploadUrlResponse.uploadUrl));
         MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
@@ -105,7 +109,8 @@ public class OkClientImpl implements OKClient {
         return uploadUrlResponse.videoId;
     }
 
-    private PhotoUploadUrlResponse photoUploadUrl(String accessToken, long groupId, List<File> photos) throws URISyntaxException, IOException, OkApiException {
+    private PhotoUploadUrlResponse photoUploadUrl(String accessToken, long groupId, List<File> photos)
+            throws URISyntaxException, IOException, OkApiException {
         URI uri = new URIBuilder("https://api.ok.ru/fb.do")
                 .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                 .addParameter("count", String.valueOf(photos.size()))
@@ -134,7 +139,8 @@ public class OkClientImpl implements OKClient {
         }
     }
 
-    private VideoUploadUrlResponse videoUploadUrl(String accessToken, long groupId, String fileName, long fileSize) throws URISyntaxException, IOException, OkApiException {
+    private VideoUploadUrlResponse videoUploadUrl(String accessToken, long groupId, String fileName, long fileSize)
+            throws URISyntaxException, IOException, OkApiException {
         URI uri = new URIBuilder("https://api.ok.ru/fb.do")
                 .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                 .addParameter("file_name", fileName)

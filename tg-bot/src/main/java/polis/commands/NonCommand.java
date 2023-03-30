@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import polis.ok.OKDataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.AuthData;
@@ -30,6 +32,7 @@ public class NonCommand {
     private final Map<Long, Long> tgChannelOwner;
     private final OKDataCheck okDataCheck;
     private final TelegramDataCheck telegramDataCheck;
+    private final Logger logger = LoggerFactory.getLogger(NonCommand.class);
 
     public NonCommand(OKDataCheck okDataCheck,
                       Map<Long, AuthData> currentSocialMediaAccount,
@@ -48,6 +51,7 @@ public class NonCommand {
 
     public AnswerPair nonCommandExecute(String text, Long chatId, IState state) {
         if (state == null) {
+            logger.error("Null state");
             return new AnswerPair(BOT_WRONG_STATE_ANSWER, true);
         }
 
@@ -65,16 +69,20 @@ public class NonCommand {
                 TelegramChannel newTgChannel;
                 if (tgChannels.containsKey(chatId)) {
                     List<TelegramChannel> currentTelegramChannels = tgChannels.get(chatId);
-                    newTgChannel = new TelegramChannel(chatId, checkChannelLink, new ArrayList<>(1));
+                    newTgChannel = new TelegramChannel(
+                            (Long) telegramDataCheck.getChatParameter(checkChannelLink, "id"),
+                            checkChannelLink, new ArrayList<>(1));
                     currentTelegramChannels.add(newTgChannel);
                     tgChannels.put(chatId, currentTelegramChannels);
                 } else {
                     List<TelegramChannel> newTelegramChannel = new ArrayList<>(1);
-                    newTgChannel = new TelegramChannel(chatId, checkChannelLink, new ArrayList<>(1));
+                    newTgChannel = new TelegramChannel(
+                            (Long) telegramDataCheck.getChatParameter(checkChannelLink, "id"),
+                            checkChannelLink, new ArrayList<>(1));
                     newTelegramChannel.add(newTgChannel);
                     tgChannels.put(chatId, newTelegramChannel);
                 }
-                currentTgChannel.put(chatId, new TelegramChannel(chatId, checkChannelLink, new ArrayList<>(1)));
+                currentTgChannel.put(chatId, newTgChannel);
                 tgChannelOwner.put(newTgChannel.getTelegramChannelId(), chatId);
             }
             return answer;

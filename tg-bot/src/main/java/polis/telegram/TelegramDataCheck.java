@@ -28,7 +28,7 @@ public class TelegramDataCheck {
             Телеграм-канал успешно добавлен.
             Посмотреть информацию по телеграм-каналу можно по команде /%s""",
             State.TgChannelDescription.getIdentifier());
-    private static final String GET_CHAT_TITLE = "https://api.telegram.org/bot%s/getChat";
+    private static final String GET_CHAT = "https://api.telegram.org/bot%s/getChat";
     private final HttpClient client = HttpClient.newHttpClient();
     private final Logger logger = LoggerFactory.getLogger(TelegramDataCheck.class);
 
@@ -98,9 +98,9 @@ public class TelegramDataCheck {
         }
     }
 
-    public String getChatTitle(String chatUsername) {
+    public Object getChatParameter(String chatUsername, String parameter) {
         try {
-            URI uri = new URIBuilder(String.format(GET_CHAT_TITLE, BotProperties.TOKEN))
+            URI uri = new URIBuilder(String.format(GET_CHAT, BotProperties.TOKEN))
                     .addParameter("chat_id", String.format("@%s", chatUsername))
                     .build();
 
@@ -138,7 +138,7 @@ public class TelegramDataCheck {
 
             JSONObject result = object.getJSONObject("result");
 
-            if (!result.has("title")) {
+            if (!result.has(parameter)) {
                 errorMessage = """
                                 Response doesn't contain 'title' field.
                                 Request URI: %s
@@ -148,7 +148,7 @@ public class TelegramDataCheck {
                 return null;
             }
 
-            return result.getString("title");
+            return result.get(parameter);
         } catch (URISyntaxException | IOException | InterruptedException e) {
             logger.error(String.format("Cannot create request: %s", e.getMessage()));
             return null;

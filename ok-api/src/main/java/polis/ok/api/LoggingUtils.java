@@ -38,7 +38,9 @@ class LoggingUtils {
         return parseResponse(response.body(), response.toString(), logger);
     }
 
-    static org.apache.http.HttpResponse sendRequest(org.apache.http.client.HttpClient client, HttpEntityEnclosingRequestBase request, Logger logger) throws IOException {
+    static org.apache.http.HttpResponse sendRequest(org.apache.http.client.HttpClient client,
+                                                    HttpEntityEnclosingRequestBase request, Logger logger)
+            throws IOException {
         try {
             return client.execute(request);
         } catch (IOException e) {
@@ -52,19 +54,22 @@ class LoggingUtils {
         return parseResponse(body, response.getStatusLine().toString(), logger);
     }
 
-
     static OkApiException wrapAndLog(JSONException e, String responseStatus, String responseBody, Logger logger) {
-        logger.error("Failed to parse response. " + e.getMessage() + "\nResponse: \n" + responseStatus + "\n" + responseBody + '\n');
+        logger.error("Failed to parse response. " + e.getMessage() + "\nResponse: \n" + responseStatus + "\n"
+                + responseBody + '\n');
         return new OkApiException("Сервер Одноклассников ответил в некорректном формате", e);
     }
 
-    private static OkApiException formExceptionAndLog(String errorCode, String errorDescription, String responseStatus, String responseBody, Logger logger) {
-        String logMsg = "Received error from OK. %s: %s\nResponse: \n%s\n%s\n".formatted(errorCode, errorDescription, responseStatus, responseBody);
+    private static OkApiException formExceptionAndLog(String errorCode, String errorDescription, String responseStatus,
+                                                      String responseBody, Logger logger) {
+        String logMsg = "Received error from OK. %s: %s\nResponse: \n%s\n%s\n".formatted(errorCode, errorDescription,
+                responseStatus, responseBody);
         logger.error(logMsg);
         return new OkApiException("Получена ошибка от сервера Одноклассников " + errorCode + ": " + errorDescription);
     }
 
-    private static JSONObject parseResponse(String responseBody, String responseStatus, Logger logger) throws OkApiException {
+    private static JSONObject parseResponse(String responseBody, String responseStatus, Logger logger)
+            throws OkApiException {
         try {
             JSONObject jsonResponse = new JSONObject(responseBody);
             if (jsonResponse.has(ERROR_CODE)) {
@@ -94,7 +99,8 @@ class LoggingUtils {
     }
 
     static void logURIException(URISyntaxException e, Logger logger, Object... injectedParams) {
-        logger.error("URIException" + e.getMessage() + " with user provided params: " + Arrays.toString(injectedParams));
+        logger.error("URIException" + e.getMessage() + " with user provided params: "
+                + Arrays.toString(injectedParams));
     }
 
 }

@@ -58,7 +58,8 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public Post addPhotos(List<PhotoSize> tgPhotos) throws URISyntaxException, IOException, TelegramApiException, OkApiException {
+        public Post addPhotos(List<PhotoSize> tgPhotos)
+                throws URISyntaxException, IOException, TelegramApiException, OkApiException {
             if (tgPhotos == null || tgPhotos.isEmpty()) {
                 return this;
             }
@@ -68,10 +69,12 @@ public class OkPostingHelper extends PostingHelper {
                 try {
                     photoPathResponse = tgApiHelper.retrieveFilePath(botToken, tgPhoto.getFileId());
                 } catch (URISyntaxException e) {
-                    bot.sendAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: " + e.getMessage());
+                    bot.sendAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: "
+                            + e.getMessage());
                     throw e;
                 } catch (IOException e) {
-                    bot.sendAnswer(chatId, "Проблемы при получении от сервера Телеграмма расположения фотографий: " + e.getMessage());
+                    bot.sendAnswer(chatId, "Проблемы при получении от сервера Телеграмма расположения фотографий: "
+                            + e.getMessage());
                     throw e;
                 }
 

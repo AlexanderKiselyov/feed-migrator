@@ -11,8 +11,11 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.Video;
+import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.AccountsList;
 import polis.commands.AddGroup;
@@ -32,6 +35,7 @@ import polis.commands.TgChannelsList;
 import polis.commands.TgSyncGroups;
 import polis.keyboards.ReplyKeyboard;
 import polis.ok.OKDataCheck;
+import polis.ok.api.OkClientImpl;
 import polis.util.AuthData;
 import polis.util.IState;
 import polis.util.SocialMediaGroup;
@@ -39,10 +43,15 @@ import polis.util.State;
 import polis.util.Substate;
 import polis.util.TelegramChannel;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 import static polis.ok.OKDataCheck.OK_AUTH_STATE_ANSWER;
@@ -77,11 +86,13 @@ public class Bot extends TelegramLongPollingCommandBot {
     private static final String YES_NO_CALLBACK_TEXT = "yesNo";
     private static final String AUTOPOSTING = "autoposting";
     private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
+    private final OkPostingHelper helper;
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
         this.botName = botName;
         this.botToken = botToken;
+        this.helper = new OkPostingHelper(this, botToken, new TgApiHelper(), new OkClientImpl());
 
         OKDataCheck okDataCheck = new OKDataCheck(currentSocialMediaAccount, currentState, socialMediaAccounts);
         nonCommand = new NonCommand(
@@ -137,9 +148,11 @@ public class Bot extends TelegramLongPollingCommandBot {
      */
     @Override
     public boolean filter(Message message) {
-        State currentState = State.findState(message.getText().replace("/", ""));
-        if (currentState != null) {
-            this.currentState.put(message.getChatId(), currentState);
+        if (message != null) {
+            State currentState = State.findState(message.getText().replace("/", ""));
+            if (currentState != null) {
+                this.currentState.put(message.getChatId(), currentState);
+            }
         }
         return false;
     }
@@ -154,6 +167,7 @@ public class Bot extends TelegramLongPollingCommandBot {
             if (callbackQueryData.startsWith(ACCOUNT_CALLBACK_TEXT) || callbackQueryData.startsWith(GROUP_CALLBACK_TEXT)
                     || callbackQueryData.startsWith(TG_CHANNEL_CALLBACK_TEXT)
                     || callbackQueryData.startsWith(YES_NO_CALLBACK_TEXT)
+                    || callbackQueryData.startsWith(AUTOPOSTING)
                     || callbackQueryData.equals(NO_CALLBACK_TEXT)) {
                 try {
                     parseInlineKeyboardData(callbackQueryData, msg);
@@ -171,22 +185,6 @@ public class Bot extends TelegramLongPollingCommandBot {
 
         Long chatId = msg.getChatId();
         String messageText = msg.getText();
-
-        if (isAutoposting.containsKey(chatId) && isAutoposting.get(chatId)) {
-            // Sending post from Telegram channel to synchronized social media
-            for (TelegramChannel tgChannel : tgChannels.get(tgChannelOwner.get(chatId))) {
-                if (Objects.equals(tgChannel.getTelegramChannelId(), chatId)) {
-                    for (SocialMediaGroup smg : tgChannel.getSynchronizedGroups()) {
-                        switch (smg.getSocialMedia()) {
-                            case OK -> {
-
-                            }
-                            default -> logger.error(String.format("Social media not found: %s", smg.getSocialMedia()));
-                        }
-                    }
-                }
-            }
-        }
 
         State customCommand = State.findStateByDescription(messageText);
         if (customCommand != null) {
@@ -223,7 +221,104 @@ public class Bot extends TelegramLongPollingCommandBot {
         } else {
             currentState.put(chatId, Substate.nextSubstate(currState));
         }
-        setAnswer(chatId, getUserName(msg), answer.getAnswer());
+        sendAnswer(chatId, getUserName(msg), answer.getAnswer());
+    }
+
+    @Override
+    public void onUpdatesReceived(List<Update> updates) {
+        Map<String, List<Update>> updatesByPost = updates.stream().collect(Collectors.groupingBy(
+                update -> update.getChannelPost() == null ? "" : update.getChannelPost().getMediaGroupId(),
+                Collectors.toList()
+        ));
+        if (updatesByPost.containsKey("")) {
+            for (Update update : updatesByPost.get("")) {
+                if (update.hasMessage() || update.hasCallbackQuery()) {
+                    filter(update.getMessage());
+                    processNonCommandUpdate(update);
+                }
+            }
+            updatesByPost.remove("");
+        }
+        if (updatesByPost.isEmpty()) {
+            return;
+        }
+        //Пока думаем, что все апдейты из одного канала для одного поста
+        List<Update> postUpdates = updatesByPost.values().stream().findFirst().get();
+        if (postUpdates.isEmpty()) {
+            return;
+        }
+        long chatId = postUpdates.get(0).getChannelPost().getChatId();
+        try {
+            List<PhotoSize> photos = new ArrayList<>();
+            Video video = null;
+            String text = null;
+            Poll poll = null;
+
+            for (Update update : updates) {
+                Message channelPost = update.getChannelPost();
+                if (channelPost == null) {
+                    filter(update.getMessage());
+                    processNonCommandUpdate(update);
+                    continue;
+                }
+                if (channelPost.hasPhoto()) {
+                    channelPost
+                            .getPhoto()
+                            .stream()
+                            .max(Comparator.comparingInt(PhotoSize::getFileSize))
+                            .ifPresent(photos::add);
+                }
+                if (channelPost.hasVideo()) {
+                    video = channelPost.getVideo();
+                }
+                if (channelPost.getCaption() != null && !channelPost.getCaption().isEmpty()) {
+                    text = channelPost.getCaption();
+                }
+                if (channelPost.hasText() && !channelPost.getText().isEmpty()) {
+                    text = channelPost.getText();
+                }
+                if (channelPost.hasPoll()) {
+                    poll = channelPost.getPoll();
+                }
+            }
+
+            if (isAutoposting.containsKey(chatId) && isAutoposting.get(chatId)) {
+                for (TelegramChannel tgChannel : tgChannels.get(tgChannelOwner.get(chatId))) {
+                    if (Objects.equals(tgChannel.getTelegramChannelId(), chatId)) {
+                        for (SocialMediaGroup smg : tgChannel.getSynchronizedGroups()) {
+                            String accessToken = "";
+                            for (AuthData account : socialMediaAccounts.get(tgChannelOwner.get(chatId))) {
+                                if (Objects.equals(account.getTokenId(), smg.getTokenId())) {
+                                    accessToken = account.getAccessToken();
+                                    break;
+                                }
+                            }
+                            switch (smg.getSocialMedia()) {
+                                case OK -> {
+                                    OkPostingHelper.OkPost post = helper.newPost(chatId, smg.getId(), accessToken);
+                                    try {
+                                        post.addPhotos(photos).addVideo(video);
+                                    } catch (URISyntaxException | IOException | TelegramApiException logged) {
+                                        return;
+                                    }
+                                    try {
+                                        post.addText(text)
+                                                .addPoll(poll)
+                                                .post(accessToken, smg.getId());
+                                        sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getId());
+                                    } catch (URISyntaxException | IOException ignored) {
+                                    }
+                                }
+                                default -> logger.error(String.format("Social media not found: %s",
+                                        smg.getSocialMedia()));
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            sendAnswer(chatId, "Произошла непредвиденная ошибка  " + e);
+        }
     }
 
     private String getUserName(Message msg) {
@@ -232,7 +327,11 @@ public class Bot extends TelegramLongPollingCommandBot {
         return (userName != null) ? userName : String.format("%s %s", user.getLastName(), user.getFirstName());
     }
 
-    private void setAnswer(Long chatId, String userName, String text) {
+    void sendAnswer(Long chatId, String text) {
+        sendAnswer(chatId, null, text);
+    }
+
+    private void sendAnswer(Long chatId, String userName, String text) {
         SendMessage answer = new SendMessage();
 
         if (BUTTONS_TEXT_MAP.containsKey(text)) {
@@ -248,7 +347,11 @@ public class Bot extends TelegramLongPollingCommandBot {
         try {
             execute(answer);
         } catch (TelegramApiException e) {
-            logger.error(String.format("Cannot execute command of user %s: %s", userName, e.getMessage()));
+            if (userName != null) {
+                logger.error(String.format("Cannot execute command of user %s: %s", userName, e.getMessage()));
+            } else {
+                logger.error(String.format("Cannot execute command: %s", e.getMessage()));
+            }
         }
     }
 
@@ -410,6 +513,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 } else {
                     isAutoposting.put(Long.parseLong(dataParts[1]), false);
                 }
+                getRegisteredCommand(State.MainMenu.getIdentifier()).processMessage(this, msg, null);
             }
             case NO_CALLBACK_TEXT -> {
 

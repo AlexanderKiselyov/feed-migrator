@@ -51,13 +51,13 @@ public class SyncOkGroupDescription extends Command {
                     user.getUserName(),
                     String.format(
                             SYNC_OK_TG_DESCRIPTION,
-                            telegramDataCheck.getChatTitle(
-                                    currentTgChannel.get(chat.getId()).getTelegramChannelUsername()
+                            telegramDataCheck.getChatParameter(
+                                    currentTgChannel.get(chat.getId()).getTelegramChannelUsername(), "title"
                             ),
                             okDataCheck.getOKGroupName(currentSocialMediaGroup.get(chat.getId()).getId(),
                                     currentSocialMediaAccount.get(chat.getId()).getAccessToken()),
                             currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName(),
-                            State.Autoposting
+                            State.Autoposting.getIdentifier()
                     ),
                     rowsCount,
                     commandsForKeyboard,
