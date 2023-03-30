@@ -1,6 +1,8 @@
 package polis.ok.api;
 
-public class OkApiException extends Exception {
+import java.io.IOException;
+
+public class OkApiException extends IOException {
     public OkApiException() {
     }
 
@@ -16,7 +18,4 @@ public class OkApiException extends Exception {
         super(cause);
     }
 
-    public OkApiException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }

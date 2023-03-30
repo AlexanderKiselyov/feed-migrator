@@ -1,6 +1,8 @@
 package polis.ok.domain;
 
-public final class TextMedia extends Media{
+import java.io.Serializable;
+
+public final class TextMedia extends Media implements Serializable {
     public final String text;
 
     public TextMedia(String text) {

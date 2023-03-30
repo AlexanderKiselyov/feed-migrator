@@ -10,13 +10,17 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.Video;
+import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.NonCommand;
 import polis.commands.OkAuthCommand;
 import polis.commands.StartCommand;
 import polis.commands.SyncCommand;
+import polis.ok.api.OkClientImpl;
 import polis.util.AuthData;
 import polis.util.IState;
 import polis.util.State;
@@ -24,11 +28,15 @@ import polis.util.Substate;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
@@ -41,11 +49,13 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final Map<Long, List<AuthData>> socialMedia = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
     private final Properties properties = new Properties();
+    private final OkPostingHelper helper;
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
         this.botName = botName;
         this.botToken = botToken;
+        this.helper = new OkPostingHelper(this, botToken, new TgApiHelper(), new OkClientImpl());
 
         loadProperties();
 
@@ -118,8 +128,80 @@ public class Bot extends TelegramLongPollingCommandBot {
         currentState = states.get(chatId);
 
         String answer = nonCommand.nonCommandExecute(messageText, chatId, currentState);
-        setAnswer(chatId, getUserName(msg), answer);
+        sendAnswer(chatId, getUserName(msg), answer);
     }
+
+    //FIXME remove this with user data storage
+    private final String accessToken = "";
+    private final long groupId = 0L;
+
+    @Override
+    public void onUpdatesReceived(List<Update> updates) {
+        Map<String, List<Update>> updatesByPost = updates.stream().collect(Collectors.groupingBy(
+                update -> update.getChannelPost() == null ? "" : update.getChannelPost().getMediaGroupId(),
+                Collectors.toList()
+        ));
+        if (updatesByPost.containsKey("")) {
+            for (Update update : updatesByPost.get("")) {
+                processNonCommandUpdate(update);
+            }
+            updatesByPost.remove("");
+        }
+        if (updatesByPost.isEmpty()) {
+            return;
+        }
+        List<Update> postUpdates = updatesByPost.values().stream().findFirst().get(); //Пока думаем, что все апдейты из одного канала для одного поста
+        if (postUpdates.isEmpty()) {
+            return;
+        }
+        long chatId = postUpdates.get(0).getChannelPost().getChatId();
+        try {
+            List<PhotoSize> photos = new ArrayList<>();
+            Video video = null;
+            String text = null;
+            Poll poll = null;
+
+            for (Update update : updates) {
+                Message channelPost = update.getChannelPost();
+                if (channelPost == null) {
+                    processNonCommandUpdate(update);
+                    continue;
+                }
+                if (channelPost.hasPhoto()) {
+                    channelPost.getPhoto().stream().max(Comparator.comparingInt(PhotoSize::getFileSize)).ifPresent(photos::add);
+                }
+                if (channelPost.hasVideo()) {
+                    video = channelPost.getVideo();
+                }
+                if (channelPost.getCaption() != null && !channelPost.getCaption().isEmpty()) {
+                    text = channelPost.getCaption();
+                }
+                if (channelPost.hasText() && !channelPost.getText().isEmpty()) {
+                    text = channelPost.getText();
+                }
+                if (channelPost.hasPoll()) {
+                    poll = channelPost.getPoll();
+                }
+            }
+
+            OkPostingHelper.OkPost post = helper.newPost(chatId, groupId, accessToken);
+            try {
+                post.addPhotos(photos).addVideo(video);
+            } catch (URISyntaxException | IOException | TelegramApiException logged) {
+                return;
+            }
+            try {
+                post.addText(text)
+                        .addPoll(poll)
+                        .post(accessToken, groupId);
+                sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + groupId);
+            } catch (URISyntaxException | IOException ignored) {
+            }
+        } catch (Exception e) {
+            sendAnswer(chatId, "Произошла непредвиденная ошибка  " + e);
+        }
+    }
+
 
     private String getUserName(Message msg) {
         User user = msg.getFrom();
@@ -127,7 +209,11 @@ public class Bot extends TelegramLongPollingCommandBot {
         return (userName != null) ? userName : String.format("%s %s", user.getLastName(), user.getFirstName());
     }
 
-    private void setAnswer(Long chatId, String userName, String text) {
+    void sendAnswer(Long chatId, String text) {
+        sendAnswer(chatId, null, text);
+    }
+
+    private void sendAnswer(Long chatId, String userName, String text) {
         SendMessage answer = new SendMessage();
         answer.setText(text);
         answer.setParseMode(ParseMode.HTML);
@@ -137,7 +223,11 @@ public class Bot extends TelegramLongPollingCommandBot {
         try {
             execute(answer);
         } catch (TelegramApiException e) {
-            logger.error(String.format("Cannot execute command of user %s: %s", userName, e.getMessage()));
+            if (userName != null) {
+                logger.error(String.format("Cannot execute command of user %s: %s", userName, e.getMessage()));
+            } else {
+                logger.error(String.format("Cannot execute command: %s", e.getMessage()));
+            }
         }
     }
 
