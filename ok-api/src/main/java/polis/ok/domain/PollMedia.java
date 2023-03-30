@@ -1,21 +1,23 @@
 package polis.ok.domain;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-public final class PollMedia extends Media {
+public final class PollMedia extends Media implements Serializable {
     public final String question;
     public final Collection<Answer> answers;
     public final String options;
 
-    public PollMedia(String question, Collection<Answer> answers, Collection<Option> options) {
+    public PollMedia(String question, Collection<String> answers, Collection<Option> options) {
         super("poll");
         this.question = question;
-        this.answers = answers;
+        this.answers = answers.stream().map(Answer::new).toList();
         this.options = options.stream().map(option -> option.value).collect(Collectors.joining(","));
     }
 
-    public record Answer(String text) {
+    private record Answer(String text) {
     }
 
     public enum Option {
@@ -26,7 +28,7 @@ public final class PollMedia extends Media {
         AVATAR_BATTLE("AvatarBattle"),
         BATTLE("Battle");
 
-        public final String value;
+        private final String value;
 
         Option(String value) {
             this.value = value;

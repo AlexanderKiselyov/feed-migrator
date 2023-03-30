@@ -18,14 +18,16 @@ import java.util.stream.Collectors;
 
 class LoggingUtils {
 
-    static final String ERROR_DESCRIPTION = "error_description";
-    static final String ERROR = "error";
+    private static final String ERROR_DESCRIPTION = "error_description";
+    private static final String ERROR = "error";
+    private static final String ERROR_MSG = "error_msg";
+    private static final String ERROR_CODE = "error_code";
 
     static HttpResponse<String> sendRequest(HttpClient client, HttpRequest request, Logger logger) throws IOException {
         try {
             return client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
-            logger.error(e.getMessage());
+            logger.error(e + " when sending " + request.toString());
             throw e;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -40,7 +42,7 @@ class LoggingUtils {
         try {
             return client.execute(request);
         } catch (IOException e) {
-            logger.error(e.getMessage());
+            logger.error(e + " when sending " + request.toString());
             throw e;
         }
     }
@@ -50,19 +52,29 @@ class LoggingUtils {
         return parseResponse(body, response.getStatusLine().toString(), logger);
     }
 
+
     static OkApiException wrapAndLog(JSONException e, String responseStatus, String responseBody, Logger logger) {
         logger.error("Failed to parse response. " + e.getMessage() + "\nResponse: \n" + responseStatus + "\n" + responseBody + '\n');
-        return new OkApiException("Сервер одноклассников ответил в некорректном формате", e);
+        return new OkApiException("Сервер Одноклассников ответил в некорректном формате", e);
+    }
+
+    private static OkApiException formExceptionAndLog(String errorCode, String errorDescription, String responseStatus, String responseBody, Logger logger) {
+        String logMsg = "Received error from OK. %s: %s\nResponse: \n%s\n%s\n".formatted(errorCode, errorDescription, responseStatus, responseBody);
+        logger.error(logMsg);
+        return new OkApiException("Получена ошибка от сервера Одноклассников " + errorCode + ": " + errorDescription);
     }
 
     private static JSONObject parseResponse(String responseBody, String responseStatus, Logger logger) throws OkApiException {
         try {
             JSONObject jsonResponse = new JSONObject(responseBody);
-            if (jsonResponse.has(LoggingUtils.ERROR)) {
-                String error = jsonResponse.getString(LoggingUtils.ERROR);
-                String errorDescription = jsonResponse.getString(LoggingUtils.ERROR_DESCRIPTION);
-                logger.error("Received error from OK " + error + ": " + errorDescription + "\nResponse: \n" + responseStatus + "\n" + responseBody + '\n');
-                throw new OkApiException("Получена ошибка от сервера одноклассников " + error + ": " + errorDescription);
+            if (jsonResponse.has(ERROR_CODE)) {
+                int errorCode = jsonResponse.getInt(ERROR_CODE);
+                String errorDesc = jsonResponse.getString(ERROR_MSG);
+                throw formExceptionAndLog(String.valueOf(errorCode), errorDesc, responseStatus, responseBody, logger);
+            } else if (jsonResponse.has(ERROR)) {
+                String error = jsonResponse.getString(ERROR);
+                String errorDesc = jsonResponse.getString(ERROR_DESCRIPTION);
+                throw formExceptionAndLog(error, errorDesc, responseStatus, responseBody, logger);
             }
             return jsonResponse;
         } catch (JSONException e) {

@@ -1,6 +1,8 @@
 package polis.ok.domain;
 
-public abstract sealed class Media permits LinkMedia, PhotoMedia, PollMedia, TextMedia, VideoMedia {
+import java.io.Serializable;
+
+public abstract sealed class Media implements Serializable permits LinkMedia, PhotoMedia, PollMedia, TextMedia, VideoMedia {
     public final String type;
 
     public Media(String type) {

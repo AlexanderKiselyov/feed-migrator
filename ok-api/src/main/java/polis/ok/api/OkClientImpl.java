@@ -22,6 +22,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import static polis.ok.api.LoggingUtils.parseResponse;
@@ -38,7 +40,7 @@ public class OkClientImpl implements OKClient {
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public void postMediaTopic(String accessToken, long groupId, Attachment attachment) throws URISyntaxException, IOException {
+    public void postMediaTopic(String accessToken, long groupId, Attachment attachment) throws URISyntaxException, IOException, OkApiException {
         URI uri = new URIBuilder("https://api.ok.ru/fb.do")
                 .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                 .addParameter("attachment", mapper.writeValueAsString(attachment))
@@ -52,7 +54,14 @@ public class OkClientImpl implements OKClient {
         HttpRequest request = HttpRequest.newBuilder().GET()
                 .uri(uri)
                 .build();
-        sendRequest(client, request, logger);
+        HttpResponse<String> response = sendRequest(client, request, logger);
+        Matcher matcher = Pattern.compile("\"(\\d+)\"").matcher(response.body());
+        if (matcher.matches()) {
+            String postId = matcher.group(1);
+            logger.info("Posted post %s to group %d".formatted(postId, groupId));
+        } else {
+            parseResponse(response, logger);
+        }
     }
 
     public List<String> uploadPhotos(String accessToken, long groupId, List<File> photos) throws URISyntaxException, IOException, OkApiException {
