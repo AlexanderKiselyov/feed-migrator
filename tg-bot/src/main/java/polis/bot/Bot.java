@@ -46,11 +46,14 @@ import polis.util.TelegramChannel;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
@@ -225,94 +228,93 @@ public class Bot extends TelegramLongPollingCommandBot {
     }
 
     @Override
-    public void onUpdatesReceived(List<Update> updates) {
-        Map<String, List<Update>> updatesByPost = updates.stream().collect(Collectors.groupingBy(
-                update -> update.getChannelPost() == null ? "" : update.getChannelPost().getMediaGroupId(),
-                Collectors.toList()
-        ));
-        if (updatesByPost.containsKey("")) {
-            for (Update update : updatesByPost.get("")) {
-                if (update.hasMessage() || update.hasCallbackQuery()) {
-                    filter(update.getMessage());
-                    processNonCommandUpdate(update);
-                }
-            }
-            updatesByPost.remove("");
-        }
-        if (updatesByPost.isEmpty()) {
+    public void onUpdatesReceived(List<Update> overallUpdates) {
+        Map<Boolean, List<Update>> updates = overallUpdates.stream()
+                .collect(Collectors.partitioningBy(Update::hasChannelPost));
+        boolean channelPosts = true;
+
+        updates.get(!channelPosts).forEach(this::processNonCommandUpdate);
+        updates.get(channelPosts).stream()
+                .map(Update::getChannelPost)
+                .collect(Collectors.groupingBy(Message::getChatId))
+                .values()
+                .forEach(this::processPostsInChannel);
+        //То, что сейчас делает forEach, потом следует сабмитить в executor
+    }
+
+    private static final String SINGLE_ITEM_POSTS = "";
+
+    private void processPostsInChannel(List<Message> channelPosts) {
+        if (channelPosts.isEmpty()) {
             return;
         }
-        //Пока думаем, что все апдейты из одного канала для одного поста
-        List<Update> postUpdates = updatesByPost.values().stream().findFirst().get();
-        if (postUpdates.isEmpty()) {
-            return;
-        }
-        long chatId = postUpdates.get(0).getChannelPost().getChatId();
+        Map<String, List<Message>> posts = channelPosts.stream().collect(
+                Collectors.groupingBy(
+                        post -> post.getMediaGroupId() == null ? SINGLE_ITEM_POSTS : post.getMediaGroupId(),
+                        Collectors.toList()
+                ));
+        posts.getOrDefault(SINGLE_ITEM_POSTS, Collections.emptyList())
+                .forEach(post -> processPostItems(Collections.singletonList(post)));
+        posts.remove(SINGLE_ITEM_POSTS); // :)
+        posts.values().stream()
+                .filter(postsItems -> !postsItems.isEmpty())
+                .forEach(this::processPostItems);
+    }
+
+    private void processPostItems(List<Message> postItems) {
+        long chatId = postItems.get(0).getChatId();
         try {
+            if (!isAutoposting.containsKey(chatId) || !isAutoposting.get(chatId)) {
+                return;
+            }
             List<PhotoSize> photos = new ArrayList<>();
             Video video = null;
             String text = null;
             Poll poll = null;
-
-            for (Update update : updates) {
-                Message channelPost = update.getChannelPost();
-                if (channelPost == null) {
-                    filter(update.getMessage());
-                    processNonCommandUpdate(update);
-                    continue;
+            for (Message postItem : postItems) {
+                if (postItem.hasPhoto()) {
+                    postItem.getPhoto().stream().max(Comparator.comparingInt(PhotoSize::getFileSize)).ifPresent(photos::add);
                 }
-                if (channelPost.hasPhoto()) {
-                    channelPost
-                            .getPhoto()
-                            .stream()
-                            .max(Comparator.comparingInt(PhotoSize::getFileSize))
-                            .ifPresent(photos::add);
+                if (postItem.hasVideo()) {
+                    video = postItem.getVideo();
                 }
-                if (channelPost.hasVideo()) {
-                    video = channelPost.getVideo();
+                if (postItem.getCaption() != null && !postItem.getCaption().isEmpty()) {
+                    text = postItem.getCaption();
                 }
-                if (channelPost.getCaption() != null && !channelPost.getCaption().isEmpty()) {
-                    text = channelPost.getCaption();
+                if (postItem.hasText() && !postItem.getText().isEmpty()) {
+                    text = postItem.getText();
                 }
-                if (channelPost.hasText() && !channelPost.getText().isEmpty()) {
-                    text = channelPost.getText();
-                }
-                if (channelPost.hasPoll()) {
-                    poll = channelPost.getPoll();
+                if (postItem.hasPoll()) {
+                    poll = postItem.getPoll();
                 }
             }
-
-            if (isAutoposting.containsKey(chatId) && isAutoposting.get(chatId)) {
-                for (TelegramChannel tgChannel : tgChannels.get(tgChannelOwner.get(chatId))) {
-                    if (Objects.equals(tgChannel.getTelegramChannelId(), chatId)) {
-                        for (SocialMediaGroup smg : tgChannel.getSynchronizedGroups()) {
-                            String accessToken = "";
-                            for (AuthData account : socialMediaAccounts.get(tgChannelOwner.get(chatId))) {
-                                if (Objects.equals(account.getTokenId(), smg.getTokenId())) {
-                                    accessToken = account.getAccessToken();
-                                    break;
-                                }
-                            }
-                            switch (smg.getSocialMedia()) {
-                                case OK -> {
-                                    OkPostingHelper.OkPost post = helper.newPost(chatId, smg.getId(), accessToken);
-                                    try {
-                                        post.addPhotos(photos).addVideo(video);
-                                    } catch (URISyntaxException | IOException | TelegramApiException logged) {
-                                        return;
-                                    }
-                                    try {
-                                        post.addText(text)
-                                                .addPoll(poll)
-                                                .post(accessToken, smg.getId());
-                                        sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getId());
-                                    } catch (URISyntaxException | IOException ignored) {
-                                    }
-                                }
-                                default -> logger.error(String.format("Social media not found: %s",
-                                        smg.getSocialMedia()));
+            for (TelegramChannel tgChannel : tgChannels.get(tgChannelOwner.get(chatId))) {
+                if (!Objects.equals(tgChannel.getTelegramChannelId(), chatId)) {
+                    return;
+                }
+                for (SocialMediaGroup smg : tgChannel.getSynchronizedGroups()) {
+                    String accessToken = "";
+                    for (AuthData account : socialMediaAccounts.get(tgChannelOwner.get(chatId))) {
+                        if (Objects.equals(account.getTokenId(), smg.getTokenId())) {
+                            accessToken = account.getAccessToken();
+                            break;
+                        }
+                    }
+                    switch (smg.getSocialMedia()) { //Здесь бы смапить группы на подходящие PostingHelper'ы и с помощью каждого запостить пост
+                        case OK -> {
+                            try {
+                                helper.newPost(chatId, smg.getId(), accessToken)
+                                        .addPhotos(photos).addVideo(video)
+                                        .addText(text)
+                                        .addPoll(poll)
+                                        .post(accessToken, smg.getId());
+                                sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getId());
+                            } catch (URISyntaxException | IOException ignored) {
+                                //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а
                             }
                         }
+                        default -> logger.error(String.format("Social media not found: %s",
+                                smg.getSocialMedia()));
                     }
                 }
             }
