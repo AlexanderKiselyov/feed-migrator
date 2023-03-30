@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Map;
 
 public class TgChannelDescription extends Command {
-    // TODO добавить описание вариантов дальнейших действий
     private static final String TELEGRAM_CHANNEL_DESCRIPTION = """
             Текущий выбранный телеграм - канал "<b>%s</b>".
-            """;
+            Вы можете посмотреть синхронизаванные с каналом группы по команде /%s.
+            Добавить новую группу можно по команде /%s.""";
     private static final String NOT_VALID_CHANNEL = String.format("""
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""",
@@ -46,7 +46,9 @@ public class TgChannelDescription extends Command {
                     String.format(TELEGRAM_CHANNEL_DESCRIPTION,
                             telegramDataCheck.getChatTitle(
                                     currentTgChannel.get(chat.getId()).getTelegramChannelUsername()
-                            )
+                            ),
+                            State.TgSyncGroups.getIdentifier(),
+                            State.AddGroup.getIdentifier()
                     ),
                     rowsCount,
                     commandsForKeyboard,

@@ -28,17 +28,16 @@ public class TelegramChannel {
         return synchronizedGroups;
     }
 
-    public boolean addGroup(SocialMediaGroup newGroup) {
+    public void addGroup(SocialMediaGroup newGroup) {
         if (synchronizedGroups == null) {
             synchronizedGroups = new ArrayList<>(1);
         }
         for (SocialMediaGroup group : synchronizedGroups) {
             if (group.getSocialMedia() == newGroup.getSocialMedia()) {
-                return false;
+                return;
             }
         }
         synchronizedGroups.add(newGroup);
-        return true;
     }
 
     public void deleteGroup(Long id) {

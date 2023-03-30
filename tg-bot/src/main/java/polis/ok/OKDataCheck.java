@@ -34,7 +34,7 @@ public class OKDataCheck {
     private static final String OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = "Ошибка на сервере. Попробуйте еще раз.";
     public static final String OK_GROUP_ADDED = """
             Группа была успешно добавлена.
-            Выберите /%s, чтобы продолжить настройку постинга.""";
+            Синхронизируйте группу с Телеграм-каналом по команде /%s.""";
     private static final String OK_METHOD_DO = "https://api.ok.ru/fb.do";
     private static final String WRONG_LINK_OR_USER_HAS_NO_RIGHTS = """
             Введенная ссылка не является верной или пользователь не является администратором или модератором группы.
@@ -119,8 +119,7 @@ public class OKDataCheck {
 
             String status = object.getString("status");
             if (Objects.equals(status, "ADMIN") || Objects.equals(status, "MODERATOR")) {
-                return new NonCommand.AnswerPair(String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()),
-                        false);
+                return new NonCommand.AnswerPair(String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()), false);
             } else {
                 return new NonCommand.AnswerPair(USER_HAS_NO_RIGHTS, true);
             }

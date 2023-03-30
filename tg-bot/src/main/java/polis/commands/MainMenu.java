@@ -8,10 +8,10 @@ import polis.util.State;
 import java.util.List;
 
 public class MainMenu extends Command {
-    // TODO добавить описание вариантов дальнейших действий
     private static final String MAIN_MENU = """
             Добро пожаловать в главное меню!
-            """;
+            Здесь Вы можете посмотреть список добавленных Телеграм-каналов /%s.
+            Кроме того, Вы можете добавить новый Телеграм-канал для синхронизации /%s.""";
     private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
             State.TgChannelsList.getDescription(),
@@ -29,7 +29,7 @@ public class MainMenu extends Command {
                 chat.getId(),
                 this.getCommandIdentifier(),
                 user.getUserName(),
-                MAIN_MENU,
+                String.format(MAIN_MENU, State.AccountsList.getIdentifier(), State.AddTgChannel.getIdentifier()),
                 rowsCount,
                 commandsForKeyboard,
                 null);

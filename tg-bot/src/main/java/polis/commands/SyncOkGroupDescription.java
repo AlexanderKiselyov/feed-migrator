@@ -14,9 +14,10 @@ import java.util.Map;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
-public class SyncOkTgDescription extends Command {
+public class SyncOkGroupDescription extends Command {
     private static final String SYNC_OK_TG_DESCRIPTION = """
-            Телеграм-канал <b>%s</b> и группа <b>%s (%s)</b> были успешно синхронизированы.""";
+            Телеграм-канал <b>%s</b> и группа <b>%s (%s)</b> были успешно синхронизированы.
+            Настроить функцию автопостинга можно по команде /%s.""";
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP_DESCRIPTION = """
             Невозможно показать информацию по связанным Телеграм-каналом и группе.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
@@ -26,7 +27,7 @@ public class SyncOkTgDescription extends Command {
     private final Map<Long, AuthData> currentSocialMediaAccount;
     private final OKDataCheck okDataCheck;
 
-    public SyncOkTgDescription(String commandIdentifier,
+    public SyncOkGroupDescription(String commandIdentifier,
                                String description,
                                Map<Long, TelegramChannel> currentTgChannel,
                                Map<Long, SocialMediaGroup> currentSocialMediaGroup,
@@ -55,7 +56,8 @@ public class SyncOkTgDescription extends Command {
                             ),
                             okDataCheck.getOKGroupName(currentSocialMediaGroup.get(chat.getId()).getId(),
                                     currentSocialMediaAccount.get(chat.getId()).getAccessToken()),
-                            currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName()
+                            currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName(),
+                            State.Autoposting
                     ),
                     rowsCount,
                     commandsForKeyboard,

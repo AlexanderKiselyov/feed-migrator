@@ -19,14 +19,14 @@ import polis.commands.AddGroup;
 import polis.commands.AddOkAccount;
 import polis.commands.AddOkGroup;
 import polis.commands.AddTgChannel;
+import polis.commands.Autoposting;
 import polis.commands.GroupDescription;
 import polis.commands.MainMenu;
 import polis.commands.NonCommand;
 import polis.commands.OkAccountDescription;
-import polis.commands.OkGroupDescription;
 import polis.commands.StartCommand;
+import polis.commands.SyncOkGroupDescription;
 import polis.commands.SyncOkTg;
-import polis.commands.SyncOkTgDescription;
 import polis.commands.TgChannelDescription;
 import polis.commands.TgChannelsList;
 import polis.commands.TgSyncGroups;
@@ -61,20 +61,21 @@ public class Bot extends TelegramLongPollingCommandBot {
     );
     private final String botName;
     private final String botToken;
-    private final OKDataCheck okDataCheck;
     private final NonCommand nonCommand;
     private final Map<Long, List<AuthData>> socialMediaAccounts = new ConcurrentHashMap<>();
     private final Map<Long, List<TelegramChannel>> tgChannels = new ConcurrentHashMap<>();
-    private final Map<Long, Long> tgChannelsOwners = new ConcurrentHashMap<>();
+    private final Map<Long, Long> tgChannelOwner = new ConcurrentHashMap<>();
     private final Map<Long, IState> currentState = new ConcurrentHashMap<>();
     private final Map<Long, TelegramChannel> currentTgChannel = new ConcurrentHashMap<>();
     private final Map<Long, AuthData> currentSocialMediaAccount = new ConcurrentHashMap<>();
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup = new ConcurrentHashMap<>();
+    private final Map<Long, Boolean> isAutoposting = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
     private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
     private static final String GROUP_CALLBACK_TEXT = "group";
     private static final String ACCOUNT_CALLBACK_TEXT = "account";
     private static final String YES_NO_CALLBACK_TEXT = "yesNo";
+    private static final String AUTOPOSTING = "autoposting";
     private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
@@ -82,14 +83,14 @@ public class Bot extends TelegramLongPollingCommandBot {
         this.botName = botName;
         this.botToken = botToken;
 
-        okDataCheck = new OKDataCheck(currentSocialMediaAccount, currentState, socialMediaAccounts);
+        OKDataCheck okDataCheck = new OKDataCheck(currentSocialMediaAccount, currentState, socialMediaAccounts);
         nonCommand = new NonCommand(
                 okDataCheck,
                 currentSocialMediaAccount,
                 tgChannels,
                 currentTgChannel,
                 currentSocialMediaGroup,
-                socialMediaAccounts);
+                tgChannelOwner);
 
         register(new StartCommand(State.Start.getIdentifier(), State.Start.getDescription()));
         register(new AddTgChannel(State.AddTgChannel.getIdentifier(), State.AddTgChannel.getDescription()));
@@ -108,15 +109,14 @@ public class Bot extends TelegramLongPollingCommandBot {
                 State.OkAccountDescription.getDescription(), currentSocialMediaAccount, okDataCheck));
         register(new AccountsList(State.AccountsList.getIdentifier(), State.AccountsList.getDescription(),
                 socialMediaAccounts, okDataCheck));
-        register(new AddOkGroup(State.AddOkGroup.getIdentifier(), State.AddOkGroup.getDescription()));
-        register(new OkGroupDescription(State.OkGroupDescription.getIdentifier(),
-                State.OkGroupDescription.getDescription(), currentSocialMediaGroup, currentSocialMediaAccount,
-                okDataCheck));
+        register(new AddOkGroup(State.AddOkGroup.getIdentifier(), State.AddOkGroup.getDescription(), currentTgChannel));
+        register(new SyncOkGroupDescription(State.SyncOkGroupDescription.getIdentifier(),
+                State.SyncOkGroupDescription.getDescription(), currentTgChannel, currentSocialMediaGroup,
+                currentSocialMediaAccount, okDataCheck));
         register(new SyncOkTg(State.SyncOkTg.getIdentifier(), State.SyncOkTg.getDescription(),
                 currentTgChannel, currentSocialMediaGroup, currentSocialMediaAccount, okDataCheck));
-        register(new SyncOkTgDescription(State.SyncOkTgDescription.getIdentifier(),
-                State.SyncOkTgDescription.getDescription(), currentTgChannel, currentSocialMediaGroup,
-                currentSocialMediaAccount, okDataCheck));
+        register(new Autoposting(State.Autoposting.getIdentifier(), State.Autoposting.getDescription(),
+                currentTgChannel));
     }
 
     @Override
@@ -171,6 +171,22 @@ public class Bot extends TelegramLongPollingCommandBot {
 
         Long chatId = msg.getChatId();
         String messageText = msg.getText();
+
+        if (isAutoposting.containsKey(chatId) && isAutoposting.get(chatId)) {
+            // Sending post from Telegram channel to synchronized social media
+            for (TelegramChannel tgChannel : tgChannels.get(tgChannelOwner.get(chatId))) {
+                if (Objects.equals(tgChannel.getTelegramChannelId(), chatId)) {
+                    for (SocialMediaGroup smg : tgChannel.getSynchronizedGroups()) {
+                        switch (smg.getSocialMedia()) {
+                            case OK -> {
+
+                            }
+                            default -> logger.error(String.format("Social media not found: %s", smg.getSocialMedia()));
+                        }
+                    }
+                }
+            }
+        }
 
         State customCommand = State.findStateByDescription(messageText);
         if (customCommand != null) {
@@ -261,11 +277,17 @@ public class Bot extends TelegramLongPollingCommandBot {
                     for (TelegramChannel ch : channels) {
                         if (Objects.equals(String.valueOf(ch.getTelegramChannelId()), dataParts[1])) {
                             channels.remove(ch);
+                            tgChannelOwner.remove(ch.getTelegramChannelId());
                             break;
                         }
                     }
                     if (channels.size() == 0) {
                         currentTgChannel.remove(chatId);
+                        for (Map.Entry<Long, Long> entry : tgChannelOwner.entrySet()) {
+                            if (Objects.equals(entry.getValue(), chatId)) {
+                                tgChannelOwner.remove(entry.getKey());
+                            }
+                        }
                     }
                     tgChannels.put(chatId, channels);
                     DeleteMessage lastMessage = new DeleteMessage();
@@ -337,7 +359,27 @@ public class Bot extends TelegramLongPollingCommandBot {
             }
             case YES_NO_CALLBACK_TEXT -> {
                 if (Objects.equals(dataParts[1], "0")) {
-                    getRegisteredCommand(State.SyncOkTgDescription.getIdentifier())
+                    SocialMediaGroup currentGroup = currentSocialMediaGroup.get(chatId);
+                    currentTgChannel.get(chatId).addGroup(currentGroup);
+                    boolean isFound = false;
+                    for (AuthData authData : socialMediaAccounts.get(chatId)) {
+                        if (Objects.equals(authData.getAccessToken(),
+                                currentSocialMediaAccount.get(chatId).getAccessToken())) {
+                            for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
+                                if (Objects.equals(tgChannel.getTelegramChannelId(),
+                                        currentTgChannel.get(chatId).getTelegramChannelId())) {
+                                    tgChannel.addGroup(new SocialMediaGroup(currentGroup.getId(),
+                                            authData.getTokenId(), authData.getSocialMedia()));
+                                    isFound = true;
+                                    break;
+                                }
+                            }
+                            if (isFound) {
+                                break;
+                            }
+                        }
+                    }
+                    getRegisteredCommand(State.SyncOkGroupDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 } else {
                     boolean isFound = false;
@@ -358,12 +400,19 @@ public class Bot extends TelegramLongPollingCommandBot {
                         }
                     }
                     currentSocialMediaGroup.remove(chatId);
-                    getRegisteredCommand(State.OkGroupDescription.getIdentifier())
+                    getRegisteredCommand(State.OkAccountDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 }
             }
+            case AUTOPOSTING -> {
+                if (Objects.equals(dataParts[2], "0")) {
+                    isAutoposting.put(Long.parseLong(dataParts[1]), true);
+                } else {
+                    isAutoposting.put(Long.parseLong(dataParts[1]), false);
+                }
+            }
             case NO_CALLBACK_TEXT -> {
-                //TODO обработать данный случай
+
             }
             default -> logger.error(String.format("Unknown inline keyboard data: %s", data));
         }

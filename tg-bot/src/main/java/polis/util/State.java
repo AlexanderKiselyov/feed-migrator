@@ -17,19 +17,19 @@ public enum State implements IState {
     OkAccountDescription("ok_account_description", "\uD83D\uDCD1 Информация по аккаунту "
             + "Одноклассников"),
     AccountsList("accounts_list", "\uD83D\uDCC4 Список добавленных аккаунтов"),
-    AddOkGroup("add_ok_group", "➕ Добавление группы Однокласников"),
-    OkGroupDescription("ok_group_description", "\uD83D\uDCD1 Описание группы Одноклассников"),
+    AddOkGroup("add_ok_group_and_sync", "➕ Добавление группы Однокласников"),
+    SyncOkGroupDescription("ok_group_description",
+            "\uD83D\uDCD1 Описание синрхронизованной с Телеграм-каналом группы Одноклассников"),
     SyncOkTg("sync_ok_tg", "\uD83D\uDD04 Синхронизация группы Одноклассников с Телеграм-каналом"),
-    SyncOkTgDescription("sync_ok_tg_description", "\uD83D\uDD04 Описание синхронизации "
-            + "Телеграм-канала с группой");
+    Autoposting("autoposting", "Настройка функции автопостинга");
 
     private final String identifier;
     private final String description;
     private static final Map<IState, IState> prevStates = Map.ofEntries(
             Map.entry(Start, Start),
             Map.entry(Substate.AddOkAccount_AuthCode, AddOkAccount),
-            Map.entry(Substate.Sync_TelegramChannel, SyncOkTg),
             Map.entry(Substate.AddOkGroup_AddGroup, AddOkGroup),
+            Map.entry(SyncOkTg, OkAccountDescription),
             Map.entry(TgSyncGroups, TgChannelDescription),
             Map.entry(GroupDescription, TgChannelDescription),
             Map.entry(AddOkAccount, AddGroup),
@@ -37,9 +37,8 @@ public enum State implements IState {
             Map.entry(AccountsList, AddGroup),
             Map.entry(OkAccountDescription, AddGroup),
             Map.entry(AddOkGroup, OkAccountDescription),
-            Map.entry(OkGroupDescription, OkAccountDescription),
-            Map.entry(SyncOkTg, OkGroupDescription),
-            Map.entry(SyncOkTgDescription, OkGroupDescription)
+            Map.entry(SyncOkGroupDescription, OkAccountDescription),
+            Map.entry(Autoposting, SyncOkGroupDescription)
     );
 
     State(String identifier, String description) {

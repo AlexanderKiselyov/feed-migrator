@@ -13,7 +13,6 @@ import polis.util.TelegramChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class NonCommand {
     private static final String START_STATE_ANSWER = "Не могу распознать команду. Попробуйте еще раз.";
@@ -24,14 +23,11 @@ public class NonCommand {
     private static final String WRONG_OK_ACCOUNT = """
             Неверный аккаунт Одноклассников.
             Пожалуйста, вернитесь в главное меню (%s) и следуйте дальнейшим инструкциям.""";
-    private static final String SAME_SOCIAL_MEDIA = """
-            Социальная сеть %s уже была синхронизирована с текущим телеграм каналом.
-            Пожалуйста, выберите другую социальную сеть и попробуйте снова.""";
     private final Map<Long, AuthData> currentSocialMediaAccount;
     private final Map<Long, List<TelegramChannel>> tgChannels;
     private final Map<Long, TelegramChannel> currentTgChannel;
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup;
-    private final Map<Long, List<AuthData>> socialMediaAccounts;
+    private final Map<Long, Long> tgChannelOwner;
     private final OKDataCheck okDataCheck;
     private final TelegramDataCheck telegramDataCheck;
 
@@ -40,13 +36,13 @@ public class NonCommand {
                       Map<Long, List<TelegramChannel>> tgChannels,
                       Map<Long, TelegramChannel> currentChannel,
                       Map<Long, SocialMediaGroup> currentSocialMediaGroup,
-                      Map<Long, List<AuthData>> socialMediaAccounts) {
+                      Map<Long, Long> tgChannelOwner) {
         this.currentSocialMediaAccount = currentSocialMediaAccount;
         this.tgChannels = tgChannels;
         this.currentTgChannel = currentChannel;
         this.okDataCheck = okDataCheck;
         this.currentSocialMediaGroup = currentSocialMediaGroup;
-        this.socialMediaAccounts = socialMediaAccounts;
+        this.tgChannelOwner = tgChannelOwner;
         telegramDataCheck = new TelegramDataCheck();
     }
 
@@ -66,23 +62,28 @@ public class NonCommand {
 
             AnswerPair answer = telegramDataCheck.checkTelegramChannelLink(checkChannelLink);
             if (!answer.getError()) {
+                TelegramChannel newTgChannel;
                 if (tgChannels.containsKey(chatId)) {
                     List<TelegramChannel> currentTelegramChannels = tgChannels.get(chatId);
-                    currentTelegramChannels.add(new TelegramChannel(chatId, checkChannelLink, new ArrayList<>(1)));
+                    newTgChannel = new TelegramChannel(chatId, checkChannelLink, new ArrayList<>(1));
+                    currentTelegramChannels.add(newTgChannel);
                     tgChannels.put(chatId, currentTelegramChannels);
                 } else {
                     List<TelegramChannel> newTelegramChannel = new ArrayList<>(1);
-                    newTelegramChannel.add(new TelegramChannel(chatId, checkChannelLink, new ArrayList<>(1)));
+                    newTgChannel = new TelegramChannel(chatId, checkChannelLink, new ArrayList<>(1));
+                    newTelegramChannel.add(newTgChannel);
                     tgChannels.put(chatId, newTelegramChannel);
                 }
                 currentTgChannel.put(chatId, new TelegramChannel(chatId, checkChannelLink, new ArrayList<>(1)));
+                tgChannelOwner.put(newTgChannel.getTelegramChannelId(), chatId);
             }
             return answer;
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
             return okDataCheck.getOKAuthCode(text, chatId);
         } else if (state.equals(Substate.AddOkGroup_AddGroup)) {
             if (currentSocialMediaAccount.get(chatId) == null) {
-                return new AnswerPair(String.format(WRONG_OK_ACCOUNT, State.MainMenu.getIdentifier()), true);
+                return new AnswerPair(String.format(WRONG_OK_ACCOUNT, State.MainMenu.getIdentifier()),
+                        true);
             }
 
             String accessToken = currentSocialMediaAccount.get(chatId).getAccessToken();
@@ -95,26 +96,6 @@ public class NonCommand {
                 SocialMediaGroup newGroup = new SocialMediaGroup(groupId,
                         currentSocialMediaAccount.get(chatId).getTokenId(), SocialMedia.OK);
                 currentSocialMediaGroup.put(chatId, newGroup);
-                if (!currentTgChannel.get(chatId).addGroup(newGroup)) {
-                    return new AnswerPair(String.format(SAME_SOCIAL_MEDIA, newGroup.getSocialMedia().getName()), true);
-                }
-                boolean isFound = false;
-                for (AuthData authData : socialMediaAccounts.get(chatId)) {
-                    if (Objects.equals(authData.getAccessToken(), accessToken)) {
-                        for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
-                            if (Objects.equals(tgChannel.getTelegramChannelId(),
-                                    currentTgChannel.get(chatId).getTelegramChannelId())) {
-                                tgChannel.addGroup(new SocialMediaGroup(groupId,
-                                        authData.getTokenId(), authData.getSocialMedia()));
-                                isFound = true;
-                                break;
-                            }
-                        }
-                        if (isFound) {
-                            break;
-                        }
-                    }
-                }
             }
 
             return answer;
