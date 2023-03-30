@@ -245,9 +245,6 @@ public class Bot extends TelegramLongPollingCommandBot {
     private static final String SINGLE_ITEM_POSTS = "";
 
     private void processPostsInChannel(List<Message> channelPosts) {
-        if (channelPosts.isEmpty()) {
-            return;
-        }
         Map<String, List<Message>> posts = channelPosts.stream().collect(
                 Collectors.groupingBy(
                         post -> post.getMediaGroupId() == null ? SINGLE_ITEM_POSTS : post.getMediaGroupId(),
@@ -256,9 +253,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         posts.getOrDefault(SINGLE_ITEM_POSTS, Collections.emptyList())
                 .forEach(post -> processPostItems(Collections.singletonList(post)));
         posts.remove(SINGLE_ITEM_POSTS); // :)
-        posts.values().stream()
-                .filter(postsItems -> !postsItems.isEmpty())
-                .forEach(this::processPostItems);
+        posts.values().forEach(this::processPostItems);
     }
 
     private void processPostItems(List<Message> postItems) {
