@@ -46,14 +46,12 @@ import polis.util.TelegramChannel;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
@@ -82,6 +80,7 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final Map<Long, AuthData> currentSocialMediaAccount = new ConcurrentHashMap<>();
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup = new ConcurrentHashMap<>();
     private final Map<Long, Boolean> isAutoposting = new ConcurrentHashMap<>();
+    private final OkPostingHelper helper;
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
     private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
     private static final String GROUP_CALLBACK_TEXT = "group";
@@ -89,7 +88,8 @@ public class Bot extends TelegramLongPollingCommandBot {
     private static final String YES_NO_CALLBACK_TEXT = "yesNo";
     private static final String AUTOPOSTING = "autoposting";
     private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
-    private final OkPostingHelper helper;
+    private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
+    private static final String SINGLE_ITEM_POSTS = "";
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
@@ -130,7 +130,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         register(new SyncOkTg(State.SyncOkTg.getIdentifier(), State.SyncOkTg.getDescription(),
                 currentTgChannel, currentSocialMediaGroup, currentSocialMediaAccount, okDataCheck));
         register(new Autoposting(State.Autoposting.getIdentifier(), State.Autoposting.getDescription(),
-                currentTgChannel));
+                currentTgChannel, currentSocialMediaGroup, currentSocialMediaAccount, okDataCheck));
     }
 
     @Override
@@ -233,6 +233,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 .collect(Collectors.partitioningBy(Update::hasChannelPost));
         boolean channelPosts = true;
 
+        updates.get(!channelPosts).forEach(update -> filter(update.getMessage()));
         updates.get(!channelPosts).forEach(this::processNonCommandUpdate);
         updates.get(channelPosts).stream()
                 .map(Update::getChannelPost)
@@ -241,8 +242,6 @@ public class Bot extends TelegramLongPollingCommandBot {
                 .forEach(this::processPostsInChannel);
         //То, что сейчас делает forEach, потом следует сабмитить в executor
     }
-
-    private static final String SINGLE_ITEM_POSTS = "";
 
     private void processPostsInChannel(List<Message> channelPosts) {
         Map<String, List<Message>> posts = channelPosts.stream().collect(
@@ -268,7 +267,9 @@ public class Bot extends TelegramLongPollingCommandBot {
             Poll poll = null;
             for (Message postItem : postItems) {
                 if (postItem.hasPhoto()) {
-                    postItem.getPhoto().stream().max(Comparator.comparingInt(PhotoSize::getFileSize)).ifPresent(photos::add);
+                    postItem.getPhoto().stream()
+                            .max(Comparator.comparingInt(PhotoSize::getFileSize))
+                            .ifPresent(photos::add);
                 }
                 if (postItem.hasVideo()) {
                     video = postItem.getVideo();
@@ -295,11 +296,13 @@ public class Bot extends TelegramLongPollingCommandBot {
                             break;
                         }
                     }
-                    switch (smg.getSocialMedia()) { //Здесь бы смапить группы на подходящие PostingHelper'ы и с помощью каждого запостить пост
+                    switch (smg.getSocialMedia()) { //Здесь бы смапить группы на подходящие PostingHelper'ы
+                        // и с помощью каждого запостить пост
                         case OK -> {
                             try {
                                 helper.newPost(chatId, smg.getId(), accessToken)
-                                        .addPhotos(photos).addVideo(video)
+                                        .addPhotos(photos)
+                                        .addVideo(video)
                                         .addText(text)
                                         .addPoll(poll)
                                         .post(accessToken, smg.getId());
@@ -505,11 +508,14 @@ public class Bot extends TelegramLongPollingCommandBot {
                 }
             }
             case AUTOPOSTING -> {
+                String enable = "включена";
                 if (Objects.equals(dataParts[2], "0")) {
                     isAutoposting.put(Long.parseLong(dataParts[1]), true);
                 } else {
                     isAutoposting.put(Long.parseLong(dataParts[1]), false);
+                    enable = "выключена";
                 }
+                sendAnswer(chatId, String.format(AUTOPOSTING_ENABLE, enable));
                 getRegisteredCommand(State.MainMenu.getIdentifier()).processMessage(this, msg, null);
             }
             case NO_CALLBACK_TEXT -> {
