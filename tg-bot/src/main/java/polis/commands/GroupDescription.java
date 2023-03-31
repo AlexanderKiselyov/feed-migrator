@@ -16,10 +16,10 @@ import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 public class GroupDescription extends Command {
     private static final String GROUP_DESCRIPTION = """
-            Выбрана группа <b>%s</b> из соцсети %s.""";
+            Выбрана группа <b>%s</b> из социальной сети %s.""";
     private static final String NO_VALID_GROUP = """
             Ошибка выбора группы.
-            Пожалуйста, вернитесь в описание телеграмм канала (/%s) и выберите нужную группу.""";
+            Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и выберите нужную группу.""";
     private final Map<Long, SocialMediaGroup> currentGroup;
     private final Map<Long, AuthData> currentSocialMediaAccount;
     private final OKDataCheck okDataCheck;

@@ -10,8 +10,8 @@ import java.util.List;
 public class MainMenu extends Command {
     private static final String MAIN_MENU = """
             Добро пожаловать в главное меню!
-            Здесь Вы можете посмотреть список добавленных Телеграм-каналов /%s.
-            Кроме того, Вы можете добавить новый Телеграм-канал для синхронизации /%s.""";
+            Здесь Вы можете посмотреть список добавленных Телеграм-каналов по команде /%s.
+            Кроме того, Вы можете добавить новый Телеграм-канал для синхронизации по команде /%s.""";
     private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
             State.TgChannelsList.getDescription(),

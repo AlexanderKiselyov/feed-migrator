@@ -20,7 +20,7 @@ public class SyncOkGroupDescription extends Command {
             Телеграм-канал <b>%s</b> и группа <b>%s (%s)</b> были успешно синхронизированы.
             Настроить функцию автопостинга можно по команде /%s.""";
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP_DESCRIPTION = """
-            Невозможно показать информацию по связанным Телеграм-каналом и группе.
+            Невозможно показать информацию по связанным Телеграм-каналу и группе.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private final Map<Long, TelegramChannel> currentTgChannel;
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup;

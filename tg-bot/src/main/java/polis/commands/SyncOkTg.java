@@ -18,7 +18,7 @@ public class SyncOkTg extends Command {
     private static final String SYNC_OK_TG = """
             Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";
     private static final String SYNC_OK_TG_INLINE = """
-            Хотите ли Вы синхронизироовать их?""";
+            Хотите ли Вы синхронизировать их?""";
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
             Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";

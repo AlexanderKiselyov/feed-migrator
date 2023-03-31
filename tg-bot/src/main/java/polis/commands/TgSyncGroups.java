@@ -19,13 +19,13 @@ import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 public class TgSyncGroups extends Command {
     private static final String TG_SYNC_GROUPS = """
-            Список синхронизованных групп.""";
+            Список синхронизированных групп.""";
     private static final String TG_SYNC_GROUPS_INLINE = """
-            Для выбора определенной группы - нажмите на нужную группу.
-            Для удаления группы - нажмите 'Удалить' справа от группы.""";
+            Для выбора определенной группы нажмите на нужную группу.
+            Для удаления группы нажмите 'Удалить' справа от группы.""";
     private static final String NO_SYNC_GROUPS = """
-            Список синхронизованных групп пуст.
-            Пожалуйста, вернитесь в описание телеграмм канала (/%s) и добавьте хотя бы одну группу.""";
+            Список синхронизированных групп пуст.
+            Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и добавьте хотя бы одну группу.""";
     private final Map<Long, TelegramChannel> currentTgChannel;
     private final Map<Long, List<AuthData>> socialMediaAccounts;
     private final OKDataCheck okDataCheck;

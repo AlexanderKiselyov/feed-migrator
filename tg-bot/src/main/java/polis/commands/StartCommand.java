@@ -11,7 +11,7 @@ public class StartCommand extends Command {
     // TODO Расширить список с соцсетями
     private static final String startAnswer = String.format("""
             Давайте начнём! С помощью бота Вы можете синхронизировать Ваш Telegram-канал с группой в Одноклассники.
-            Введите /%s и добавьте новый Телеграм-канал, из которого хотите публиковать посты в другие соцсети.
+            Введите /%s и добавьте новый Телеграм-канал, из которого хотите публиковать посты в другие социальные сети.
             Или можете воспользоваться клавиатурой с командами.""", State.AddTgChannel.getIdentifier());
     private static final int rowsCount = 1;
     private static final List<String> commandsForKeyboard = List.of(
