@@ -10,6 +10,7 @@ import polis.util.SocialMediaGroup;
 import polis.util.State;
 import polis.util.TelegramChannel;
 
+import java.util.List;
 import java.util.Map;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
@@ -26,13 +27,17 @@ public class SyncOkGroupDescription extends Command {
     private final TelegramDataCheck telegramDataCheck;
     private final Map<Long, AuthData> currentSocialMediaAccount;
     private final OKDataCheck okDataCheck;
+    private final int rowsCount = 1;
+    private final List<String> commandsForKeyboard = List.of(
+            State.Autoposting.getDescription()
+    );
 
     public SyncOkGroupDescription(String commandIdentifier,
-                               String description,
-                               Map<Long, TelegramChannel> currentTgChannel,
-                               Map<Long, SocialMediaGroup> currentSocialMediaGroup,
-                               Map<Long, AuthData> currentSocialMediaAccount,
-                               OKDataCheck okDataCheck) {
+                                  String description,
+                                  Map<Long, TelegramChannel> currentTgChannel,
+                                  Map<Long, SocialMediaGroup> currentSocialMediaGroup,
+                                  Map<Long, AuthData> currentSocialMediaAccount,
+                                  OKDataCheck okDataCheck) {
         super(commandIdentifier, description);
         this.currentTgChannel = currentTgChannel;
         this.currentSocialMediaGroup = currentSocialMediaGroup;
@@ -73,8 +78,8 @@ public class SyncOkGroupDescription extends Command {
                             NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP_DESCRIPTION,
                             State.MainMenu.getIdentifier()
                     ),
-                    rowsCount,
-                    commandsForKeyboard,
+                    super.rowsCount,
+                    super.commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
         }

@@ -21,7 +21,7 @@ public enum State implements IState {
     SyncOkGroupDescription("ok_group_description",
             "\uD83D\uDCD1 Описание синрхронизованной с Телеграм-каналом группы Одноклассников"),
     SyncOkTg("sync_ok_tg", "\uD83D\uDD04 Синхронизация группы Одноклассников с Телеграм-каналом"),
-    Autoposting("autoposting", "Настройка функции автопостинга");
+    Autoposting("autoposting", "\uD83D\uDD04 Настройка функции автопостинга");
 
     private final String identifier;
     private final String description;
