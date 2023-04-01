@@ -1,0 +1,13 @@
+#copyButton {
+    background-color: #fb9e25;
+    border-radius: 28px;
+    border: 1px solid #eeb44f;
+    display: inline-block;
+    cursor: pointer;
+    color: #ffffff;
+    font-family: Verdana;
+    font-size: 17px;
+    padding: 16px 31px;
+    text-decoration: none;
+    text-shadow: 0px 1px 0px #cc9f52;
+}
