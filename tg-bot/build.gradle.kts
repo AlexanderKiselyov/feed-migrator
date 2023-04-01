@@ -26,6 +26,13 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
+val run by tasks.registering(JavaExec::class) {
+    group = "build"
+    mainClass.set("polis.FeedMigratorBot")
+    workingDir = rootDir
+    classpath = files(tasks.compileJava, configurations.runtimeClasspath)
+}
+
 configurations.all {
     resolutionStrategy.capabilitiesResolution.withCapability("dev.jacomet.logging", "slf4j-impl:1.0") {
         select("org.slf4j:slf4j-simple:0")
