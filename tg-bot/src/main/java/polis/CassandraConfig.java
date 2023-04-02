@@ -7,11 +7,8 @@ import org.springframework.data.cassandra.config.AbstractCassandraConfiguration;
 import org.springframework.data.cassandra.config.CqlSessionFactoryBean;
 import org.springframework.data.cassandra.config.SchemaAction;
 
-@Configuration()
+@Configuration
 public class CassandraConfig extends AbstractCassandraConfiguration {
-    {
-        System.err.println("Doing configuration");
-    }
 
     @Value("${spring.data.cassandra.contact-points}")
     private String contactPoints;
@@ -59,5 +56,4 @@ public class CassandraConfig extends AbstractCassandraConfiguration {
         cassandraSession.setPassword(password);
         return cassandraSession;
     }
-
 }
