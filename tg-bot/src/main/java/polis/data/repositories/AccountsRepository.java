@@ -1,9 +1,9 @@
-package polis.repositories;
+package polis.data.repositories;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.cassandra.core.CassandraOperations;
 import org.springframework.stereotype.Repository;
-import polis.domain.Account;
+import polis.data.domain.Account;
 
 import static org.springframework.data.cassandra.core.query.Criteria.where;
 import static org.springframework.data.cassandra.core.query.Query.query;
