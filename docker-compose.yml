@@ -20,7 +20,7 @@ services:
       test: [ "CMD", "cqlsh", "-u", "cassandra", "-p", "cassandra" ]
       interval: 1m
       timeout: 15s
-      retries: 10
+      retries: 5
 
   tg-bot:
     depends_on:

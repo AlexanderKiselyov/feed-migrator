@@ -17,6 +17,7 @@ dependencies {
     implementation("org.telegram:telegrambotsextensions:6.5.0")
     implementation("org.projectlombok:lombok:1.18.26")
     implementation("org.springframework.boot:spring-boot-starter-web:3.0.4")
+    implementation("org.springframework.boot:spring-boot-starter-data-cassandra:3.0.4")
     implementation("org.telegram:telegrambots-spring-boot-starter:6.5.0")
 
     implementation("org.slf4j:slf4j-api:2.0.7")
