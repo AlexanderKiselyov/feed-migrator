@@ -2,6 +2,7 @@ package polis.bot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
@@ -33,9 +34,11 @@ import polis.commands.SyncOkTg;
 import polis.commands.TgChannelDescription;
 import polis.commands.TgChannelsList;
 import polis.commands.TgSyncGroups;
+import polis.domain.Account;
 import polis.keyboards.ReplyKeyboard;
 import polis.ok.OKDataCheck;
 import polis.ok.api.OkClientImpl;
+import polis.repositories.AccountsRepository;
 import polis.util.AuthData;
 import polis.util.IState;
 import polis.util.SocialMediaGroup;
@@ -90,6 +93,9 @@ public class Bot extends TelegramLongPollingCommandBot {
     private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
     private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
     private static final String SINGLE_ITEM_POSTS = "";
+
+    @Autowired
+    private AccountsRepository accountsRepository;
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
@@ -257,6 +263,13 @@ public class Bot extends TelegramLongPollingCommandBot {
 
     private void processPostItems(List<Message> postItems) {
         long chatId = postItems.get(0).getChatId();
+        try {
+            Account account = accountsRepository.getAccount(123L, "OK", (byte) 4);
+            String s = account == null ? "null" : account.toString();
+            sendAnswer(chatId, "Твой аккаунт: " + s);
+        } catch (Exception e) {
+            sendAnswer(chatId, e.toString());
+        }
         try {
             if (!isAutoposting.containsKey(chatId) || !isAutoposting.get(chatId)) {
                 return;
