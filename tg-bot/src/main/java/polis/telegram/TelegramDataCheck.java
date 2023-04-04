@@ -18,10 +18,10 @@ import java.util.Objects;
 
 public class TelegramDataCheck {
     private static final String GET_CHAT_MEMBER = "https://api.telegram.org/bot%s/getChatMember";
-    private static final String WRONG_LINK_OR_BOT_NOT_ADMIN = """
+    public static final String WRONG_LINK_OR_BOT_NOT_ADMIN = """
             Введенная ссылка не является верной или бот не был добавлен в администраторы канала.
             Пожалуйста, проверьте, что бот был добавлен в администраторы канала и введите ссылку еще раз.""";
-    private static final String BOT_NOT_ADMIN = """
+    public static final String BOT_NOT_ADMIN = """
             Бот не был добавлен в администраторы канала.
             Пожалуйста, добавьте бота в администраторы канала и введите ссылку еще раз.""";
     public static final String RIGHT_LINK = String.format("""

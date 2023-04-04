@@ -17,11 +17,12 @@ public class TgChannelsList extends Command {
             Для удаления Телеграм-канала нажмите 'Удалить' справа от канала.""";
     private static final String NO_TG_CHANNELS = """
             Список добавленных Телеграм-каналов пуст.
-            Пожалуйста, вернитесь в главное меню (/%s) и добавьте хотя бы один канал.""";
+            Пожалуйста, добавьте хотя бы один канал.""";
     private final Map<Long, List<TelegramChannel>> tgChannels;
     private final TelegramDataCheck telegramDataCheck;
-    private static final int rowsCount = 1;
+    private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
+            State.AddTgChannel.getDescription(),
             State.MainMenu.getDescription()
     );
 

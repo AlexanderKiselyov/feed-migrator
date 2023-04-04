@@ -80,9 +80,9 @@ public class TgSyncGroups extends Command {
     }
 
     private String[] getTgChannelGroupsArray(List<SocialMediaGroup> groups, List<AuthData> socialMediaAccounts) {
-        String[] buttons = new String[groups.size() * 4];
+        String[] buttons = new String[groups.size() * 6];
         for (int i = 0; i < groups.size(); i++) {
-            int tmpIndex = i * 4;
+            int tmpIndex = i * 6;
             String groupName = null;
             switch (groups.get(i).getSocialMedia()) {
                 case OK -> {
@@ -100,8 +100,10 @@ public class TgSyncGroups extends Command {
                 buttons[tmpIndex] = String.format("%s (%s)", groupName,
                         groups.get(i).getSocialMedia().getName());
                 buttons[tmpIndex + 1] = String.format("group %s %d", groups.get(i).getId(), 0);
-                buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
-                buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getId(), 1);
+                buttons[tmpIndex + 2] = "\uD83D\uDD04 Автопостинг";
+                buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getId(), 2);
+                buttons[tmpIndex + 4] = "\uD83D\uDDD1 Удалить";
+                buttons[tmpIndex + 5] = String.format("group %s %d", groups.get(i).getId(), 1);
             }
         }
 

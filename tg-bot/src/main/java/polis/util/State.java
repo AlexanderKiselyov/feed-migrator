@@ -17,7 +17,7 @@ public enum State implements IState {
     OkAccountDescription("ok_account_description", "\uD83D\uDCD1 Информация по аккаунту "
             + "Одноклассников"),
     AccountsList("accounts_list", "\uD83D\uDCC4 Список добавленных аккаунтов"),
-    AddOkGroup("add_ok_group_and_sync", "➕ Добавление группы Однокласников"),
+    AddOkGroup("add_ok_group_and_sync", "➕ Добавление группы Одноклассников"),
     SyncOkGroupDescription("ok_group_description",
             "\uD83D\uDCD1 Описание синрхронизованной с Телеграм-каналом группы Одноклассников"),
     SyncOkTg("sync_ok_tg", "\uD83D\uDD04 Синхронизация группы Одноклассников с Телеграм-каналом"),
@@ -27,7 +27,7 @@ public enum State implements IState {
     private final String description;
     private static final Map<IState, IState> prevStates = Map.ofEntries(
             Map.entry(Start, Start),
-            Map.entry(Substate.AddOkAccount_AuthCode, AddOkAccount),
+            Map.entry(Substate.AddOkAccount_AuthCode, AddGroup),
             Map.entry(Substate.AddOkGroup_AddGroup, AddOkGroup),
             Map.entry(SyncOkTg, OkAccountDescription),
             Map.entry(TgSyncGroups, TgChannelDescription),
@@ -38,7 +38,8 @@ public enum State implements IState {
             Map.entry(OkAccountDescription, AddGroup),
             Map.entry(AddOkGroup, OkAccountDescription),
             Map.entry(SyncOkGroupDescription, OkAccountDescription),
-            Map.entry(Autoposting, SyncOkGroupDescription)
+            Map.entry(Autoposting, SyncOkGroupDescription),
+            Map.entry(AddTgChannel, MainMenu)
     );
 
     State(String identifier, String description) {

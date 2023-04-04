@@ -56,18 +56,37 @@ import java.util.stream.Collectors;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 import static polis.ok.OKDataCheck.OK_AUTH_STATE_ANSWER;
+import static polis.ok.OKDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
+import static polis.ok.OKDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
 import static polis.ok.OKDataCheck.OK_GROUP_ADDED;
+import static polis.ok.OKDataCheck.USER_HAS_NO_RIGHTS;
+import static polis.ok.OKDataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
+import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
 import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
+import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
 
 @Component
 public class Bot extends TelegramLongPollingCommandBot {
+    public static final List<String> EMPTY_LIST = List.of();
     private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.of(
             String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
             List.of(State.OkAccountDescription.getDescription()),
             String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()),
             List.of(State.SyncOkTg.getDescription()),
             RIGHT_LINK,
-            List.of(State.TgChannelDescription.getDescription())
+            List.of(State.TgChannelDescription.getDescription()),
+            OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER,
+            EMPTY_LIST,
+            OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER,
+            EMPTY_LIST,
+            WRONG_LINK_OR_USER_HAS_NO_RIGHTS,
+            EMPTY_LIST,
+            USER_HAS_NO_RIGHTS,
+            EMPTY_LIST,
+            WRONG_LINK_OR_BOT_NOT_ADMIN,
+            EMPTY_LIST,
+            BOT_NOT_ADMIN,
+            EMPTY_LIST
     );
     private final String botName;
     private final String botToken;
@@ -189,7 +208,9 @@ public class Bot extends TelegramLongPollingCommandBot {
         Long chatId = msg.getChatId();
         String messageText = msg.getText();
 
-        State customCommand = State.findStateByDescription(messageText);
+        State customCommand = messageText.startsWith("/")
+                ? State.findState(messageText.replace("/", ""))
+                : State.findStateByDescription(messageText);
         if (customCommand != null) {
             IBotCommand command = getRegisteredCommand(customCommand.getIdentifier());
             currentState.put(chatId, State.findState(command.getCommandIdentifier()));
@@ -215,13 +236,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         }
 
         NonCommand.AnswerPair answer = nonCommand.nonCommandExecute(messageText, chatId, currState);
-        if (answer.getError()) {
-            msg.setText(answer.getAnswer());
-            if (currState != null) {
-                getRegisteredCommand(currState.getIdentifier()).processMessage(this, msg, null);
-                return;
-            }
-        } else {
+        if (!answer.getError()) {
             currentState.put(chatId, Substate.nextSubstate(currState));
         }
         sendAnswer(chatId, getUserName(msg), answer.getAnswer());
@@ -335,7 +350,8 @@ public class Bot extends TelegramLongPollingCommandBot {
         SendMessage answer = new SendMessage();
 
         if (BUTTONS_TEXT_MAP.containsKey(text)) {
-            answer = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, 1, BUTTONS_TEXT_MAP.get(text),
+            List<String> commandsList = BUTTONS_TEXT_MAP.get(text);
+            answer = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, commandsList.size(), commandsList,
                     GO_BACK_BUTTON_TEXT);
         } else {
             answer.setParseMode(ParseMode.HTML);
@@ -370,6 +386,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                     }
                     if (currentTelegramChannel != null) {
                         currentTgChannel.put(chatId, currentTelegramChannel);
+                        deleteLastMessage(msg, chatId);
                         getRegisteredCommand(State.TgChannelDescription.getIdentifier()).processMessage(this, msg,
                                 null);
                     } else {
@@ -393,10 +410,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                         }
                     }
                     tgChannels.put(chatId, channels);
-                    DeleteMessage lastMessage = new DeleteMessage();
-                    lastMessage.setChatId(chatId);
-                    lastMessage.setMessageId(msg.getMessageId());
-                    execute(lastMessage);
+                    deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.TgChannelsList.getIdentifier()).processMessage(this, msg, null);
                 } else {
                     logger.error(String.format("Wrong Telegram channel data. Inline keyboard data: %s", data));
@@ -413,6 +427,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                     }
                     if (currentSocialMedia != null) {
                         currentSocialMediaGroup.put(chatId, currentSocialMedia);
+                        deleteLastMessage(msg, chatId);
                         getRegisteredCommand(State.GroupDescription.getIdentifier()).processMessage(this, msg,
                                 null);
                     } else {
@@ -436,11 +451,11 @@ public class Bot extends TelegramLongPollingCommandBot {
                             }
                         }
                     }
-                    DeleteMessage lastMessage = new DeleteMessage();
-                    lastMessage.setChatId(chatId);
-                    lastMessage.setMessageId(msg.getMessageId());
-                    execute(lastMessage);
+                    deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.TgSyncGroups.getIdentifier()).processMessage(this, msg, null);
+                } else if (Objects.equals(dataParts[2], "2")) {
+                    deleteLastMessage(msg, chatId);
+                    getRegisteredCommand(State.Autoposting.getIdentifier()).processMessage(this, msg, null);
                 } else {
                     logger.error(String.format("Wrong group data. Inline keyboard data: %s", data));
                 }
@@ -456,7 +471,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                         break;
                     }
                 }
-
+                deleteLastMessage(msg, chatId);
                 getRegisteredCommand(State.OkAccountDescription.getIdentifier())
                         .processMessage(this, msg, null);
             }
@@ -482,6 +497,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                             }
                         }
                     }
+                    deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.SyncOkGroupDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 } else {
@@ -503,6 +519,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                         }
                     }
                     currentSocialMediaGroup.remove(chatId);
+                    deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.OkAccountDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 }
@@ -516,12 +533,18 @@ public class Bot extends TelegramLongPollingCommandBot {
                     enable = "выключена";
                 }
                 sendAnswer(chatId, String.format(AUTOPOSTING_ENABLE, enable));
-                getRegisteredCommand(State.MainMenu.getIdentifier()).processMessage(this, msg, null);
+                deleteLastMessage(msg, chatId);
+                getRegisteredCommand(State.TgChannelDescription.getIdentifier()).processMessage(this, msg, null);
             }
-            case NO_CALLBACK_TEXT -> {
-
-            }
+            case NO_CALLBACK_TEXT -> deleteLastMessage(msg, chatId);
             default -> logger.error(String.format("Unknown inline keyboard data: %s", data));
         }
+    }
+
+    private void deleteLastMessage(Message msg, Long chatId) throws TelegramApiException {
+        DeleteMessage lastMessage = new DeleteMessage();
+        lastMessage.setChatId(chatId);
+        lastMessage.setMessageId(msg.getMessageId());
+        execute(lastMessage);
     }
 }

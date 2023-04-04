@@ -26,20 +26,20 @@ import java.util.Map;
 import java.util.Objects;
 
 public class OKDataCheck {
-    private static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
-            "Введенный код авторизации не верный. Пожалуйста, попробуйте еще раз.";
+    public static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
+            "Введенный код авторизации неверный. Пожалуйста, попробуйте еще раз.";
     public static final String OK_AUTH_STATE_ANSWER = """
             Вы были успешно авторизованы в социальной сети Одноклассники.
             Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
-    private static final String OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = "Ошибка на сервере. Попробуйте еще раз.";
+    public static final String OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = "Ошибка на сервере. Попробуйте еще раз.";
     public static final String OK_GROUP_ADDED = """
             Группа была успешно добавлена.
             Синхронизируйте группу с Телеграм-каналом по команде /%s.""";
     private static final String OK_METHOD_DO = "https://api.ok.ru/fb.do";
-    private static final String WRONG_LINK_OR_USER_HAS_NO_RIGHTS = """
+    public static final String WRONG_LINK_OR_USER_HAS_NO_RIGHTS = """
             Введенная ссылка не является верной или пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
-    private static final String USER_HAS_NO_RIGHTS = """
+    public static final String USER_HAS_NO_RIGHTS = """
             Пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
     private final Map<Long, AuthData> currentSocialMediaAccount;
