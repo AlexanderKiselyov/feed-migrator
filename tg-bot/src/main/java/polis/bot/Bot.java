@@ -418,21 +418,7 @@ public class Bot extends TelegramLongPollingCommandBot {
             }
             case GROUP_CALLBACK_TEXT -> {
                 if (Objects.equals(dataParts[2], "0")) {
-                    SocialMediaGroup currentSocialMedia = null;
-                    for (SocialMediaGroup smg : currentTgChannel.get(chatId).getSynchronizedGroups()) {
-                        if (Objects.equals(String.valueOf(smg.getId()), dataParts[1])) {
-                            currentSocialMedia = smg;
-                            break;
-                        }
-                    }
-                    if (currentSocialMedia != null) {
-                        currentSocialMediaGroup.put(chatId, currentSocialMedia);
-                        deleteLastMessage(msg, chatId);
-                        getRegisteredCommand(State.GroupDescription.getIdentifier()).processMessage(this, msg,
-                                null);
-                    } else {
-                        logger.error(String.format("Cannot find such a social media group id: %s", dataParts[1]));
-                    }
+                    changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.GroupDescription);
                 } else if (Objects.equals(dataParts[2], "1")) {
                     boolean isFound = false;
                     for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
@@ -454,8 +440,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                     deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.TgSyncGroups.getIdentifier()).processMessage(this, msg, null);
                 } else if (Objects.equals(dataParts[2], "2")) {
-                    deleteLastMessage(msg, chatId);
-                    getRegisteredCommand(State.Autoposting.getIdentifier()).processMessage(this, msg, null);
+                    changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.Autoposting);
                 } else {
                     logger.error(String.format("Wrong group data. Inline keyboard data: %s", data));
                 }
@@ -539,6 +524,30 @@ public class Bot extends TelegramLongPollingCommandBot {
             case NO_CALLBACK_TEXT -> deleteLastMessage(msg, chatId);
             default -> logger.error(String.format("Unknown inline keyboard data: %s", data));
         }
+    }
+
+    private void changeCurrentSocialMediaGroupAndExecuteCommand(Long chatId, String[] dataParts, Message msg,
+                                                                State command) throws TelegramApiException {
+        SocialMediaGroup currentSocialMedia = getCurrentSocialMediaGroup(chatId, dataParts);
+        if (currentSocialMedia != null) {
+            currentSocialMediaGroup.put(chatId, currentSocialMedia);
+            deleteLastMessage(msg, chatId);
+            getRegisteredCommand(command.getIdentifier()).processMessage(this, msg,
+                    null);
+        } else {
+            logger.error(String.format("Cannot find such a social media group id: %s", dataParts[1]));
+        }
+    }
+
+    private SocialMediaGroup getCurrentSocialMediaGroup(Long chatId, String[] dataParts) {
+        SocialMediaGroup currentSocialMedia = null;
+        for (SocialMediaGroup smg : currentTgChannel.get(chatId).getSynchronizedGroups()) {
+            if (Objects.equals(String.valueOf(smg.getId()), dataParts[1])) {
+                currentSocialMedia = smg;
+                break;
+            }
+        }
+        return currentSocialMedia;
     }
 
     private void deleteLastMessage(Message msg, Long chatId) throws TelegramApiException {
