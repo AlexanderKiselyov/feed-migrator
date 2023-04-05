@@ -6,8 +6,15 @@
     <link th:href="@{/css/styles.css}" rel="stylesheet"/>
 </head>
 <body>
-<p th:text="${code}" id="code"></p>
-<button id="copyButton">Скопировать код</button>
+    <div class="panel">
+        <img src="/static/images/logo.jpg"
+             alt="ok logo"/>
+    </div>
+    <div class="main">
+        <p th:text="${code}" id="code"></p>
+        <button id="copyButton">Скопировать код</button>
+    </div>
+    <footer class="copyright">©2023 All rights reserved.</footer>
 </body>
 <script type="text/javascript" th:src="@{/js/script.js}"></script>
 </html>
