@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static polis.commands.AddOkGroup.SAME_SOCIAL_MEDIA;
+
 public class NonCommand {
     private static final String START_STATE_ANSWER = "Не могу распознать команду. Попробуйте еще раз.";
     private static final String BOT_WRONG_STATE_ANSWER = "Неверная команда бота. Попробуйте еще раз.";
@@ -92,6 +94,12 @@ public class NonCommand {
             if (currentSocialMediaAccount.get(chatId) == null) {
                 return new AnswerPair(String.format(WRONG_OK_ACCOUNT, State.MainMenu.getIdentifier()),
                         true);
+            }
+
+            for (SocialMediaGroup smg : currentTgChannel.get(chatId).getSynchronizedGroups()) {
+                if (smg.getSocialMedia() == SocialMedia.OK) {
+                    return new AnswerPair(String.format(SAME_SOCIAL_MEDIA, SocialMedia.OK.getName()), true);
+                }
             }
 
             String accessToken = currentSocialMediaAccount.get(chatId).getAccessToken();

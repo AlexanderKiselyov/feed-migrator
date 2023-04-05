@@ -205,6 +205,11 @@ public class Bot extends TelegramLongPollingCommandBot {
         }
         msg = update.getMessage();
 
+        if (msg == null) {
+            logger.warn("Message is null");
+            return;
+        }
+
         Long chatId = msg.getChatId();
         String messageText = msg.getText();
 
