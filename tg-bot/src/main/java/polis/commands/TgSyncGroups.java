@@ -22,6 +22,7 @@ public class TgSyncGroups extends Command {
             Список синхронизированных групп.""";
     private static final String TG_SYNC_GROUPS_INLINE = """
             Для выбора определенной группы нажмите на нужную группу.
+            Для астройки автопостинга из группы нажмите 'Автопостинг' справа от группы.
             Для удаления группы нажмите 'Удалить' справа от группы.""";
     private static final String NO_SYNC_GROUPS = """
             Список синхронизированных групп пуст.
