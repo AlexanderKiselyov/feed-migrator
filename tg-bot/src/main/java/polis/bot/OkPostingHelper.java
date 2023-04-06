@@ -188,34 +188,17 @@ public class OkPostingHelper extends PostingHelper {
                 return this;
             }
 
-            String mimeType = animation.getMimetype();
-            String[] mimeParts = mimeType.split("/");
-
-            switch (mimeParts[0]) {
-                case "image" -> {
-                    PhotoSize photoSize = new PhotoSize();
-                    photoSize.setFileId(animation.getFileId());
-                    photoSize.setFileSize(Math.toIntExact(animation.getFileSize()));
-                    photoSize.setWidth(animation.getWidth());
-                    photoSize.setHeight(animation.getHeight());
-                    photoSize.setFileUniqueId(animation.getFileUniqueId());
-                    addPhotos(Collections.singletonList(photoSize));
-                }
-                case "video" -> {
-                    Video video = new Video();
-                    video.setDuration(animation.getDuration());
-                    video.setFileId(animation.getFileId());
-                    video.setFileName(animation.getFileName());
-                    video.setHeight(animation.getHeight());
-                    video.setThumb(animation.getThumb());
-                    video.setFileSize(animation.getFileSize());
-                    video.setFileUniqueId(animation.getFileUniqueId());
-                    video.setMimeType(animation.getMimetype());
-                    video.setWidth(animation.getWidth());
-                    addVideo(video);
-                }
-                default -> throw new UnsupportedMediaTypeStatusException("MIME type not supported.");
-            }
+            Video video = new Video();
+            video.setDuration(animation.getDuration());
+            video.setFileId(animation.getFileId());
+            video.setFileName(animation.getFileName());
+            video.setHeight(animation.getHeight());
+            video.setThumb(animation.getThumb());
+            video.setFileSize(animation.getFileSize());
+            video.setFileUniqueId(animation.getFileUniqueId());
+            video.setMimeType(animation.getMimetype());
+            video.setWidth(animation.getWidth());
+            addVideo(video);
 
             return this;
         }
