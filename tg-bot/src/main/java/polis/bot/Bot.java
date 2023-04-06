@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.Video;
+import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.AccountsList;
@@ -285,6 +286,7 @@ public class Bot extends TelegramLongPollingCommandBot {
             Video video = null;
             String text = null;
             Poll poll = null;
+            Animation animation = null;
             for (Message postItem : postItems) {
                 if (postItem.hasPhoto()) {
                     postItem.getPhoto().stream()
@@ -302,6 +304,9 @@ public class Bot extends TelegramLongPollingCommandBot {
                 }
                 if (postItem.hasPoll()) {
                     poll = postItem.getPoll();
+                }
+                if (postItem.hasAnimation()) {
+                    animation = postItem.getAnimation();
                 }
             }
             for (TelegramChannel tgChannel : tgChannels.get(tgChannelOwner.get(chatId))) {
@@ -325,6 +330,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                                         .addVideo(video)
                                         .addText(text)
                                         .addPoll(poll)
+                                        .addAnimation(animation)
                                         .post(accessToken, smg.getId());
                                 sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getId());
                             } catch (URISyntaxException | IOException ignored) {

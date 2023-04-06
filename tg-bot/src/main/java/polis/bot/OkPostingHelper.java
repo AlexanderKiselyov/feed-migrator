@@ -1,7 +1,9 @@
 package polis.bot;
 
+import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
+import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -177,6 +179,44 @@ public class OkPostingHelper extends PostingHelper {
                     options
             );
             attachment.addMedia(pollMedia);
+            return this;
+        }
+
+        @Override
+        public Post addAnimation(Animation animation) throws URISyntaxException, IOException, TelegramApiException {
+            if (animation == null) {
+                return this;
+            }
+
+            String mimeType = animation.getMimetype();
+            String[] mimeParts = mimeType.split("/");
+
+            switch (mimeParts[0]) {
+                case "image" -> {
+                    PhotoSize photoSize = new PhotoSize();
+                    photoSize.setFileId(animation.getFileId());
+                    photoSize.setFileSize(Math.toIntExact(animation.getFileSize()));
+                    photoSize.setWidth(animation.getWidth());
+                    photoSize.setHeight(animation.getHeight());
+                    photoSize.setFileUniqueId(animation.getFileUniqueId());
+                    addPhotos(Collections.singletonList(photoSize));
+                }
+                case "video" -> {
+                    Video video = new Video();
+                    video.setDuration(animation.getDuration());
+                    video.setFileId(animation.getFileId());
+                    video.setFileName(animation.getFileName());
+                    video.setHeight(animation.getHeight());
+                    video.setThumb(animation.getThumb());
+                    video.setFileSize(animation.getFileSize());
+                    video.setFileUniqueId(animation.getFileUniqueId());
+                    video.setMimeType(animation.getFileUniqueId());
+                    video.setWidth(animation.getWidth());
+                    addVideo(video);
+                }
+                default -> throw new UnsupportedMediaTypeStatusException("MIME type not supported.");
+            }
+
             return this;
         }
 

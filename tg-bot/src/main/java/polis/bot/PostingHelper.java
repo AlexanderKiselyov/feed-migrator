@@ -2,6 +2,7 @@ package polis.bot;
 
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
+import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -40,6 +41,8 @@ abstract class PostingHelper {
         abstract Post addText(String text);
 
         abstract Post addPoll(Poll poll);
+
+        abstract Post addAnimation(Animation document) throws URISyntaxException, IOException, TelegramApiException;
 
         abstract void post(String accessToken, long groupId) throws URISyntaxException, IOException;
     }

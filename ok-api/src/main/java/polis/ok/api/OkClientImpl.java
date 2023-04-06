@@ -98,7 +98,7 @@ public class OkClientImpl implements OKClient {
     public long uploadVideo(String accessToken, long groupId, File video)
             throws URISyntaxException, IOException, OkApiException {
         VideoUploadUrlResponse uploadUrlResponse = videoUploadUrl(accessToken, groupId, video.getName(),
-                video.getTotalSpace());
+                video.length());
 
         HttpPost httpPost = new HttpPost(URI.create(uploadUrlResponse.uploadUrl));
         MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
