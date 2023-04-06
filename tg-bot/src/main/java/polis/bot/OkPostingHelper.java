@@ -210,7 +210,7 @@ public class OkPostingHelper extends PostingHelper {
                     video.setThumb(animation.getThumb());
                     video.setFileSize(animation.getFileSize());
                     video.setFileUniqueId(animation.getFileUniqueId());
-                    video.setMimeType(animation.getFileUniqueId());
+                    video.setMimeType(animation.getMimetype());
                     video.setWidth(animation.getWidth());
                     addVideo(video);
                 }
