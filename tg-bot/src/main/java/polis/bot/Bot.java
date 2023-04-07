@@ -282,11 +282,11 @@ public class Bot extends TelegramLongPollingCommandBot {
             if (!isAutoposting.containsKey(chatId) || !isAutoposting.get(chatId)) {
                 return;
             }
-            List<PhotoSize> photos = new ArrayList<>();
-            Video video = null;
+            List<PhotoSize> photos = new ArrayList<>(1);
+            List<Video> videos = new ArrayList<>(1);
             String text = null;
             Poll poll = null;
-            Animation animation = null;
+            List<Animation> animations = new ArrayList<>(1);
             for (Message postItem : postItems) {
                 if (postItem.hasPhoto()) {
                     postItem.getPhoto().stream()
@@ -294,7 +294,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                             .ifPresent(photos::add);
                 }
                 if (postItem.hasVideo()) {
-                    video = postItem.getVideo();
+                    videos.add(postItem.getVideo());
                 }
                 if (postItem.getCaption() != null && !postItem.getCaption().isEmpty()) {
                     text = postItem.getCaption();
@@ -306,7 +306,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                     poll = postItem.getPoll();
                 }
                 if (postItem.hasAnimation()) {
-                    animation = postItem.getAnimation();
+                    animations.add(postItem.getAnimation());
                 }
             }
             for (TelegramChannel tgChannel : tgChannels.get(tgChannelOwner.get(chatId))) {
@@ -327,10 +327,10 @@ public class Bot extends TelegramLongPollingCommandBot {
                             try {
                                 helper.newPost(chatId, smg.getId(), accessToken)
                                         .addPhotos(photos)
-                                        .addVideo(video)
+                                        .addVideos(videos)
                                         .addText(text)
                                         .addPoll(poll)
-                                        .addAnimation(animation)
+                                        .addAnimations(animations)
                                         .post(accessToken, smg.getId());
                                 sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getId());
                             } catch (URISyntaxException | IOException ignored) {

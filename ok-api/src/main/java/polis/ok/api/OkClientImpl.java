@@ -150,6 +150,7 @@ public class OkClientImpl implements OKClient {
                 .addParameter("method", UPLOAD_VIDEO)
                 .addParameter("sig", OkAuthorizator.sig(accessToken, UPLOAD_VIDEO))
                 .addParameter("access_token", accessToken)
+                .addParameter("post_form", "true")
                 .build();
         HttpRequest getUploadUrlRequest = HttpRequest.newBuilder().GET()
                 .uri(uri)

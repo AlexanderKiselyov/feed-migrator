@@ -1,6 +1,5 @@
 package polis.bot;
 
-import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
@@ -109,44 +108,49 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public Post addVideo(Video video) throws URISyntaxException, IOException, TelegramApiException {
-            if (video == null) {
+        public Post addVideos(List<Video> videos) throws URISyntaxException, IOException, TelegramApiException {
+            if (videos == null || videos.isEmpty()) {
                 return this;
             }
-            String fileId = video.getFileId();
-            TgApiHelper.GetFilePathResponse videoPathResponse;
-            try {
-                videoPathResponse = tgApiHelper.retrieveFilePath(botToken, fileId);
-            } catch (URISyntaxException e) {
-                bot.sendAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: " + e.getMessage());
-                throw e;
-            } catch (IOException e) {
-                bot.sendAnswer(chatId, "Проблемы при получении расположения видео: " + e.getMessage());
-                throw e;
+
+            VideoMedia videoMedia = new VideoMedia(videos.size());
+            for (Video video : videos) {
+                String fileId = video.getFileId();
+                TgApiHelper.GetFilePathResponse videoPathResponse;
+                try {
+                    videoPathResponse = tgApiHelper.retrieveFilePath(botToken, fileId);
+                } catch (URISyntaxException e) {
+                    bot.sendAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: " + e.getMessage());
+                    throw e;
+                } catch (IOException e) {
+                    bot.sendAnswer(chatId, "Проблемы при получении расположения видео: " + e.getMessage());
+                    throw e;
+                }
+                File file;
+                try {
+                    String filePath = videoPathResponse.getFilePath();
+                    String origExtension = filePath.substring(filePath.lastIndexOf('.'));
+                    file = withExtension(origExtension, bot.downloadFile(filePath));
+                } catch (TelegramApiException e) {
+                    bot.sendAnswer(chatId, "Проблема при загрузке видео из Телеграмма " + e.getMessage());
+                    throw e;
+                }
+                long videoId;
+                try {
+                    videoId = okClient.uploadVideo(accessToken, groupId, file);
+                } catch (URISyntaxException e) {
+                    bot.sendAnswer(chatId, "Проблема при формировании url, проверьте введённые данные: " + e.getMessage());
+                    throw e;
+                } catch (OkApiException e) {
+                    bot.sendAnswer(chatId, e.getMessage());
+                    throw e;
+                } catch (IOException e) {
+                    bot.sendAnswer(chatId, "Проблемы с сетью при загрузке видео в Одноклассники: " + e.getMessage());
+                    throw e;
+                }
+                videoMedia.addVideo(new polis.ok.domain.Video(videoId));
             }
-            File file;
-            try {
-                String filePath = videoPathResponse.getFilePath();
-                String origExtension = filePath.substring(filePath.lastIndexOf('.'));
-                file = withExtension(origExtension, bot.downloadFile(filePath));
-            } catch (TelegramApiException e) {
-                bot.sendAnswer(chatId, "Проблема при загрузке видео из Телеграмма " + e.getMessage());
-                throw e;
-            }
-            long videoId;
-            try {
-                videoId = okClient.uploadVideo(accessToken, groupId, file);
-            } catch (URISyntaxException e) {
-                bot.sendAnswer(chatId, "Проблема при формировании url, проверьте введённые данные: " + e.getMessage());
-                throw e;
-            } catch (OkApiException e) {
-                bot.sendAnswer(chatId, e.getMessage());
-                throw e;
-            } catch (IOException e) {
-                bot.sendAnswer(chatId, "Проблемы с сетью при загрузке видео в Одноклассники: " + e.getMessage());
-                throw e;
-            }
-            attachment.addMedia(new VideoMedia(Collections.singletonList(new polis.ok.domain.Video(videoId))));
+            attachment.addMedia(videoMedia);
             return this;
         }
 
@@ -183,24 +187,27 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public Post addAnimation(Animation animation) throws URISyntaxException, IOException, TelegramApiException {
-            if (animation == null) {
+        public Post addAnimations(List<Animation> animations) throws URISyntaxException, IOException, TelegramApiException {
+            if (animations == null || animations.isEmpty()) {
                 return this;
             }
 
-            Video video = new Video();
-            video.setDuration(animation.getDuration());
-            video.setFileId(animation.getFileId());
-            video.setFileName(animation.getFileName());
-            video.setHeight(animation.getHeight());
-            video.setThumb(animation.getThumb());
-            video.setFileSize(animation.getFileSize());
-            video.setFileUniqueId(animation.getFileUniqueId());
-            video.setMimeType(animation.getMimetype());
-            video.setWidth(animation.getWidth());
-            addVideo(video);
+            List<Video> videos = new ArrayList<>(1);
+            for (Animation animation : animations) {
+                Video video = new Video();
+                video.setDuration(animation.getDuration());
+                video.setFileId(animation.getFileId());
+                video.setFileName(animation.getFileName());
+                video.setHeight(animation.getHeight());
+                video.setThumb(animation.getThumb());
+                video.setFileSize(animation.getFileSize());
+                video.setFileUniqueId(animation.getFileUniqueId());
+                video.setMimeType(animation.getMimetype());
+                video.setWidth(animation.getWidth());
+                videos.add(video);
+            }
 
-            return this;
+            return addVideos(videos);
         }
 
         @Override
