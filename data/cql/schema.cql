@@ -2,26 +2,23 @@ CREATE  KEYSPACE IF NOT EXISTS feed_migrator
     WITH REPLICATION = {
         'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 
-CREATE TABLE IF NOT EXISTS feed_migrator.channel_groups (
-    chat_id bigint,
-    channel_id bigint,
-    social_network varchar,
-    group_id bigint,
-    access_token text,
-    account_id tinyint,
-    PRIMARY KEY ((chat_id), channel_id, social_network)
-);
-
 CREATE TABLE IF NOT EXISTS feed_migrator.accounts (
-    chat_id bigint,
-    social_network varchar,
-    account_id tinyint,
-    refresh_token text,
-    --  доп инфа о пользователе для ui, напр. его никнейм в соцсети
-    PRIMARY KEY ((chat_id), social_network, account_id)
+    chat_id        bigint,
+    social_media   varchar,
+    account_id     bigint,
+    user_full_name varchar,
+    access_token   varchar,
+    refresh_token  varchar,
+    PRIMARY KEY ((chat_id), social_media, account_id)
 );
 
-CREATE TABLE IF NOT EXISTS feed_migrator.user_accounts_count(
-    chat_id bigint PRIMARY KEY,
-    accounts_count tinyint
+CREATE TABLE IF NOT EXISTS feed_migrator.channel_groups (
+    channel_id   bigint,
+    social_media varchar,
+    group_id     bigint,
+    group_name   varchar,
+    access_token varchar,
+    chat_id      bigint,
+    account_id   bigint,
+    PRIMARY KEY ((channel_id), social_media, group_id)
 );
