@@ -14,11 +14,11 @@ public class AccountsRepository {
     @Autowired
     private CassandraOperations cassandraOperations;
 
-    public Account getAccount(long chatId, String socialNetwork, byte accountId) {
+    public Account getAccount(long chatId, String socialMedia, long accountId) {
         return cassandraOperations.selectOne(
                 query(
                         where("chat_id").is(chatId))
-                        .and(where("social_network").is(socialNetwork))
+                        .and(where("social_media").is(socialMedia))
                         .and(where("account_id").is(accountId)),
                 Account.class);
     }

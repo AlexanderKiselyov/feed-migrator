@@ -10,11 +10,11 @@ public class Account {
     @PrimaryKeyColumn(type = PrimaryKeyType.PARTITIONED, name = "chat_id")
     private long chatId;
 
-    @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "social_network")
-    private String socialNetwork;
+    @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "social_media")
+    private String socialMedia;
 
     @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "account_id")
-    private byte accountId;
+    private long accountId;
 
     @Column(value = "refresh_token")
     private String refreshToken;
@@ -23,7 +23,7 @@ public class Account {
     public String toString() {
         return "Account{" +
                 "chatId=" + chatId +
-                ", socialNetwork='" + socialNetwork + '\'' +
+                ", socialNetwork='" + socialMedia + '\'' +
                 ", accountId=" + accountId +
                 ", refreshToken='" + refreshToken + '\'' +
                 '}';
