@@ -54,6 +54,7 @@ public class CassandraConfig extends AbstractCassandraConfiguration {
         CqlSessionFactoryBean cassandraSession = super.cassandraSession();//super session should be called only once
         cassandraSession.setUsername(username);
         cassandraSession.setPassword(password);
+        //cassandraSession.setKeyspaceName("feed_migrator"); и без этого работает :)
         return cassandraSession;
     }
 }
