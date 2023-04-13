@@ -1,5 +1,6 @@
 package polis.bot;
 
+import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
@@ -21,7 +22,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class OkPostingHelper extends PostingHelper {
@@ -208,6 +208,11 @@ public class OkPostingHelper extends PostingHelper {
             }
 
             return addVideos(videos);
+        }
+
+        @Override
+        public Post addDocuments(List<Document> documents) {
+            return this;
         }
 
         @Override

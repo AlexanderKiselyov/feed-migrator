@@ -9,12 +9,7 @@ import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.Video;
+import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -287,6 +282,7 @@ public class Bot extends TelegramLongPollingCommandBot {
             String text = null;
             Poll poll = null;
             List<Animation> animations = new ArrayList<>(1);
+            List<Document> documents = new ArrayList<>(1);
             for (Message postItem : postItems) {
                 if (postItem.hasPhoto()) {
                     postItem.getPhoto().stream()
@@ -308,6 +304,9 @@ public class Bot extends TelegramLongPollingCommandBot {
                 if (postItem.hasAnimation()) {
                     animations.add(postItem.getAnimation());
                 }
+                if (postItem.hasDocument()) {
+                    documents.add(postItem.getDocument());
+                }
             }
             for (TelegramChannel tgChannel : tgChannels.get(tgChannelOwner.get(chatId))) {
                 if (!Objects.equals(tgChannel.getTelegramChannelId(), chatId)) {
@@ -325,6 +324,10 @@ public class Bot extends TelegramLongPollingCommandBot {
                         // и с помощью каждого запостить пост
                         case OK -> {
                             try {
+                                if (!documents.isEmpty()) {
+                                    sendAnswer(chatId, """
+                                            Тип 'Документ' не поддерживается в социальной сети Одноклассники""");
+                                }
                                 helper.newPost(chatId, smg.getId(), accessToken)
                                         .addPhotos(photos)
                                         .addVideos(videos)
