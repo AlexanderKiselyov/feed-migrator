@@ -60,7 +60,7 @@ public class TgChannelsList extends Command {
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    String.format(NO_TG_CHANNELS, State.MainMenu.getIdentifier()),
+                    NO_TG_CHANNELS,
                     rowsCount,
                     commandsForKeyboard,
                     null);

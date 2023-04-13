@@ -330,7 +330,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                         // и с помощью каждого запостить пост
                         case OK -> {
                             try {
-                                if (!documents.isEmpty()) {
+                                if (!documents.isEmpty() && animations.isEmpty()) {
                                     sendAnswer(chatId, """
                                             Тип 'Документ' не поддерживается в социальной сети Одноклассники""");
                                 }
