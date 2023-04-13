@@ -264,13 +264,6 @@ public class Bot extends TelegramLongPollingCommandBot {
     private void processPostItems(List<Message> postItems) {
         long chatId = postItems.get(0).getChatId();
         try {
-            Account account = accountsRepository.getAccount(123L, "OK", (byte) 4);
-            String s = account == null ? "null" : account.toString();
-            sendAnswer(chatId, "Твой аккаунт: " + s);
-        } catch (Exception e) {
-            sendAnswer(chatId, e.toString());
-        }
-        try {
             if (!isAutoposting.containsKey(chatId) || !isAutoposting.get(chatId)) {
                 return;
             }
