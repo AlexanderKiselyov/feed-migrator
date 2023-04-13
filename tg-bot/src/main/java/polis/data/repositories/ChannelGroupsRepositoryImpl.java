@@ -22,12 +22,12 @@ public class ChannelGroupsRepositoryImpl implements ChannelGroupsRepository {
     CassandraOperations cassandraOperations;
 
     @Override
-    public List<Group> getGroupsForChannel(long channelId, boolean loadGroupNames) throws DataAccessException {
+    public List<Group> getGroupsForChannel(long channelId) throws DataAccessException {
         return cassandraOperations.select(query(where(CHANNEL_ID).is(channelId)), Group.class);
     }
 
     @Override
-    public Group getGroup(long channelId, String socialMedia, long groupId, boolean loadGroupNames) throws DataAccessException {
+    public Group getGroupByKey(long channelId, String socialMedia, long groupId) throws DataAccessException {
         return cassandraOperations.selectOne(query(
                         where(CHANNEL_ID).is(channelId))
                         .and(where(SOCIAL_MEDIA).is(socialMedia))
@@ -36,8 +36,8 @@ public class ChannelGroupsRepositoryImpl implements ChannelGroupsRepository {
     }
 
     @Override
-    public void upsertGroup(long channelId, String socialMedia, long groupId,
-                            @Nullable Group group) throws DataAccessException {
+    public void upsertGroupByKey(long channelId, String socialMedia, long groupId,
+                                 @Nullable Group group) throws DataAccessException {
         if (group == null) {
             cassandraOperations.delete(query(
                     where(CHANNEL_ID).is(channelId))

@@ -10,10 +10,10 @@ import java.util.List;
 @Repository
 public interface ChannelGroupsRepository {
 
-    List<Group> getGroupsForChannel(long channelId, boolean loadGroupNames) throws DataAccessException;
+    List<Group> getGroupsForChannel(long channelId) throws DataAccessException;
 
-    Group getGroup(long channelId, String socialMedia, long groupId, boolean loadGroupNames) throws DataAccessException;
+    Group getGroupByKey(long channelId, String socialMedia, long groupId) throws DataAccessException;
 
-    void upsertGroup(long channelId, String socialMedia, long groupId, @Nullable Group group) throws DataAccessException;
+    void upsertGroupByKey(long channelId, String socialMedia, long groupId, @Nullable Group group) throws DataAccessException;
 
 }
