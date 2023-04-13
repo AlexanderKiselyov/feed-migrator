@@ -120,7 +120,8 @@ public class OkPostingHelper extends PostingHelper {
                 try {
                     videoPathResponse = tgApiHelper.retrieveFilePath(botToken, fileId);
                 } catch (URISyntaxException e) {
-                    bot.sendAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: " + e.getMessage());
+                    bot.sendAnswer(chatId, "Проблемы при формировании url, проверьте введённые данные: "
+                            + e.getMessage());
                     throw e;
                 } catch (IOException e) {
                     bot.sendAnswer(chatId, "Проблемы при получении расположения видео: " + e.getMessage());
@@ -139,7 +140,8 @@ public class OkPostingHelper extends PostingHelper {
                 try {
                     videoId = okClient.uploadVideo(accessToken, groupId, file);
                 } catch (URISyntaxException e) {
-                    bot.sendAnswer(chatId, "Проблема при формировании url, проверьте введённые данные: " + e.getMessage());
+                    bot.sendAnswer(chatId, "Проблема при формировании url, проверьте введённые данные: "
+                            + e.getMessage());
                     throw e;
                 } catch (OkApiException e) {
                     bot.sendAnswer(chatId, e.getMessage());
@@ -187,7 +189,8 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public Post addAnimations(List<Animation> animations) throws URISyntaxException, IOException, TelegramApiException {
+        public Post addAnimations(List<Animation> animations) throws URISyntaxException, IOException,
+                TelegramApiException {
             if (animations == null || animations.isEmpty()) {
                 return this;
             }

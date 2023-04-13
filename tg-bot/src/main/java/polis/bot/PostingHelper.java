@@ -43,7 +43,8 @@ abstract class PostingHelper {
 
         abstract Post addPoll(Poll poll);
 
-        abstract Post addAnimations(List<Animation> animations) throws URISyntaxException, IOException, TelegramApiException;
+        abstract Post addAnimations(List<Animation> animations) throws URISyntaxException, IOException,
+                TelegramApiException;
 
         abstract Post addDocuments(List<Document> documents);
 
