@@ -20,7 +20,6 @@ public final class PhotoMedia extends Media implements Serializable {
         this(new ArrayList<>(photosCount));
     }
 
-
     public void addPhoto(Photo photo) {
         photos.add(photo);
     }

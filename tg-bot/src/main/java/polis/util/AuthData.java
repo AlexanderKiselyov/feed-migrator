@@ -2,12 +2,16 @@ package polis.util;
 
 public class AuthData {
     private final SocialMedia socialMedia;
+    // TODO изменить тип данных на Long при подключении БД
+    private final Integer tokenId;
     private final String accessToken;
-    private String groupLink;
+    private final String refreshToken;
 
-    public AuthData(SocialMedia socialMedia, String accessToken) {
+    public AuthData(SocialMedia socialMedia, Integer tokenId, String accessToken, String refreshToken) {
         this.socialMedia = socialMedia;
+        this.tokenId = tokenId;
         this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
     }
 
     public SocialMedia getSocialMedia() {
@@ -18,11 +22,11 @@ public class AuthData {
         return accessToken;
     }
 
-    public String getGroupLink() {
-        return groupLink;
+    public Integer getTokenId() {
+        return tokenId;
     }
 
-    public void setGroupLink(String newGroupLink) {
-        groupLink = newGroupLink;
+    public String getRefreshToken() {
+        return refreshToken;
     }
 }

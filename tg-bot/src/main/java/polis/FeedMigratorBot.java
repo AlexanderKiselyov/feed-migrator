@@ -15,12 +15,11 @@ public class FeedMigratorBot {
     private static final Logger LOGGER = LoggerFactory.getLogger(FeedMigratorBot.class);
 
     public static void main(String[] args) {
-        ConfigurableApplicationContext ctx = SpringApplication.run(FeedMigratorBot.class, args);
-        String botName = ctx.getEnvironment().getProperty("bot.name");
-        String botToken = ctx.getEnvironment().getProperty("bot.token");
+        ConfigurableApplicationContext context = SpringApplication.run(FeedMigratorBot.class, args);
+        Bot bot = context.getBean(Bot.class);
         try {
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-            botsApi.registerBot(new Bot(botName, botToken));
+            botsApi.registerBot(bot);
         } catch (TelegramApiException e) {
             LOGGER.error(String.format("Cannot register new bot: %s", e.getMessage()));
         }

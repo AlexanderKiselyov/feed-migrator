@@ -7,11 +7,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
-final class OkAppProperties {
-    static final String APPLICATION_ID;
-    static final String APPLICATION_KEY;
-    static final String APPLICATION_SECRET_KEY;
-    static final String REDIRECT_URI;
+public final class OkAppProperties {
+    public static final String APPLICATION_ID;
+    public static final String APPLICATION_KEY;
+    public static final String APPLICATION_SECRET_KEY;
+    public static final String REDIRECT_URI;
 
     private static final Properties properties = new Properties();
     private static final Logger logger = LoggerFactory.getLogger(OkAppProperties.class);

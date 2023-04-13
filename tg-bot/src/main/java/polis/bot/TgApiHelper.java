@@ -17,8 +17,8 @@ import java.net.http.HttpResponse.BodyHandlers;
 public class TgApiHelper {
     private static final String TELEGRAM_API_PATH = "https://api.telegram.org";
 
-    private HttpClient client = HttpClient.newHttpClient();
-    private ObjectMapper mapper = new ObjectMapper();
+    private final HttpClient client = HttpClient.newHttpClient();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     GetFilePathResponse retrieveFilePath(String botToken, String fileId) throws URISyntaxException, IOException {
         //https://api.telegram.org/bot<bot_token>/getFile?file_id=the_file_id
