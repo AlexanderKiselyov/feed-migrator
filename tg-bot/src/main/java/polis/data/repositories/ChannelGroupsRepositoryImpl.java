@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.cassandra.core.CassandraOperations;
 import org.springframework.stereotype.Repository;
-import polis.data.domain.Group;
+import polis.data.domain.ChannelGroup;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -22,34 +22,34 @@ public class ChannelGroupsRepositoryImpl implements ChannelGroupsRepository {
     CassandraOperations cassandraOperations;
 
     @Override
-    public List<Group> getGroupsForChannel(long channelId) throws DataAccessException {
-        return cassandraOperations.select(query(where(CHANNEL_ID).is(channelId)), Group.class);
+    public List<ChannelGroup> getGroupsForChannel(long channelId) throws DataAccessException {
+        return cassandraOperations.select(query(where(CHANNEL_ID).is(channelId)), ChannelGroup.class);
     }
 
     @Override
-    public Group getGroupByKey(long channelId, String socialMedia, long groupId) throws DataAccessException {
-        return cassandraOperations.selectOne(query(
+    public ChannelGroup getGroupByKey(long channelId, String socialMedia, long groupId) throws DataAccessException {
+        return cassandraOperations.selectOne(
+                query(
                         where(CHANNEL_ID).is(channelId))
                         .and(where(SOCIAL_MEDIA).is(socialMedia))
                         .and(where(GROUP_ID).is(groupId)),
-                Group.class);
+                ChannelGroup.class);
     }
 
     @Override
     public void upsertGroupByKey(long channelId, String socialMedia, long groupId,
-                                 @Nullable Group group) throws DataAccessException {
-        if (group == null) {
-            cassandraOperations.delete(query(
-                    where(CHANNEL_ID).is(channelId))
-                    .and(where(SOCIAL_MEDIA).is(socialMedia))
-                    .and(where(GROUP_ID).is(groupId)),
-                    Group.class
+                                 @Nullable ChannelGroup channelGroup) throws DataAccessException {
+        if (channelGroup == null) {
+            cassandraOperations.delete(
+                    query(
+                            where(CHANNEL_ID).is(channelId))
+                            .and(where(SOCIAL_MEDIA).is(socialMedia))
+                            .and(where(GROUP_ID).is(groupId)),
+                    ChannelGroup.class
             );
             return;
         }
-        group.setChannelId(channelId);
-        group.setSocialMedia(socialMedia);
-        group.setGroupId(groupId);
-        cassandraOperations.update(group);
+        channelGroup.setChannelId(channelId);
+        cassandraOperations.update(channelGroup);
     }
 }

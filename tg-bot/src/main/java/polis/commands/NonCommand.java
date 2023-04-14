@@ -2,19 +2,14 @@ package polis.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import polis.data.domain.*;
+import polis.data.repositories.*;
 import polis.ok.OKDataCheck;
 import polis.telegram.TelegramDataCheck;
-import polis.util.AuthData;
 import polis.util.IState;
 import polis.util.SocialMedia;
-import polis.util.SocialMediaGroup;
 import polis.util.State;
 import polis.util.Substate;
-import polis.util.TelegramChannel;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import static polis.commands.AddOkGroup.SAME_SOCIAL_MEDIA;
 
@@ -27,27 +22,27 @@ public class NonCommand {
     private static final String WRONG_OK_ACCOUNT = """
             Неверный аккаунт Одноклассников.
             Пожалуйста, вернитесь в главное меню (%s) и следуйте дальнейшим инструкциям.""";
-    private final Map<Long, AuthData> currentSocialMediaAccount;
-    private final Map<Long, List<TelegramChannel>> tgChannels;
-    private final Map<Long, TelegramChannel> currentTgChannel;
-    private final Map<Long, SocialMediaGroup> currentSocialMediaGroup;
-    private final Map<Long, Long> tgChannelOwner;
+    private final CurrentAccountRepository currentAccountRepository;
+    private final UserChannelsRepository userChannelsRepository;
+    private final CurrentChannelRepository currentChannelRepository;
+    private final CurrentGroupRepository currentGroupRepository;
+    private final ChannelGroupsRepositoryImpl channelGroupsRepository;
     private final OKDataCheck okDataCheck;
     private final TelegramDataCheck telegramDataCheck;
     private final Logger logger = LoggerFactory.getLogger(NonCommand.class);
 
     public NonCommand(OKDataCheck okDataCheck,
-                      Map<Long, AuthData> currentSocialMediaAccount,
-                      Map<Long, List<TelegramChannel>> tgChannels,
-                      Map<Long, TelegramChannel> currentChannel,
-                      Map<Long, SocialMediaGroup> currentSocialMediaGroup,
-                      Map<Long, Long> tgChannelOwner) {
-        this.currentSocialMediaAccount = currentSocialMediaAccount;
-        this.tgChannels = tgChannels;
-        this.currentTgChannel = currentChannel;
+                      CurrentAccountRepository currentAccountRepository,
+                      UserChannelsRepository userChannelsRepository,
+                      CurrentChannelRepository currentChannelRepository,
+                      CurrentGroupRepository currentGroupRepository,
+                      ChannelGroupsRepositoryImpl channelGroupsRepository) {
+        this.currentAccountRepository = currentAccountRepository;
+        this.userChannelsRepository = userChannelsRepository;
+        this.currentChannelRepository = currentChannelRepository;
         this.okDataCheck = okDataCheck;
-        this.currentSocialMediaGroup = currentSocialMediaGroup;
-        this.tgChannelOwner = tgChannelOwner;
+        this.currentGroupRepository = currentGroupRepository;
+        this.channelGroupsRepository = channelGroupsRepository;
         telegramDataCheck = new TelegramDataCheck();
     }
 
@@ -68,50 +63,44 @@ public class NonCommand {
 
             AnswerPair answer = telegramDataCheck.checkTelegramChannelLink(checkChannelLink);
             if (!answer.getError()) {
-                TelegramChannel newTgChannel;
-                if (tgChannels.containsKey(chatId)) {
-                    List<TelegramChannel> currentTelegramChannels = tgChannels.get(chatId);
-                    newTgChannel = new TelegramChannel(
-                            (Long) telegramDataCheck.getChatParameter(checkChannelLink, "id"),
-                            checkChannelLink, new ArrayList<>(1));
-                    currentTelegramChannels.add(newTgChannel);
-                    tgChannels.put(chatId, currentTelegramChannels);
-                } else {
-                    List<TelegramChannel> newTelegramChannel = new ArrayList<>(1);
-                    newTgChannel = new TelegramChannel(
-                            (Long) telegramDataCheck.getChatParameter(checkChannelLink, "id"),
-                            checkChannelLink, new ArrayList<>(1));
-                    newTelegramChannel.add(newTgChannel);
-                    tgChannels.put(chatId, newTelegramChannel);
-                }
-                currentTgChannel.put(chatId, newTgChannel);
-                tgChannelOwner.put(newTgChannel.getTelegramChannelId(), chatId);
+                UserChannels newTgChannel = new UserChannels(
+                        chatId,
+                        (Long) telegramDataCheck.getChatParameter(checkChannelLink, "id"),
+                        checkChannelLink
+                );
+                userChannelsRepository.insertUserChannel(newTgChannel);
+                currentChannelRepository.insertCurrentChannel(new CurrentChannel(chatId, newTgChannel.getChannelId(),
+                        newTgChannel.getChannelUsername()));
+                tgChannelOwner.put(newTgChannel.getChannelId(), chatId);
             }
             return answer;
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
             return okDataCheck.getOKAuthCode(text, chatId);
         } else if (state.equals(Substate.AddOkGroup_AddGroup)) {
-            if (currentSocialMediaAccount.get(chatId) == null) {
+            CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chatId);
+            if (currentAccount == null) {
                 return new AnswerPair(String.format(WRONG_OK_ACCOUNT, State.MainMenu.getIdentifier()),
                         true);
             }
 
-            for (SocialMediaGroup smg : currentTgChannel.get(chatId).getSynchronizedGroups()) {
+            for (ChannelGroup smg : channelGroupsRepository
+                    .getGroupsForChannel(currentChannelRepository.getCurrentChannel(chatId).getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.OK) {
                     return new AnswerPair(String.format(SAME_SOCIAL_MEDIA, SocialMedia.OK.getName()), true);
                 }
             }
 
-            String accessToken = currentSocialMediaAccount.get(chatId).getAccessToken();
+            String accessToken = currentAccount.getAccessToken();
 
             Long groupId = okDataCheck.getOKGroupId(text, accessToken);
 
             AnswerPair answer = okDataCheck.checkOKGroupAdminRights(accessToken, groupId);
 
             if (!answer.getError()) {
-                SocialMediaGroup newGroup = new SocialMediaGroup(groupId,
-                        currentSocialMediaAccount.get(chatId).getTokenId(), SocialMedia.OK);
-                currentSocialMediaGroup.put(chatId, newGroup);
+                CurrentGroup newGroup = new CurrentGroup(chatId, SocialMedia.OK, groupId,
+                        okDataCheck.getOKGroupName(groupId, currentAccount.getAccessToken()),
+                        currentAccount.getAccountId(), currentAccount.getAccessToken());
+                currentGroupRepository.insertCurrentGroup(newGroup);
             }
 
             return answer;

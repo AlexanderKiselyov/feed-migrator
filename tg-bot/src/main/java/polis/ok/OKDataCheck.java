@@ -6,10 +6,13 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import polis.commands.NonCommand;
+import polis.data.domain.Account;
+import polis.data.domain.CurrentState;
+import polis.data.repositories.AccountsRepository;
+import polis.data.repositories.CurrentAccountRepository;
+import polis.data.repositories.CurrentStateRepository;
 import polis.ok.api.OkAppProperties;
 import polis.ok.api.OkAuthorizator;
-import polis.util.AuthData;
-import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
@@ -20,9 +23,6 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class OKDataCheck {
@@ -42,18 +42,18 @@ public class OKDataCheck {
     public static final String USER_HAS_NO_RIGHTS = """
             Пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
-    private final Map<Long, AuthData> currentSocialMediaAccount;
-    private final Map<Long, List<AuthData>> socialMediaAccounts;
-    private final Map<Long, IState> currentState;
+    private final CurrentAccountRepository currentAccountRepository;
+    private final AccountsRepository accountsRepository;
+    private final CurrentStateRepository currentStateRepository;
     private final HttpClient client = HttpClient.newHttpClient();
     private final Logger logger = LoggerFactory.getLogger(OKDataCheck.class);
     private final OkAuthorizator okAuthorizator = new OkAuthorizator();
 
-    public OKDataCheck(Map<Long, AuthData> currentSocialMediaAccount, Map<Long, IState> currentState, Map<Long,
-            List<AuthData>> socialMediaAccounts) {
-        this.currentSocialMediaAccount = currentSocialMediaAccount;
-        this.currentState = currentState;
-        this.socialMediaAccounts = socialMediaAccounts;
+    public OKDataCheck(CurrentAccountRepository currentAccountRepository, CurrentStateRepository currentStateRepository,
+                       AccountsRepository accountsRepository) {
+        this.currentAccountRepository = currentAccountRepository;
+        this.currentStateRepository = currentStateRepository;
+        this.accountsRepository = accountsRepository;
     }
 
     public NonCommand.AnswerPair getOKAuthCode(String text, Long chatId) {
@@ -64,13 +64,21 @@ public class OKDataCheck {
                 return new NonCommand.AnswerPair(OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER, true);
             }
 
-            AuthData newAccount = new AuthData(SocialMedia.OK, socialMediaAccounts.size() + 1,
-                    pair.accessToken(), pair.refreshToken());
-            currentSocialMediaAccount.put(chatId, newAccount);
-            socialMediaAccounts.computeIfAbsent(chatId, k -> new ArrayList<>());
-            socialMediaAccounts.get(chatId).add(newAccount);
+            Account newAccount = new Account(
+                    chatId,
+                    SocialMedia.OK,
+                    Long.parseLong(getOKUserId(pair.accessToken())),
+                    getOKUsername(pair.accessToken()),
+                    pair.accessToken(),
+                    pair.refreshToken()
+            );
 
-            currentState.put(chatId, Substate.nextSubstate(State.OkAccountDescription));
+            currentAccountRepository.insertCurrentAccount(newAccount);
+
+            accountsRepository.insertNewAccount(newAccount);
+
+            currentStateRepository.insertCurrentState(new CurrentState(chatId,
+                    Substate.nextSubstate(State.OkAccountDescription)));
 
             return new NonCommand.AnswerPair(
                     String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),

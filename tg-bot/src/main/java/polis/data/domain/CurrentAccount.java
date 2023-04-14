@@ -4,10 +4,9 @@ import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.core.mapping.Table;
-import polis.util.SocialMedia;
 
-@Table("accounts")
-public class Account {
+@Table("current_account")
+public class CurrentAccount {
     @PrimaryKeyColumn(type = PrimaryKeyType.PARTITIONED, name = "chat_id")
     private final long chatId;
 
@@ -26,10 +25,10 @@ public class Account {
     @Column(value = "refresh_token")
     private final String refreshToken;
 
-    public Account(long chatId, SocialMedia socialMedia, long accountId, String userFullName, String accessToken,
+    public CurrentAccount(long chatId, String socialMedia, long accountId, String userFullName, String accessToken,
                    String refreshToken) {
         this.chatId = chatId;
-        this.socialMedia = socialMedia.getName();
+        this.socialMedia = socialMedia;
         this.accountId = accountId;
         this.userFullName = userFullName;
         this.accessToken = accessToken;
@@ -40,8 +39,8 @@ public class Account {
         return chatId;
     }
 
-    public SocialMedia getSocialMedia() {
-        return SocialMedia.findSocialMediaByName(socialMedia);
+    public String getSocialMedia() {
+        return socialMedia;
     }
 
     public long getAccountId() {
@@ -62,7 +61,7 @@ public class Account {
 
     @Override
     public String toString() {
-        return "Account{" +
+        return "CurrentAccount{" +
                 "chatId=" + chatId +
                 ", socialMedia='" + socialMedia + '\'' +
                 ", accountId=" + accountId +

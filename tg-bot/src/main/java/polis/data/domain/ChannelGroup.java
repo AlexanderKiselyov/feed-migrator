@@ -4,57 +4,60 @@ import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.core.mapping.Table;
+import polis.util.SocialMedia;
 
 import javax.annotation.Nullable;
 
 @Table("channel_groups")
-public class Group {
+public class ChannelGroup {
     @PrimaryKeyColumn(name = "channel_id", type = PrimaryKeyType.PARTITIONED)
     private long channelId;
 
     @PrimaryKeyColumn(name = "social_media", type = PrimaryKeyType.CLUSTERED)
-    private String socialMedia;
+    private final String socialMedia;
 
     @PrimaryKeyColumn(name = "group_id", type = PrimaryKeyType.CLUSTERED)
-    private long groupId;
+    private final long groupId;
 
     @Column("group_name")
-    private String groupName;
+    private final String groupName;
 
     @Column("account_id")
-    private long accountId;
+    private final long accountId;
 
     @Column("access_token")
-    private String accessToken;
+    private final String accessToken;
 
     @Column("chat_id")
-    private long chatId;
+    private final long chatId;
 
-    public Group(String accessToken, String groupName, long accountId, long chatId) {
+    @Column("channel_username")
+    private String channelUsername;
+
+    public ChannelGroup(String accessToken, String groupName, long accountId, long chatId, long groupId,
+                        SocialMedia socialMedia) {
         this.groupName = groupName;
         this.accountId = accountId;
         this.accessToken = accessToken;
         this.chatId = chatId;
+        this.groupId = groupId;
+        this.socialMedia = socialMedia.getName();
     }
 
     public void setChannelId(long channelId) {
         this.channelId = channelId;
     }
 
-    public void setSocialMedia(String socialMedia) {
-        this.socialMedia = socialMedia;
-    }
-
-    public void setGroupId(long groupId) {
-        this.groupId = groupId;
+    public void setChannelUsername(String channelUsername) {
+        this.channelUsername = channelUsername;
     }
 
     public long getChannelId() {
         return channelId;
     }
 
-    public String getSocialMedia() {
-        return socialMedia;
+    public SocialMedia getSocialMedia() {
+        return SocialMedia.findSocialMediaByName(socialMedia);
     }
 
     public long getGroupId() {
@@ -88,6 +91,7 @@ public class Group {
                 ", accountId=" + accountId +
                 ", accessToken='" + accessToken + '\'' +
                 ", chatId=" + chatId +
+                ", channelUsername='" + channelUsername + '\'' +
                 '}';
     }
 }

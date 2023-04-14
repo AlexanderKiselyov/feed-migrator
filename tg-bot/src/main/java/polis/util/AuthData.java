@@ -1,6 +1,6 @@
 package polis.util;
 
-public class AuthData {
+/*public class AuthData {
     private final SocialMedia socialMedia;
     // TODO изменить тип данных на Long при подключении БД
     private final Integer tokenId;
@@ -29,4 +29,4 @@ public class AuthData {
     public String getRefreshToken() {
         return refreshToken;
     }
-}
+}*/

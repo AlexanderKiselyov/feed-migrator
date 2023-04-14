@@ -1,6 +1,6 @@
 package polis.util;
 
-public class SocialMediaGroup {
+/*public class SocialMediaGroup {
     private final Long id;
     // TODO изменить тип данных на Long при добавлении БД
     private final Integer tokenId;
@@ -23,4 +23,4 @@ public class SocialMediaGroup {
     public Integer getTokenId() {
         return tokenId;
     }
-}
+}*/

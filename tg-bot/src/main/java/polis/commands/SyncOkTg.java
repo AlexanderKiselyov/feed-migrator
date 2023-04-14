@@ -3,14 +3,15 @@ package polis.commands;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.data.domain.CurrentAccount;
+import polis.data.domain.CurrentChannel;
+import polis.data.domain.CurrentGroup;
+import polis.data.repositories.CurrentAccountRepository;
+import polis.data.repositories.CurrentChannelRepository;
+import polis.data.repositories.CurrentGroupRepository;
 import polis.ok.OKDataCheck;
 import polis.telegram.TelegramDataCheck;
-import polis.util.AuthData;
-import polis.util.SocialMediaGroup;
 import polis.util.State;
-import polis.util.TelegramChannel;
-
-import java.util.Map;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
@@ -22,30 +23,33 @@ public class SyncOkTg extends Command {
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
             Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
-    private final Map<Long, TelegramChannel> currentTgChannel;
-    private final Map<Long, SocialMediaGroup> currentSocialMediaGroup;
-    private final Map<Long, AuthData> currentSocialMediaAccount;
+    private final CurrentChannelRepository currentChannelRepository;
+    private final CurrentGroupRepository currentGroupRepository;
+    private final CurrentAccountRepository currentAccountRepository;
     private final TelegramDataCheck telegramDataCheck;
     private final OKDataCheck okDataCheck;
     private static final int rowsCount = 1;
 
     public SyncOkTg(String commandIdentifier,
                     String description,
-                    Map<Long, TelegramChannel> currentTgChannel,
-                    Map<Long, SocialMediaGroup> currentSocialMediaGroup,
-                    Map<Long, AuthData> currentSocialMediaAccount,
+                    CurrentChannelRepository currentChannelRepository,
+                    CurrentGroupRepository currentGroupRepository,
+                    CurrentAccountRepository currentAccountRepository,
                     OKDataCheck okDataCheck) {
         super(commandIdentifier, description);
-        this.currentTgChannel = currentTgChannel;
-        this.currentSocialMediaGroup = currentSocialMediaGroup;
+        this.currentChannelRepository = currentChannelRepository;
+        this.currentGroupRepository = currentGroupRepository;
         telegramDataCheck = new TelegramDataCheck();
         this.okDataCheck = okDataCheck;
-        this.currentSocialMediaAccount = currentSocialMediaAccount;
+        this.currentAccountRepository = currentAccountRepository;
     }
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        if (currentTgChannel.containsKey(chat.getId()) && currentSocialMediaGroup.containsKey(chat.getId())) {
+        CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
+        CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
+        CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
+        if (currentChannel != null && currentGroup != null && currentAccount != null) {
             sendAnswer(
                     absSender,
                     chat.getId(),
@@ -53,12 +57,9 @@ public class SyncOkTg extends Command {
                     user.getUserName(),
                     String.format(
                             SYNC_OK_TG,
-                            telegramDataCheck.getChatParameter(
-                                    currentTgChannel.get(chat.getId()).getTelegramChannelUsername(), "title"
-                            ),
-                            okDataCheck.getOKGroupName(currentSocialMediaGroup.get(chat.getId()).getId(),
-                                    currentSocialMediaAccount.get(chat.getId()).getAccessToken()),
-                            currentSocialMediaGroup.get(chat.getId()).getSocialMedia().getName()
+                            telegramDataCheck.getChatParameter(currentChannel.getChannelUsername(), "title"),
+                            okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken()),
+                            currentGroup.getSocialMedia().getName()
                     ),
                     super.rowsCount,
                     commandsForKeyboard,

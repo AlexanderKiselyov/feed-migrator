@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class TelegramChannel {
+/*public class TelegramChannel {
     private final Long telegramChannelId;
     private final String telegramChannelUsername;
     private List<SocialMediaGroup> synchronizedGroups;
@@ -48,4 +48,4 @@ public class TelegramChannel {
             }
         }
     }
-}
+}*/
