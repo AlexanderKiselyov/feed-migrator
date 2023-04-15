@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -12,6 +14,7 @@ import java.util.List;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
+@Component
 public class AddGroup extends Command {
     private static final String ADD_GROUP = """
             Меню добавления групп для Телеграм-канала <b>%s</b>.""";
@@ -19,16 +22,18 @@ public class AddGroup extends Command {
             Невозможно получить информацию по текущему телеграм-каналу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private final TelegramDataCheck telegramDataCheck;
-    private final CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
     private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
             State.AccountsList.getDescription(),
             State.AddOkAccount.getDescription()
     );
 
-    public AddGroup(String commandIdentifier, String description, CurrentChannelRepository currentChannelRepository) {
-        super(commandIdentifier, description);
-        this.currentChannelRepository = currentChannelRepository;
+    public AddGroup() {
+        super(State.AddGroup.getIdentifier(), State.AddGroup.getDescription());
         telegramDataCheck = new TelegramDataCheck();
     }
 

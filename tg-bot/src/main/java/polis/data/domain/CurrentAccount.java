@@ -61,13 +61,13 @@ public class CurrentAccount {
 
     @Override
     public String toString() {
-        return "CurrentAccount{" +
-                "chatId=" + chatId +
-                ", socialMedia='" + socialMedia + '\'' +
-                ", accountId=" + accountId +
-                ", userFullName='" + userFullName + '\'' +
-                ", accessToken='" + accessToken + '\'' +
-                ", refreshToken='" + refreshToken + '\'' +
-                '}';
+        return "CurrentAccount{"
+                + "chatId=" + chatId
+                + ", socialMedia='" + socialMedia + '\''
+                + ", accountId=" + accountId
+                + ", userFullName='" + userFullName + '\''
+                + ", accessToken='" + accessToken + '\''
+                + ", refreshToken='" + refreshToken + '\''
+                + '}';
     }
 }

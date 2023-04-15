@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -10,6 +12,7 @@ import polis.util.State;
 
 import java.util.List;
 
+@Component
 public class TgChannelsList extends Command {
     private static final String TG_CHANNELS_LIST = "Список добавленных Телеграм-каналов.";
     private static final String TG_CHANNELS_LIST_INLINE = """
@@ -18,7 +21,10 @@ public class TgChannelsList extends Command {
     private static final String NO_TG_CHANNELS = """
             Список добавленных Телеграм-каналов пуст.
             Пожалуйста, добавьте хотя бы один канал.""";
-    private final UserChannelsRepository userChannelsRepository;
+
+    @Autowired
+    private UserChannelsRepository userChannelsRepository;
+
     private final TelegramDataCheck telegramDataCheck;
     private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
@@ -26,16 +32,15 @@ public class TgChannelsList extends Command {
             State.MainMenu.getDescription()
     );
 
-    public TgChannelsList(String commandIdentifier, String description, UserChannelsRepository userChannelsRepository) {
-        super(commandIdentifier, description);
-        this.userChannelsRepository = userChannelsRepository;
+    public TgChannelsList() {
+        super(State.TgChannelsList.getIdentifier(), State.TgChannelsList.getDescription());
         telegramDataCheck = new TelegramDataCheck();
     }
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         List<UserChannels> channels = userChannelsRepository.getUserChannels(chat.getId());
-        if (channels != null && channels.size() != 0) {
+        if (channels != null && !channels.isEmpty()) {
             sendAnswer(
                     absSender,
                     chat.getId(),

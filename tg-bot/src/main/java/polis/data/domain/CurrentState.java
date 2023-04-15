@@ -11,14 +11,18 @@ import polis.util.Substate;
 @Table("current_state")
 public class CurrentState {
     @PrimaryKeyColumn(type = PrimaryKeyType.PARTITIONED, name = "chat_id")
-    private final Long chatId;
+    private final long chatId;
 
     @Column(value = "state")
     private final String state;
 
-    public CurrentState(Long chatId, IState state) {
-        this.state = state.getIdentifier();
+    public CurrentState(Long chatId, String state) {
+        this.state = state;
         this.chatId = chatId;
+    }
+
+    public long getChatId() {
+        return chatId;
     }
 
     public IState getState() {
@@ -28,9 +32,9 @@ public class CurrentState {
 
     @Override
     public String toString() {
-        return "CurrentState{" +
-                "chatId=" + chatId +
-                ", state='" + state + '\'' +
-                "}";
+        return "CurrentState{"
+                + "chatId=" + chatId
+                + ", state='" + state + '\''
+                + "}";
     }
 }

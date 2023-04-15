@@ -2,6 +2,8 @@ package polis.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -13,23 +15,27 @@ import polis.util.State;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
+@Component
 public class GroupDescription extends Command {
     private static final String GROUP_DESCRIPTION = """
             Выбрана группа <b>%s</b> из социальной сети %s.""";
     private static final String NO_VALID_GROUP = """
             Ошибка выбора группы.
             Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и выберите нужную группу.""";
-    private final CurrentGroupRepository currentGroupRepository;
-    private final CurrentAccountRepository currentAccountRepository;
-    private final OKDataCheck okDataCheck;
+
+    @Autowired
+    private CurrentGroupRepository currentGroupRepository;
+
+    @Autowired
+    private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private OKDataCheck okDataCheck;
+
     private final Logger logger = LoggerFactory.getLogger(GroupDescription.class);
 
-    public GroupDescription(String commandIdentifier, String description, CurrentGroupRepository currentGroupRepository,
-                            CurrentAccountRepository currentAccountRepository, OKDataCheck okDataCheck) {
-        super(commandIdentifier, description);
-        this.currentGroupRepository = currentGroupRepository;
-        this.currentAccountRepository = currentAccountRepository;
-        this.okDataCheck = okDataCheck;
+    public GroupDescription() {
+        super(State.GroupDescription.getIdentifier(), State.GroupDescription.getDescription());
     }
 
     @Override

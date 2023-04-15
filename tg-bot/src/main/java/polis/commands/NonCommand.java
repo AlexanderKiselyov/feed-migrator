@@ -2,8 +2,20 @@ package polis.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import polis.data.domain.*;
-import polis.data.repositories.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import polis.data.domain.ChannelGroup;
+import polis.data.domain.CurrentAccount;
+import polis.data.domain.CurrentChannel;
+import polis.data.domain.CurrentGroup;
+import polis.data.domain.UserChannels;
+import polis.data.repositories.AccountsRepository;
+import polis.data.repositories.ChannelGroupsRepository;
+import polis.data.repositories.CurrentAccountRepository;
+import polis.data.repositories.CurrentChannelRepository;
+import polis.data.repositories.CurrentGroupRepository;
+import polis.data.repositories.CurrentStateRepository;
+import polis.data.repositories.UserChannelsRepository;
 import polis.ok.OKDataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.IState;
@@ -13,6 +25,7 @@ import polis.util.Substate;
 
 import static polis.commands.AddOkGroup.SAME_SOCIAL_MEDIA;
 
+@Component
 public class NonCommand {
     private static final String START_STATE_ANSWER = "Не могу распознать команду. Попробуйте еще раз.";
     private static final String BOT_WRONG_STATE_ANSWER = "Неверная команда бота. Попробуйте еще раз.";
@@ -22,27 +35,35 @@ public class NonCommand {
     private static final String WRONG_OK_ACCOUNT = """
             Неверный аккаунт Одноклассников.
             Пожалуйста, вернитесь в главное меню (%s) и следуйте дальнейшим инструкциям.""";
-    private final CurrentAccountRepository currentAccountRepository;
-    private final UserChannelsRepository userChannelsRepository;
-    private final CurrentChannelRepository currentChannelRepository;
-    private final CurrentGroupRepository currentGroupRepository;
-    private final ChannelGroupsRepositoryImpl channelGroupsRepository;
-    private final OKDataCheck okDataCheck;
+
+    @Autowired
+    private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private UserChannelsRepository userChannelsRepository;
+
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private CurrentGroupRepository currentGroupRepository;
+
+    @Autowired
+    private ChannelGroupsRepository channelGroupsRepository;
+
+    @Autowired
+    private CurrentStateRepository currentStateRepository;
+
+    @Autowired
+    private AccountsRepository accountsRepository;
+
+    @Autowired
+    private OKDataCheck okDataCheck;
+
     private final TelegramDataCheck telegramDataCheck;
     private final Logger logger = LoggerFactory.getLogger(NonCommand.class);
 
-    public NonCommand(OKDataCheck okDataCheck,
-                      CurrentAccountRepository currentAccountRepository,
-                      UserChannelsRepository userChannelsRepository,
-                      CurrentChannelRepository currentChannelRepository,
-                      CurrentGroupRepository currentGroupRepository,
-                      ChannelGroupsRepositoryImpl channelGroupsRepository) {
-        this.currentAccountRepository = currentAccountRepository;
-        this.userChannelsRepository = userChannelsRepository;
-        this.currentChannelRepository = currentChannelRepository;
-        this.okDataCheck = okDataCheck;
-        this.currentGroupRepository = currentGroupRepository;
-        this.channelGroupsRepository = channelGroupsRepository;
+    public NonCommand() {
         telegramDataCheck = new TelegramDataCheck();
     }
 
@@ -71,7 +92,6 @@ public class NonCommand {
                 userChannelsRepository.insertUserChannel(newTgChannel);
                 currentChannelRepository.insertCurrentChannel(new CurrentChannel(chatId, newTgChannel.getChannelId(),
                         newTgChannel.getChannelUsername()));
-                tgChannelOwner.put(newTgChannel.getChannelId(), chatId);
             }
             return answer;
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
@@ -97,7 +117,7 @@ public class NonCommand {
             AnswerPair answer = okDataCheck.checkOKGroupAdminRights(accessToken, groupId);
 
             if (!answer.getError()) {
-                CurrentGroup newGroup = new CurrentGroup(chatId, SocialMedia.OK, groupId,
+                CurrentGroup newGroup = new CurrentGroup(chatId, SocialMedia.OK.getName(), groupId,
                         okDataCheck.getOKGroupName(groupId, currentAccount.getAccessToken()),
                         currentAccount.getAccountId(), currentAccount.getAccessToken());
                 currentGroupRepository.insertCurrentGroup(newGroup);

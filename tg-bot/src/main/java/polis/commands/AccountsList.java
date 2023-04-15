@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -12,6 +14,7 @@ import java.util.List;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
+@Component
 public class AccountsList extends Command {
     private static final String ACCOUNTS_LIST = """
             Список аккаунтов:""";
@@ -19,20 +22,21 @@ public class AccountsList extends Command {
     private static final String NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST = """
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
-    private final AccountsRepository accountsRepository;
-    private final OKDataCheck okDataCheck;
 
-    public AccountsList(String commandIdentifier, String description, AccountsRepository accountsRepository,
-                        OKDataCheck okDataCheck) {
-        super(commandIdentifier, description);
-        this.accountsRepository = accountsRepository;
-        this.okDataCheck = okDataCheck;
+    @Autowired
+    private AccountsRepository accountsRepository;
+
+    @Autowired
+    private OKDataCheck okDataCheck;
+
+    public AccountsList() {
+        super(State.AccountsList.getIdentifier(), State.AccountsList.getDescription());
     }
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         List<Account> accounts = accountsRepository.getAccountsForUser(chat.getId());
-        if (accounts != null && accounts.size() != 0) {
+        if (accounts != null && !accounts.isEmpty()) {
             sendAnswer(
                     absSender,
                     chat.getId(),

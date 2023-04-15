@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -10,6 +12,7 @@ import polis.util.State;
 
 import java.util.List;
 
+@Component
 public class TgChannelDescription extends Command {
     private static final String TELEGRAM_CHANNEL_DESCRIPTION = """
             Текущий выбранный Телеграм-канал <b>%s</b>.
@@ -19,7 +22,10 @@ public class TgChannelDescription extends Command {
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""",
             State.MainMenu.getIdentifier());
-    private final CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
     private final TelegramDataCheck telegramDataCheck;
     private static final int rowsCount = 3;
     private static final List<String> commandsForKeyboard = List.of(
@@ -28,10 +34,8 @@ public class TgChannelDescription extends Command {
             State.MainMenu.getDescription()
     );
 
-    public TgChannelDescription(String commandIdentifier, String description,
-                                CurrentChannelRepository currentChannelRepository) {
-        super(commandIdentifier, description);
-        this.currentChannelRepository = currentChannelRepository;
+    public TgChannelDescription() {
+        super(State.TgChannelDescription.getIdentifier(), State.TgChannelDescription.getDescription());
         telegramDataCheck = new TelegramDataCheck();
     }
 

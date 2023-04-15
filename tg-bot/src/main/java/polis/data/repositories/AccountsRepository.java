@@ -1,6 +1,7 @@
 package polis.data.repositories;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.cassandra.core.CassandraOperations;
 import org.springframework.stereotype.Repository;
 import polis.data.domain.Account;
@@ -14,27 +15,19 @@ import static org.springframework.data.cassandra.core.query.Query.query;
 
 @Repository
 public class AccountsRepository {
+    private static final String CHAT_ID = "chat_id";
 
     @Autowired
     private CassandraOperations cassandraOperations;
 
-    public Account getAccount(long chatId, String socialMedia, long accountId) {
-        return cassandraOperations.selectOne(
-                query(
-                        where("chat_id").is(chatId))
-                        .and(where("social_media").is(socialMedia))
-                        .and(where("account_id").is(accountId)),
-                Account.class);
-    }
-
-    public void insertNewAccount(@NotNull Account account) {
+    public void insertNewAccount(@NotNull Account account) throws DataAccessException {
         cassandraOperations.update(account);
     }
 
-    public List<Account> getAccountsForUser(long chatId) {
+    public List<Account> getAccountsForUser(long chatId) throws DataAccessException {
         return cassandraOperations.select(
                 query(
-                        where("chat_id").is(chatId)),
+                        where(CHAT_ID).is(chatId)),
                 Account.class);
     }
 }

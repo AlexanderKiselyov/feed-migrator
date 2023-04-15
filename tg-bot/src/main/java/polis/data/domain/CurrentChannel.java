@@ -8,7 +8,7 @@ import org.springframework.data.cassandra.core.mapping.Table;
 @Table("current_channel")
 public class CurrentChannel {
     @PrimaryKeyColumn(type = PrimaryKeyType.PARTITIONED, name = "chat_id")
-    private final Long chatId;
+    private final long chatId;
 
     @Column(value = "channel_id")
     private final long channelId;
@@ -22,6 +22,10 @@ public class CurrentChannel {
         this.channelUsername = channelUsername;
     }
 
+    public long getChatId() {
+        return chatId;
+    }
+
     public long getChannelId() {
         return channelId;
     }
@@ -32,10 +36,10 @@ public class CurrentChannel {
 
     @Override
     public String toString() {
-        return "CurrentChannel{" +
-                "chatId=" + chatId +
-                ", channelId=" + channelId +
-                ", channelUsername='" + channelUsername + '\'' +
-                "}";
+        return "CurrentChannel{"
+                + "chatId=" + chatId
+                + ", channelId=" + channelId
+                + ", channelUsername='" + channelUsername + '\''
+                + "}";
     }
 }

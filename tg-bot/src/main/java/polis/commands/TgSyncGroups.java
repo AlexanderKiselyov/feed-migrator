@@ -2,6 +2,8 @@ package polis.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -9,7 +11,7 @@ import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.AccountsRepository;
-import polis.data.repositories.ChannelGroupsRepositoryImpl;
+import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.ok.OKDataCheck;
 import polis.util.State;
@@ -19,6 +21,7 @@ import java.util.Objects;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
+@Component
 public class TgSyncGroups extends Command {
     private static final String TG_SYNC_GROUPS = """
             Список синхронизированных групп.""";
@@ -29,28 +32,30 @@ public class TgSyncGroups extends Command {
     private static final String NO_SYNC_GROUPS = """
             Список синхронизированных групп пуст.
             Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и добавьте хотя бы одну группу.""";
-    private final CurrentChannelRepository currentChannelRepository;
-    private final AccountsRepository accountsRepository;
-    private final ChannelGroupsRepositoryImpl channelGroupsRepository;
-    private final OKDataCheck okDataCheck;
+
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private AccountsRepository accountsRepository;
+
+    @Autowired
+    private ChannelGroupsRepository channelGroupsRepository;
+
+    @Autowired
+    private OKDataCheck okDataCheck;
+
     private final Logger logger = LoggerFactory.getLogger(TgSyncGroups.class);
 
-    public TgSyncGroups(String commandIdentifier, String description, CurrentChannelRepository currentChannelRepository,
-                        AccountsRepository accountsRepository,
-                        ChannelGroupsRepositoryImpl channelGroupsRepository,
-                        OKDataCheck okDataCheck) {
-        super(commandIdentifier, description);
-        this.currentChannelRepository = currentChannelRepository;
-        this.accountsRepository = accountsRepository;
-        this.channelGroupsRepository = channelGroupsRepository;
-        this.okDataCheck = okDataCheck;
+    public TgSyncGroups() {
+        super(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription());
     }
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
         List<Account> accounts = accountsRepository.getAccountsForUser(chat.getId());
-        if (currentChannel != null && accounts != null) {
+        if (currentChannel != null && accounts != null && !accounts.isEmpty()) {
             List<ChannelGroup> channelGroups =
                     channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId());
             if (channelGroups != null) {

@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.ok.api.OkAuthorizator;
+import polis.util.State;
 
 import java.net.URISyntaxException;
 
@@ -18,8 +19,8 @@ public class AddOkAccount extends Command {
                     После авторизации скопируйте код авторизации из адресной строки и отправьте его в этот диалог.""";
     private final Logger logger = LoggerFactory.getLogger(AddOkAccount.class);
 
-    public AddOkAccount(String commandIdentifier, String description) {
-        super(commandIdentifier, description);
+    public AddOkAccount() {
+        super(State.AddOkAccount.getIdentifier(), State.AddOkAccount.getDescription());
     }
 
     @Override

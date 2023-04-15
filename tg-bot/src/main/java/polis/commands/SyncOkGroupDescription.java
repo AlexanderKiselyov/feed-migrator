@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -17,6 +19,7 @@ import java.util.List;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
+@Component
 public class SyncOkGroupDescription extends Command {
     private static final String SYNC_OK_TG_DESCRIPTION = """
             Телеграм-канал <b>%s</b> и группа <b>%s (%s)</b> были успешно синхронизированы.
@@ -24,27 +27,27 @@ public class SyncOkGroupDescription extends Command {
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP_DESCRIPTION = """
             Невозможно показать информацию по связанным Телеграм-каналу и группе.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
-    private final CurrentChannelRepository currentChannelRepository;
-    private final CurrentGroupRepository currentGroupRepository;
+
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private CurrentGroupRepository currentGroupRepository;
+
+    @Autowired
+    private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private OKDataCheck okDataCheck;
+
     private final TelegramDataCheck telegramDataCheck;
-    private final CurrentAccountRepository currentAccountRepository;
-    private final OKDataCheck okDataCheck;
     private final int rowsCount = 1;
     private final List<String> commandsForKeyboard = List.of(
             State.Autoposting.getDescription()
     );
 
-    public SyncOkGroupDescription(String commandIdentifier,
-                                  String description,
-                                  CurrentChannelRepository currentChannelRepository,
-                                  CurrentGroupRepository currentGroupRepository,
-                                  CurrentAccountRepository currentAccountRepository,
-                                  OKDataCheck okDataCheck) {
-        super(commandIdentifier, description);
-        this.currentChannelRepository = currentChannelRepository;
-        this.currentGroupRepository = currentGroupRepository;
-        this.currentAccountRepository = currentAccountRepository;
-        this.okDataCheck = okDataCheck;
+    public SyncOkGroupDescription() {
+        super(State.SyncOkGroupDescription.getIdentifier(), State.SyncOkGroupDescription.getDescription());
         telegramDataCheck = new TelegramDataCheck();
     }
 

@@ -35,25 +35,31 @@ public class ChannelGroup {
     private String channelUsername;
 
     public ChannelGroup(String accessToken, String groupName, long accountId, long chatId, long groupId,
-                        SocialMedia socialMedia) {
+                        String socialMedia) {
         this.groupName = groupName;
         this.accountId = accountId;
         this.accessToken = accessToken;
         this.chatId = chatId;
         this.groupId = groupId;
-        this.socialMedia = socialMedia.getName();
+        this.socialMedia = socialMedia;
     }
 
-    public void setChannelId(long channelId) {
+    public ChannelGroup setChannelId(long channelId) {
         this.channelId = channelId;
+        return this;
     }
 
-    public void setChannelUsername(String channelUsername) {
+    public ChannelGroup setChannelUsername(String channelUsername) {
         this.channelUsername = channelUsername;
+        return this;
     }
 
     public long getChannelId() {
         return channelId;
+    }
+
+    public String getChannelUsername() {
+        return channelUsername;
     }
 
     public SocialMedia getSocialMedia() {
@@ -83,15 +89,15 @@ public class ChannelGroup {
 
     @Override
     public String toString() {
-        return "Group{" +
-                "channelId=" + channelId +
-                ", socialMedia='" + socialMedia + '\'' +
-                ", groupId=" + groupId +
-                ", groupName='" + groupName + '\'' +
-                ", accountId=" + accountId +
-                ", accessToken='" + accessToken + '\'' +
-                ", chatId=" + chatId +
-                ", channelUsername='" + channelUsername + '\'' +
-                '}';
+        return "ChannelGroup{"
+                + "channelId=" + channelId
+                + ", socialMedia='" + socialMedia + '\''
+                + ", groupId=" + groupId
+                + ", groupName='" + groupName + '\''
+                + ", accountId=" + accountId
+                + ", accessToken='" + accessToken + '\''
+                + ", chatId=" + chatId
+                + ", channelUsername='" + channelUsername + '\''
+                + '}';
     }
 }

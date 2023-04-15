@@ -5,8 +5,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import polis.commands.NonCommand;
 import polis.data.domain.Account;
+import polis.data.domain.CurrentAccount;
 import polis.data.domain.CurrentState;
 import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.CurrentAccountRepository;
@@ -25,6 +28,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Objects;
 
+@Component
 public class OKDataCheck {
     public static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
             "Введенный код авторизации неверный. Пожалуйста, попробуйте еще раз.";
@@ -42,19 +46,19 @@ public class OKDataCheck {
     public static final String USER_HAS_NO_RIGHTS = """
             Пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
-    private final CurrentAccountRepository currentAccountRepository;
-    private final AccountsRepository accountsRepository;
-    private final CurrentStateRepository currentStateRepository;
+
+    @Autowired
+    private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private AccountsRepository accountsRepository;
+
+    @Autowired
+    private CurrentStateRepository currentStateRepository;
+
     private final HttpClient client = HttpClient.newHttpClient();
     private final Logger logger = LoggerFactory.getLogger(OKDataCheck.class);
     private final OkAuthorizator okAuthorizator = new OkAuthorizator();
-
-    public OKDataCheck(CurrentAccountRepository currentAccountRepository, CurrentStateRepository currentStateRepository,
-                       AccountsRepository accountsRepository) {
-        this.currentAccountRepository = currentAccountRepository;
-        this.currentStateRepository = currentStateRepository;
-        this.accountsRepository = accountsRepository;
-    }
 
     public NonCommand.AnswerPair getOKAuthCode(String text, Long chatId) {
         OkAuthorizator.TokenPair pair;
@@ -66,19 +70,28 @@ public class OKDataCheck {
 
             Account newAccount = new Account(
                     chatId,
-                    SocialMedia.OK,
+                    SocialMedia.OK.getName(),
                     Long.parseLong(getOKUserId(pair.accessToken())),
                     getOKUsername(pair.accessToken()),
                     pair.accessToken(),
                     pair.refreshToken()
             );
 
-            currentAccountRepository.insertCurrentAccount(newAccount);
+            currentAccountRepository.insertCurrentAccount(
+                    new CurrentAccount(
+                            chatId,
+                            newAccount.getSocialMedia().getName(),
+                            newAccount.getAccountId(),
+                            newAccount.getUserFullName(),
+                            newAccount.getAccessToken(),
+                            newAccount.getRefreshToken()
+                    )
+            );
 
             accountsRepository.insertNewAccount(newAccount);
 
             currentStateRepository.insertCurrentState(new CurrentState(chatId,
-                    Substate.nextSubstate(State.OkAccountDescription)));
+                    Substate.nextSubstate(State.OkAccountDescription).getIdentifier()));
 
             return new NonCommand.AnswerPair(
                     String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),

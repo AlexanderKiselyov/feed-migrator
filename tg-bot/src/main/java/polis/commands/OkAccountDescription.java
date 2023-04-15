@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -12,25 +14,27 @@ import java.util.List;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
+@Component
 public class OkAccountDescription extends Command {
     private static final String ACCOUNT_DESCRIPTION = """
             Выбран аккаунт в социальной сети Одноклассники с названием <b>%s</b>.""";
     private static final String NOT_VALID_ACCOUNT = """
             Невозможно получить информацию по текущему аккаунту.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
-    private final CurrentAccountRepository currentAccountRepository;
-    private final OKDataCheck okDataCheck;
+
+    @Autowired
+    private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private OKDataCheck okDataCheck;
+
     private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
             State.AddOkGroup.getDescription()
     );
 
-    public OkAccountDescription(String commandIdentifier, String description,
-                                CurrentAccountRepository currentAccountRepository,
-                                OKDataCheck okDataCheck) {
-        super(commandIdentifier, description);
-        this.currentAccountRepository = currentAccountRepository;
-        this.okDataCheck = okDataCheck;
+    public OkAccountDescription() {
+        super(State.OkAccountDescription.getIdentifier(), State.OkAccountDescription.getDescription());
     }
 
     @Override

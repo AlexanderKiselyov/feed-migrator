@@ -26,10 +26,10 @@ public class Account {
     @Column(value = "refresh_token")
     private final String refreshToken;
 
-    public Account(long chatId, SocialMedia socialMedia, long accountId, String userFullName, String accessToken,
+    public Account(long chatId, String socialMedia, long accountId, String userFullName, String accessToken,
                    String refreshToken) {
         this.chatId = chatId;
-        this.socialMedia = socialMedia.getName();
+        this.socialMedia = socialMedia;
         this.accountId = accountId;
         this.userFullName = userFullName;
         this.accessToken = accessToken;
@@ -62,13 +62,13 @@ public class Account {
 
     @Override
     public String toString() {
-        return "Account{" +
-                "chatId=" + chatId +
-                ", socialMedia='" + socialMedia + '\'' +
-                ", accountId=" + accountId +
-                ", userFullName='" + userFullName + '\'' +
-                ", accessToken='" + accessToken + '\'' +
-                ", refreshToken='" + refreshToken + '\'' +
-                '}';
+        return "Account{"
+                + "chatId=" + chatId
+                + ", socialMedia='" + socialMedia + '\''
+                + ", accountId=" + accountId
+                + ", userFullName='" + userFullName + '\''
+                + ", accessToken='" + accessToken + '\''
+                + ", refreshToken='" + refreshToken + '\''
+                + '}';
     }
 }

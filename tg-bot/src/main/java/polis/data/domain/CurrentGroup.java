@@ -11,10 +11,10 @@ public class CurrentGroup {
     @PrimaryKeyColumn(type = PrimaryKeyType.PARTITIONED, name = "chat_id")
     private final long chatId;
 
-    @Column(value = "social_media")
+    @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "social_media")
     private final String socialMedia;
 
-    @PrimaryKeyColumn(value = "group_id")
+    @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "group_id")
     private final long groupId;
 
     @Column("group_name")
@@ -26,10 +26,10 @@ public class CurrentGroup {
     @Column("access_token")
     private final String accessToken;
 
-    public CurrentGroup(long chatId, SocialMedia socialMedia, long groupId, String groupName, long accountId,
+    public CurrentGroup(long chatId, String socialMedia, long groupId, String groupName, long accountId,
                         String accessToken) {
         this.chatId = chatId;
-        this.socialMedia = socialMedia.getName();
+        this.socialMedia = socialMedia;
         this.groupId = groupId;
         this.groupName = groupName;
         this.accountId = accountId;
@@ -62,13 +62,13 @@ public class CurrentGroup {
 
     @Override
     public String toString() {
-        return "CurrentGroup{" +
-                "chatId=" + chatId +
-                ", socialMedia='" + socialMedia + '\'' +
-                ", groupId=" + groupId +
-                ", groupName='" + groupName + '\'' +
-                ", accountId=" + accountId +
-                ", accessToken='" + accessToken + '\'' +
-                '}';
+        return "CurrentGroup{"
+                + "chatId=" + chatId
+                + ", socialMedia='" + socialMedia + '\''
+                + ", groupId=" + groupId
+                + ", groupName='" + groupName + '\''
+                + ", accountId=" + accountId
+                + ", accessToken='" + accessToken + '\''
+                + '}';
     }
 }

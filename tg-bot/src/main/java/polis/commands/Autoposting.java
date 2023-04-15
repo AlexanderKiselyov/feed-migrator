@@ -2,6 +2,8 @@ package polis.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -16,6 +18,7 @@ import polis.util.State;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
+@Component
 public class Autoposting extends Command {
     private static final String AUTOPOSTING = """
             Функция автопостинга позволяет автоматически публиковать новый пост из Телеграм-канала в группу.
@@ -25,22 +28,24 @@ public class Autoposting extends Command {
     private static final String NO_CURRENT_TG_CHANNEL = """
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
-    private final CurrentChannelRepository currentChannelRepository;
-    private final CurrentGroupRepository currentGroupRepository;
-    private final CurrentAccountRepository currentAccountRepository;
-    private final OKDataCheck okDataCheck;
+
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private CurrentGroupRepository currentGroupRepository;
+
+    @Autowired
+    private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private OKDataCheck okDataCheck;
+
     private static final int rowsCount = 1;
     private final Logger logger = LoggerFactory.getLogger(Autoposting.class);
 
-    public Autoposting(String commandIdentifier, String description, CurrentChannelRepository currentChannelRepository,
-                       CurrentGroupRepository currentGroupRepository,
-                       CurrentAccountRepository currentAccountRepository,
-                       OKDataCheck okDataCheck) {
-        super(commandIdentifier, description);
-        this.currentChannelRepository = currentChannelRepository;
-        this.currentGroupRepository = currentGroupRepository;
-        this.currentAccountRepository = currentAccountRepository;
-        this.okDataCheck = okDataCheck;
+    public Autoposting() {
+        super(State.Autoposting.getIdentifier(), State.Autoposting.getDescription());
     }
 
     @Override
@@ -75,7 +80,7 @@ public class Autoposting extends Command {
                     autopostingEnable,
                     rowsCount,
                     commandsForKeyboard,
-                    getIfAddAutoposting(currentChannel.getChannelId()));
+                    getIfAddAutoposting(chat.getId(), currentChannel.getChannelId()));
         } else {
             sendAnswer(
                     absSender,
@@ -90,12 +95,12 @@ public class Autoposting extends Command {
         }
     }
 
-    private String[] getIfAddAutoposting(Long id) {
+    private String[] getIfAddAutoposting(long chatId, long channelId) {
         return new String[]{
                 "Да",
-                String.format("autoposting %s 0", id),
+                String.format("autoposting %d %d 1", chatId, channelId),
                 "Нет",
-                String.format("autoposting %s 1", id)
+                String.format("autoposting %d %d 0", chatId, channelId)
         };
     }
 }

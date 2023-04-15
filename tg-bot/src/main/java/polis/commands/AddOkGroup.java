@@ -1,16 +1,20 @@
 package polis.commands;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
-import polis.data.repositories.ChannelGroupsRepositoryImpl;
+import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.util.SocialMedia;
+import polis.util.State;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
+@Component
 public class AddOkGroup extends Command {
     private static final String ADD_OK_GROUP = """
             Чтобы добавить новую группу, введите в чат ссылку на нее.
@@ -20,14 +24,15 @@ public class AddOkGroup extends Command {
     static final String SAME_SOCIAL_MEDIA = """
             Социальная сеть %s уже была синхронизирована с текущим Телеграм-каналом.
             Пожалуйста, выберите другую социальную сеть и попробуйте снова.""";
-    private final CurrentChannelRepository currentChannelRepository;
-    private final ChannelGroupsRepositoryImpl channelGroupsRepository;
 
-    public AddOkGroup(String commandIdentifier, String description, CurrentChannelRepository currentChannelRepository,
-                      ChannelGroupsRepositoryImpl channelGroupsRepository) {
-        super(commandIdentifier, description);
-        this.currentChannelRepository = currentChannelRepository;
-        this.channelGroupsRepository = channelGroupsRepository;
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private ChannelGroupsRepository channelGroupsRepository;
+
+    public AddOkGroup() {
+        super(State.AddOkGroup.getIdentifier(), State.AddOkGroup.getDescription());
     }
 
     @Override

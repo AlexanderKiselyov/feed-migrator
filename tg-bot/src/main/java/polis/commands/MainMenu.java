@@ -18,8 +18,8 @@ public class MainMenu extends Command {
             State.AddTgChannel.getDescription()
     );
 
-    public MainMenu(String commandIdentifier, String description) {
-        super(commandIdentifier, description);
+    public MainMenu() {
+        super(State.MainMenu.getIdentifier(), State.MainMenu.getDescription());
     }
 
     @Override

@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -15,6 +17,7 @@ import polis.util.State;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
+@Component
 public class SyncOkTg extends Command {
     private static final String SYNC_OK_TG = """
             Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";
@@ -23,25 +26,25 @@ public class SyncOkTg extends Command {
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
             Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
-    private final CurrentChannelRepository currentChannelRepository;
-    private final CurrentGroupRepository currentGroupRepository;
-    private final CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private CurrentGroupRepository currentGroupRepository;
+
+    @Autowired
+    private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private OKDataCheck okDataCheck;
+
     private final TelegramDataCheck telegramDataCheck;
-    private final OKDataCheck okDataCheck;
     private static final int rowsCount = 1;
 
-    public SyncOkTg(String commandIdentifier,
-                    String description,
-                    CurrentChannelRepository currentChannelRepository,
-                    CurrentGroupRepository currentGroupRepository,
-                    CurrentAccountRepository currentAccountRepository,
-                    OKDataCheck okDataCheck) {
-        super(commandIdentifier, description);
-        this.currentChannelRepository = currentChannelRepository;
-        this.currentGroupRepository = currentGroupRepository;
+    public SyncOkTg() {
+        super(State.SyncOkTg.getIdentifier(), State.SyncOkTg.getDescription());
         telegramDataCheck = new TelegramDataCheck();
-        this.okDataCheck = okDataCheck;
-        this.currentAccountRepository = currentAccountRepository;
     }
 
     @Override
