@@ -306,7 +306,7 @@ public class Bot extends TelegramLongPollingCommandBot {
             if (!isAutoposting.containsKey(chatId) || !isAutoposting.get(chatId)) {
                 return;
             }
-            List<PhotoSize> photos = new ArrayList<>();
+            List<PhotoSize> photos = new ArrayList<>(1);
             List<Video> videos = new ArrayList<>(1);
             String text = null;
             Poll poll = null;
