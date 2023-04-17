@@ -6,7 +6,11 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.ok.OKDataCheck;
-import polis.util.*;
+import polis.util.AuthData;
+import polis.util.SocialMedia;
+import polis.util.SocialMediaGroup;
+import polis.util.State;
+import polis.util.TelegramChannel;
 
 import java.util.Map;
 import java.util.Objects;
