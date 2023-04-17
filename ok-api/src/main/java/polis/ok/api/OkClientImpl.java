@@ -1,10 +1,12 @@
 package polis.ok.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,11 +36,18 @@ public class OkClientImpl implements OKClient {
     private static final String POST_MEDIA_TOPIC = "mediatopic.post";
     private static final String UPLOAD_PHOTO = "photosV2.getUploadUrl";
     private static final String UPLOAD_VIDEO = "video.getUploadUrl";
-
     private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
-    private final org.apache.http.client.HttpClient advancedClient = HttpClientBuilder.create().build();
+    private final Integer clientResponseTimeout = 5;
+    private final RequestConfig config;
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
+
+    public OkClientImpl() {
+         config = RequestConfig.custom()
+                .setConnectTimeout(clientResponseTimeout * 1000)
+                .setConnectionRequestTimeout(clientResponseTimeout * 1000)
+                .setSocketTimeout(clientResponseTimeout * 1000).build();
+    }
 
     public void postMediaTopic(String accessToken, long groupId, Attachment attachment)
             throws URISyntaxException, IOException, OkApiException {
@@ -76,36 +85,42 @@ public class OkClientImpl implements OKClient {
             multipartEntityBuilder.addPart("pic" + (i + 1), new FileBody(photo));
         }
         httpPost.setEntity(multipartEntityBuilder.build());
-        org.apache.http.HttpResponse response = sendRequest(advancedClient, httpPost, logger);
-        JSONObject responseJson = parseResponse(response, logger);
 
-        try {
-            JSONObject photoIds = responseJson.getJSONObject("photos");
-            List<String> result = new ArrayList<>(photos.size());
-            for (int i = 0; i < photos.size(); i++) {
-                String photoToken = uploadUrlResponse.photoTokens.get(i);
-                String photoId = photoIds.getJSONObject(photoToken).getString("token");
-                result.add(photoId);
+        try (CloseableHttpClient advancedClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
+            org.apache.http.HttpResponse response = sendRequest(advancedClient, httpPost, logger);
+            JSONObject responseJson = parseResponse(response, logger);
+
+            try {
+                JSONObject photoIds = responseJson.getJSONObject("photos");
+                List<String> result = new ArrayList<>(photos.size());
+                for (int i = 0; i < photos.size(); i++) {
+                    String photoToken = uploadUrlResponse.photoTokens.get(i);
+                    String photoId = photoIds.getJSONObject(photoToken).getString("token");
+                    result.add(photoId);
+                }
+                return result;
+            } catch (JSONException e) {
+                throw wrapAndLog(e, "", "", logger);
+            } catch (IndexOutOfBoundsException e) {
+                throw new OkApiException(e);
             }
-            return result;
-        } catch (JSONException e) {
-            throw wrapAndLog(e, "", "", logger);
-        } catch (IndexOutOfBoundsException e) {
-            throw new OkApiException(e);
         }
     }
 
     public long uploadVideo(String accessToken, long groupId, File video)
             throws URISyntaxException, IOException, OkApiException {
         VideoUploadUrlResponse uploadUrlResponse = videoUploadUrl(accessToken, groupId, video.getName(),
-                video.getTotalSpace());
+                video.length());
 
         HttpPost httpPost = new HttpPost(URI.create(uploadUrlResponse.uploadUrl));
         MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
         multipartEntityBuilder.addPart("video", new FileBody(video));
         httpPost.setEntity(multipartEntityBuilder.build());
 
-        sendRequest(advancedClient, httpPost, logger);
+        try (CloseableHttpClient advancedClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
+            sendRequest(advancedClient, httpPost, logger);
+        }
+
         return uploadUrlResponse.videoId;
     }
 
@@ -150,6 +165,7 @@ public class OkClientImpl implements OKClient {
                 .addParameter("method", UPLOAD_VIDEO)
                 .addParameter("sig", OkAuthorizator.sig(accessToken, UPLOAD_VIDEO))
                 .addParameter("access_token", accessToken)
+                .addParameter("post_form", "true")
                 .build();
         HttpRequest getUploadUrlRequest = HttpRequest.newBuilder().GET()
                 .uri(uri)

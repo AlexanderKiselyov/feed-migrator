@@ -10,12 +10,13 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.Video;
+import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.AccountsList;
@@ -222,6 +223,11 @@ public class Bot extends TelegramLongPollingCommandBot {
         }
         msg = update.getMessage();
 
+        if (msg == null) {
+            logger.warn("Message is null");
+            return;
+        }
+
         Long chatId = msg.getChatId();
         String messageText = msg.getText();
 
@@ -295,23 +301,20 @@ public class Bot extends TelegramLongPollingCommandBot {
                 return;
             }
             List<PhotoSize> photos = new ArrayList<>();
-            Video video = null;
+            List<Video> videos = new ArrayList<>(1);
             String text = null;
             Poll poll = null;
+            List<Animation> animations = new ArrayList<>(1);
+            List<Document> documents = new ArrayList<>(1);
             long ownerChatId = tgChannelOwner.get(chatId);
             for (Message postItem : postItems) {
-                Chat forwardFromChat = postItem.getForwardFromChat();
-                if (forwardFromChat != null && forwardFromChat.getId() != chatId) {
-                    checkAndSendNotification(chatId, ownerChatId, AUTHOR_RIGHTS_MSG);
-                    return;
-                }
                 if (postItem.hasPhoto()) {
                     postItem.getPhoto().stream()
                             .max(Comparator.comparingInt(PhotoSize::getFileSize))
                             .ifPresent(photos::add);
                 }
                 if (postItem.hasVideo()) {
-                    video = postItem.getVideo();
+                    videos.add(postItem.getVideo());
                 }
                 if (postItem.getCaption() != null && !postItem.getCaption().isEmpty()) {
                     text = postItem.getCaption();
@@ -321,6 +324,12 @@ public class Bot extends TelegramLongPollingCommandBot {
                 }
                 if (postItem.hasPoll()) {
                     poll = postItem.getPoll();
+                }
+                if (postItem.hasAnimation()) {
+                    animations.add(postItem.getAnimation());
+                }
+                if (postItem.hasDocument()) {
+                    documents.add(postItem.getDocument());
                 }
             }
             for (TelegramChannel tgChannel : tgChannels.get(tgChannelOwner.get(chatId))) {
@@ -339,11 +348,16 @@ public class Bot extends TelegramLongPollingCommandBot {
                         // и с помощью каждого запостить пост
                         case OK -> {
                             try {
+                                if (!documents.isEmpty() && animations.isEmpty()) {
+                                    sendAnswer(chatId, """
+                                            Тип 'Документ' не поддерживается в социальной сети Одноклассники""");
+                                }
                                 helper.newPost(chatId, smg.getId(), accessToken)
                                         .addPhotos(photos)
-                                        .addVideo(video)
+                                        .addVideos(videos)
                                         .addText(text)
                                         .addPoll(poll)
+                                        .addAnimations(animations)
                                         .post(accessToken, smg.getId());
                                 //sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getId());
                                 checkAndSendNotification(chatId, ownerChatId,
