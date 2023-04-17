@@ -9,28 +9,44 @@ import polis.ok.OKDataCheck;
 import polis.util.AuthData;
 import polis.util.SocialMediaGroup;
 import polis.util.State;
+import polis.util.TelegramChannel;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 public class GroupDescription extends Command {
     private static final String GROUP_DESCRIPTION = """
-            Выбрана группа <b>%s</b> из социальной сети %s.""";
+            Выбрана группа <b>%s</b> из социальной сети %s.
+            Вы можете выбрать команду /autoposting для настройки автопостинга.""";
+    private static final String GROUP_DESCRIPTION_EXTENDED = """
+            Выбрана группа <b>%s</b> из социальной сети %s.
+            Вы можете выбрать команду /autoposting для настройки автопостинга.
+            Настроить уведомления об автоматически опубликованных постах можно с помощью команды  /notifications.""";
     private static final String NO_VALID_GROUP = """
             Ошибка выбора группы.
             Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и выберите нужную группу.""";
     private final Map<Long, SocialMediaGroup> currentGroup;
     private final Map<Long, AuthData> currentSocialMediaAccount;
+    private final Map<Long, Boolean> isAutoposting;
+    private final Map<Long, TelegramChannel> currentTgChannel;
     private final OKDataCheck okDataCheck;
     private final Logger logger = LoggerFactory.getLogger(GroupDescription.class);
+    private int rowsCount = 1;
+    private final List<String> commandsForKeyboard = new ArrayList<>();
 
     public GroupDescription(String commandIdentifier, String description, Map<Long, SocialMediaGroup> currentGroup,
-                            Map<Long, AuthData> currentSocialMediaAccount, OKDataCheck okDataCheck) {
+                            Map<Long, AuthData> currentSocialMediaAccount, OKDataCheck okDataCheck,
+                            Map<Long, Boolean> isAutoposting, Map<Long, TelegramChannel> currentTgChannel) {
         super(commandIdentifier, description);
         this.currentGroup = currentGroup;
         this.currentSocialMediaAccount = currentSocialMediaAccount;
         this.okDataCheck = okDataCheck;
+        this.isAutoposting = isAutoposting;
+        this.currentTgChannel = currentTgChannel;
+        this.commandsForKeyboard.add(State.Autoposting.getDescription());
     }
 
     @Override
@@ -42,13 +58,24 @@ public class GroupDescription extends Command {
             default -> logger.error(String.format("Social media not found: %s",
                     currentGroup.get(chat.getId()).getSocialMedia()));
         }
+        long channelId = currentTgChannel.get(chat.getId()).getTelegramChannelId();
+        boolean isAutopostingEnable = isAutoposting.containsKey(channelId) && isAutoposting.get(channelId);
+        String msgToSend = isAutopostingEnable ? GROUP_DESCRIPTION_EXTENDED : GROUP_DESCRIPTION;
         if (currentGroup.get(chat.getId()) != null) {
+            if (isAutopostingEnable && !commandsForKeyboard.contains(State.Notifications.getDescription())) {
+                commandsForKeyboard.add(State.Notifications.getDescription());
+                rowsCount++;
+            } else if (isAutoposting.containsKey(channelId) && !isAutoposting.get(channelId)
+                    && commandsForKeyboard.contains(State.Notifications.getDescription())) {
+                commandsForKeyboard.remove(State.Notifications.getDescription());
+                rowsCount--;
+            }
             sendAnswer(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    String.format(GROUP_DESCRIPTION, groupName,
+                    String.format(msgToSend, groupName,
                             currentGroup.get(chat.getId()).getSocialMedia().getName()),
                     rowsCount,
                     commandsForKeyboard,
@@ -61,8 +88,8 @@ public class GroupDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NO_VALID_GROUP, State.TgChannelDescription.getIdentifier()),
-                    rowsCount,
-                    commandsForKeyboard,
+                    super.rowsCount,
+                    super.commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
         }

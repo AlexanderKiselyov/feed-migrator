@@ -67,13 +67,15 @@ public class AccountsList extends Command {
     }
 
     private String[] getAccountsArray(List<AuthData> socialMediaAccounts) {
-        String[] buttons = new String[socialMediaAccounts.size() * 2];
+        String[] buttons = new String[socialMediaAccounts.size() * 4];
         for (int i = 0; i < socialMediaAccounts.size(); i++) {
-            int tmpIndex = i * 2;
+            int tmpIndex = i * 4;
             buttons[tmpIndex] = String.format("%s (%s)",
                     okDataCheck.getOKUsername(socialMediaAccounts.get(i).getAccessToken()),
                     socialMediaAccounts.get(i).getSocialMedia().getName());
-            buttons[tmpIndex + 1] = String.format("account %d", socialMediaAccounts.get(i).getTokenId());
+            buttons[tmpIndex + 1] = String.format("account %d %d", socialMediaAccounts.get(i).getTokenId(), 0);
+            buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
+            buttons[tmpIndex + 3] = String.format("account %d %d", socialMediaAccounts.get(i).getTokenId(), 1);
         }
 
         return buttons;

@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -26,6 +27,7 @@ import polis.commands.Autoposting;
 import polis.commands.GroupDescription;
 import polis.commands.MainMenu;
 import polis.commands.NonCommand;
+import polis.commands.Notifications;
 import polis.commands.OkAccountDescription;
 import polis.commands.StartCommand;
 import polis.commands.SyncOkGroupDescription;
@@ -67,7 +69,11 @@ import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
 
 @Component
 public class Bot extends TelegramLongPollingCommandBot {
-    public static final List<String> EMPTY_LIST = List.of();
+    private static final List<String> EMPTY_LIST = List.of();
+    private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в " +
+            "курсе автоматически опубликованных записей с помощью команды /notifications";
+    private static final String AUTOPOSTING_ENABLE_AND_NOTIFICATIONS = "Функция автопостинга включена."
+            + TURN_ON_NOTIFICATIONS_MSG;
     private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.of(
             String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
             List.of(State.OkAccountDescription.getDescription()),
@@ -86,7 +92,9 @@ public class Bot extends TelegramLongPollingCommandBot {
             WRONG_LINK_OR_BOT_NOT_ADMIN,
             EMPTY_LIST,
             BOT_NOT_ADMIN,
-            EMPTY_LIST
+            EMPTY_LIST,
+            AUTOPOSTING_ENABLE_AND_NOTIFICATIONS,
+            List.of(State.Notifications.getDescription())
     );
     private final String botName;
     private final String botToken;
@@ -99,6 +107,7 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final Map<Long, AuthData> currentSocialMediaAccount = new ConcurrentHashMap<>();
     private final Map<Long, SocialMediaGroup> currentSocialMediaGroup = new ConcurrentHashMap<>();
     private final Map<Long, Boolean> isAutoposting = new ConcurrentHashMap<>();
+    private final Map<Long, Boolean> areNotifications = new ConcurrentHashMap<>();
     private final OkPostingHelper helper;
     private final Logger logger = LoggerFactory.getLogger(Bot.class);
     private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
@@ -106,8 +115,13 @@ public class Bot extends TelegramLongPollingCommandBot {
     private static final String ACCOUNT_CALLBACK_TEXT = "account";
     private static final String YES_NO_CALLBACK_TEXT = "yesNo";
     private static final String AUTOPOSTING = "autoposting";
+    private static final String NOTIFICATIONS = "notifications";
     private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
     private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
+    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n" +
+            "Не удалось опубликовать пост в ok.ru/group/";
+    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в " +
+            "соответствии с Законом об авторском праве.";
     private static final String SINGLE_ITEM_POSTS = "";
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
@@ -135,7 +149,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         register(new TgSyncGroups(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription(),
                 currentTgChannel, socialMediaAccounts, okDataCheck));
         register(new GroupDescription(State.GroupDescription.getIdentifier(), State.GroupDescription.getDescription(),
-                currentSocialMediaGroup, currentSocialMediaAccount, okDataCheck));
+                currentSocialMediaGroup, currentSocialMediaAccount, okDataCheck, isAutoposting, currentTgChannel));
         register(new AddGroup(State.AddGroup.getIdentifier(), State.AddGroup.getDescription(), currentTgChannel));
         register(new AddOkAccount(State.AddOkAccount.getIdentifier(), State.AddOkAccount.getDescription()));
         register(new OkAccountDescription(State.OkAccountDescription.getIdentifier(),
@@ -149,6 +163,8 @@ public class Bot extends TelegramLongPollingCommandBot {
         register(new SyncOkTg(State.SyncOkTg.getIdentifier(), State.SyncOkTg.getDescription(),
                 currentTgChannel, currentSocialMediaGroup, currentSocialMediaAccount, okDataCheck));
         register(new Autoposting(State.Autoposting.getIdentifier(), State.Autoposting.getDescription(),
+                currentTgChannel, currentSocialMediaGroup, currentSocialMediaAccount, okDataCheck));
+        register(new Notifications(State.Notifications.getIdentifier(), State.Notifications.getDescription(),
                 currentTgChannel, currentSocialMediaGroup, currentSocialMediaAccount, okDataCheck));
     }
 
@@ -190,7 +206,8 @@ public class Bot extends TelegramLongPollingCommandBot {
                     || callbackQueryData.startsWith(TG_CHANNEL_CALLBACK_TEXT)
                     || callbackQueryData.startsWith(YES_NO_CALLBACK_TEXT)
                     || callbackQueryData.startsWith(AUTOPOSTING)
-                    || callbackQueryData.equals(NO_CALLBACK_TEXT)) {
+                    || callbackQueryData.equals(NO_CALLBACK_TEXT)
+                    || callbackQueryData.startsWith(NOTIFICATIONS)) {
                 try {
                     parseInlineKeyboardData(callbackQueryData, msg);
                 } catch (TelegramApiException e) {
@@ -224,6 +241,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 logger.error("Previous state = null, tmp state = {}", currentState.get(chatId).getIdentifier());
                 return;
             }
+            // TODO тут бы как-то отловить предыдущее сообщение для случая нажатия "Назад" из стейтов с inline-списками
             currentState.put(chatId, previousState);
             getRegisteredCommand(previousState.getIdentifier()).processMessage(this, msg, null);
             return;
@@ -280,7 +298,13 @@ public class Bot extends TelegramLongPollingCommandBot {
             Video video = null;
             String text = null;
             Poll poll = null;
+            long ownerChatId = tgChannelOwner.get(chatId);
             for (Message postItem : postItems) {
+                Chat forwardFromChat = postItem.getForwardFromChat();
+                if (forwardFromChat != null && forwardFromChat.getId() != chatId) {
+                    checkAndSendNotification(chatId, ownerChatId, AUTHOR_RIGHTS_MSG);
+                    return;
+                }
                 if (postItem.hasPhoto()) {
                     postItem.getPhoto().stream()
                             .max(Comparator.comparingInt(PhotoSize::getFileSize))
@@ -321,18 +345,31 @@ public class Bot extends TelegramLongPollingCommandBot {
                                         .addText(text)
                                         .addPoll(poll)
                                         .post(accessToken, smg.getId());
-                                sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getId());
+                                //sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getId());
+                                checkAndSendNotification(chatId, ownerChatId,
+                                        "Успешно опубликовал пост в ok.ru/group/" + smg.getId());
                             } catch (URISyntaxException | IOException ignored) {
                                 //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а
+                                checkAndSendNotification(chatId, ownerChatId, ERROR_POST_MSG + smg.getId());
                             }
                         }
-                        default -> logger.error(String.format("Social media not found: %s",
-                                smg.getSocialMedia()));
+                        default -> {
+                            logger.error(String.format("Social media not found: %s",
+                                    smg.getSocialMedia()));
+                            checkAndSendNotification(chatId, ownerChatId, ERROR_POST_MSG + smg.getId());
+                        }
                     }
                 }
             }
         } catch (Exception e) {
             sendAnswer(chatId, "Произошла непредвиденная ошибка  " + e);
+            //TODO Пишем в канал или в чат пользователя?
+        }
+    }
+
+    private void checkAndSendNotification(long chatId, Long ownerChatId, String smg) {
+        if (areNotifications.containsKey(chatId) && areNotifications.get(chatId)) {
+            sendAnswer(ownerChatId, smg);
         }
     }
 
@@ -420,45 +457,22 @@ public class Bot extends TelegramLongPollingCommandBot {
                 if (Objects.equals(dataParts[2], "0")) {
                     changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.GroupDescription);
                 } else if (Objects.equals(dataParts[2], "1")) {
-                    boolean isFound = false;
-                    for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
-                        if (Objects.equals(tgChannel.getTelegramChannelId(),
-                                currentTgChannel.get(chatId).getTelegramChannelId())) {
-                            for (SocialMediaGroup smg : tgChannel.getSynchronizedGroups()) {
-                                if (Objects.equals(String.valueOf(smg.getId()), dataParts[1])) {
-                                    currentTgChannel.get(chatId).deleteGroup(smg.getId());
-                                    tgChannel.deleteGroup(smg.getId());
-                                    isFound = true;
-                                    break;
-                                }
-                            }
-                            if (isFound) {
-                                break;
-                            }
-                        }
-                    }
+                    deleteGroup(chatId, dataParts);
                     deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.TgSyncGroups.getIdentifier()).processMessage(this, msg, null);
-                } else if (Objects.equals(dataParts[2], "2")) {
-                    changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.Autoposting);
                 } else {
                     logger.error(String.format("Wrong group data. Inline keyboard data: %s", data));
                 }
             }
             case ACCOUNT_CALLBACK_TEXT -> {
-                if (dataParts.length < 2) {
+                if (dataParts.length < 3) {
                     logger.error(String.format("Wrong account-callback data: %s", data));
                     return;
                 }
-                for (AuthData account : socialMediaAccounts.get(chatId)) {
-                    if (Objects.equals(String.valueOf(account.getTokenId()), dataParts[1])) {
-                        currentSocialMediaAccount.put(chatId, account);
-                        break;
-                    }
-                }
-                deleteLastMessage(msg, chatId);
-                getRegisteredCommand(State.OkAccountDescription.getIdentifier())
-                        .processMessage(this, msg, null);
+                boolean shouldDelete = dataParts[2].equals("1");
+                State state = shouldDelete ? State.AddGroup : State.OkAccountDescription;
+                processAccountCallback(msg, chatId, dataParts, state, shouldDelete);
+                currentState.put(chatId, state);
             }
             case YES_NO_CALLBACK_TEXT -> {
                 if (Objects.equals(dataParts[1], "0")) {
@@ -486,23 +500,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                     getRegisteredCommand(State.SyncOkGroupDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 } else {
-                    boolean isFound = false;
-                    for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
-                        if (Objects.equals(tgChannel.getTelegramChannelId(),
-                                currentTgChannel.get(chatId).getTelegramChannelId())) {
-                            for (SocialMediaGroup smg : tgChannel.getSynchronizedGroups()) {
-                                if (Objects.equals(String.valueOf(smg.getId()), dataParts[1])) {
-                                    currentTgChannel.get(chatId).deleteGroup(smg.getId());
-                                    tgChannel.deleteGroup(smg.getId());
-                                    isFound = true;
-                                    break;
-                                }
-                            }
-                            if (isFound) {
-                                break;
-                            }
-                        }
-                    }
+                    deleteGroup(chatId, dataParts);
                     currentSocialMediaGroup.remove(chatId);
                     deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.OkAccountDescription.getIdentifier())
@@ -517,12 +515,80 @@ public class Bot extends TelegramLongPollingCommandBot {
                     isAutoposting.put(Long.parseLong(dataParts[1]), false);
                     enable = "выключена";
                 }
-                sendAnswer(chatId, String.format(AUTOPOSTING_ENABLE, enable));
                 deleteLastMessage(msg, chatId);
-                getRegisteredCommand(State.TgChannelDescription.getIdentifier()).processMessage(this, msg, null);
+                String text = String.format(AUTOPOSTING_ENABLE, enable);
+                if ("включена".equals(enable)) {
+                    text += TURN_ON_NOTIFICATIONS_MSG;
+                }
+                sendAnswer(chatId, text);
+            }
+            case NOTIFICATIONS -> {
+                boolean areEnable = Objects.equals(dataParts[2], "0");
+                areNotifications.put(Long.parseLong(dataParts[1]), areEnable);
+                sendAnswer(chatId, String.format("Уведомления %s.", (areEnable ? "включены" : "выключены")));
+                deleteLastMessage(msg, chatId);
+                getRegisteredCommand(State.GroupDescription.getIdentifier()).processMessage(this, msg, null);
+                currentState.put(chatId, State.GroupDescription);
             }
             case NO_CALLBACK_TEXT -> deleteLastMessage(msg, chatId);
             default -> logger.error(String.format("Unknown inline keyboard data: %s", data));
+        }
+    }
+
+    private void processAccountCallback(Message msg, Long chatId, String[] dataParts, State state, boolean shouldDelete)
+            throws TelegramApiException {
+        for (AuthData account : socialMediaAccounts.get(chatId)) {
+            if (Objects.equals(String.valueOf(account.getTokenId()), dataParts[1])) {
+                if (!shouldDelete) {
+                    currentSocialMediaAccount.put(chatId, account);
+                    break;
+                }
+                List<TelegramChannel> tgChannelsOfUser = tgChannels.get(chatId);
+                TelegramChannel tmpTgChannel = null;
+                for (TelegramChannel tgChannel : tgChannelsOfUser) {
+                    if (tgChannel.equals(currentTgChannel.get(chatId))) {
+                        tmpTgChannel = tgChannel;
+                    }
+                }
+                if (tmpTgChannel == null) {
+                    logger.error(String.format("Current TG channel for chat %d is null", chatId));
+                    return;
+                }
+                List<SocialMediaGroup> synchronizedGroups = tmpTgChannel.getSynchronizedGroups();
+                List<SocialMediaGroup> groupsToDelete = new ArrayList<>();
+                for (SocialMediaGroup smg : synchronizedGroups) {
+                    if (smg.getSocialMedia().equals(account.getSocialMedia())
+                            && smg.getTokenId().equals(account.getTokenId())) {
+                        groupsToDelete.add(smg);
+                    }
+                }
+                tmpTgChannel.getSynchronizedGroups().removeAll(groupsToDelete);
+                socialMediaAccounts.get(chatId).remove(account);
+                currentSocialMediaAccount.remove(chatId, account);
+                break;
+            }
+        }
+        deleteLastMessage(msg, chatId);
+        getRegisteredCommand(state.getIdentifier()).processMessage(this, msg, null);
+    }
+
+    private void deleteGroup(Long chatId, String[] dataParts) {
+        boolean isFound = false;
+        for (TelegramChannel tgChannel : tgChannels.get(chatId)) {
+            if (Objects.equals(tgChannel.getTelegramChannelId(),
+                    currentTgChannel.get(chatId).getTelegramChannelId())) {
+                for (SocialMediaGroup smg : tgChannel.getSynchronizedGroups()) {
+                    if (Objects.equals(String.valueOf(smg.getId()), dataParts[1])) {
+                        currentTgChannel.get(chatId).deleteGroup(smg.getId());
+                        tgChannel.deleteGroup(smg.getId());
+                        isFound = true;
+                        break;
+                    }
+                }
+                if (isFound) {
+                    break;
+                }
+            }
         }
     }
 
