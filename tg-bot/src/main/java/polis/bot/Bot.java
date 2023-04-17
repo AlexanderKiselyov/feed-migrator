@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
@@ -314,6 +315,11 @@ public class Bot extends TelegramLongPollingCommandBot {
             List<Document> documents = new ArrayList<>(1);
             long ownerChatId = tgChannelOwner.get(chatId);
             for (Message postItem : postItems) {
+                Chat forwardFromChat = postItem.getForwardFromChat();
+                if (forwardFromChat != null && forwardFromChat.getId() != chatId) {
+                    checkAndSendNotification(chatId, ownerChatId, AUTHOR_RIGHTS_MSG);
+                    return;
+                }
                 if (postItem.hasPhoto()) {
                     postItem.getPhoto().stream()
                             .max(Comparator.comparingInt(PhotoSize::getFileSize))
