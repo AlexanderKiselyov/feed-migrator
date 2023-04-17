@@ -37,6 +37,7 @@ import polis.commands.SyncOkTg;
 import polis.commands.TgChannelDescription;
 import polis.commands.TgChannelsList;
 import polis.commands.TgSyncGroups;
+import polis.data.domain.Account;
 import polis.keyboards.ReplyKeyboard;
 import polis.ok.OKDataCheck;
 import polis.ok.api.OkClientImpl;
