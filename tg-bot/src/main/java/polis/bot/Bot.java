@@ -2,6 +2,7 @@ package polis.bot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
@@ -39,6 +40,7 @@ import polis.commands.TgSyncGroups;
 import polis.keyboards.ReplyKeyboard;
 import polis.ok.OKDataCheck;
 import polis.ok.api.OkClientImpl;
+import polis.data.repositories.AccountsRepository;
 import polis.util.AuthData;
 import polis.util.IState;
 import polis.util.SocialMediaGroup;
@@ -124,6 +126,9 @@ public class Bot extends TelegramLongPollingCommandBot {
     private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в " +
             "соответствии с Законом об авторском праве.";
     private static final String SINGLE_ITEM_POSTS = "";
+
+    @Autowired
+    private AccountsRepository accountsRepository;
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
