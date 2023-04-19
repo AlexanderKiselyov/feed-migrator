@@ -11,8 +11,11 @@ import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
 import java.util.List;
 
-abstract class Command extends BotCommand {
-    private final Logger logger = LoggerFactory.getLogger(Command.class);
+public abstract class Command extends BotCommand {
+    public static final String USER_ID_NOT_FOUND = "Не удалось найти id пользователя. Попробуйте еще раз.";
+    public static final String USERNAME_NOT_FOUND = "Не удалось найти имя пользователя. Попробуйте еще раз.";
+    public static final String GROUP_NAME_NOT_FOUND = "Не удалось найти название группы. Попробуйте еще раз.";
+    private static final Logger LOGGER = LoggerFactory.getLogger(Command.class);
     final int rowsCount = 0;
     final List<String> commandsForKeyboard = List.of(
     );
@@ -42,7 +45,7 @@ abstract class Command extends BotCommand {
         try {
             absSender.execute(message);
         } catch (TelegramApiException e) {
-            logger.error(String.format("Cannot execute command %s of user %s: %s", commandName, userName,
+            LOGGER.error(String.format("Cannot execute command %s of user %s: %s", commandName, userName,
                     e.getMessage()));
         }
     }

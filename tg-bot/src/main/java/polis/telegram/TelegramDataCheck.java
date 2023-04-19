@@ -30,7 +30,7 @@ public class TelegramDataCheck {
             State.TgChannelDescription.getIdentifier());
     private static final String GET_CHAT = "https://api.telegram.org/bot%s/getChat";
     private final HttpClient client = HttpClient.newHttpClient();
-    private final Logger logger = LoggerFactory.getLogger(TelegramDataCheck.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramDataCheck.class);
 
     public TelegramDataCheck() {
 
@@ -93,7 +93,7 @@ public class TelegramDataCheck {
                 return new NonCommand.AnswerPair(BOT_NOT_ADMIN, true);
             }
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
         }
     }
@@ -150,12 +150,12 @@ public class TelegramDataCheck {
 
             return result.get(parameter);
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return null;
         }
     }
 
     private void logError(HttpRequest request, HttpResponse<String> response, String errorMessage) {
-        logger.error(String.format(errorMessage, request.uri(), request.headers().toString(), response.body()));
+        LOGGER.error(String.format(errorMessage, request.uri(), request.headers().toString(), response.body()));
     }
 }

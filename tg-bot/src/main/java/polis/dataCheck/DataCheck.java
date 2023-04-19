@@ -1,4 +1,4 @@
-package polis.ok;
+package polis.dataCheck;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONArray;
@@ -14,8 +14,8 @@ import polis.data.domain.CurrentState;
 import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentStateRepository;
-import polis.ok.api.OkAppProperties;
-import polis.ok.api.OkAuthorizator;
+import polis.dataCheck.api.OkAppProperties;
+import polis.dataCheck.api.OkAuthorizator;
 import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
@@ -28,8 +28,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Objects;
 
+import static polis.commands.Command.USERNAME_NOT_FOUND;
+import static polis.commands.Command.USER_ID_NOT_FOUND;
+
 @Component
-public class OKDataCheck {
+public class DataCheck {
     public static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
             "Введенный код авторизации неверный. Пожалуйста, попробуйте еще раз.";
     public static final String OK_AUTH_STATE_ANSWER = """
@@ -57,7 +60,7 @@ public class OKDataCheck {
     private CurrentStateRepository currentStateRepository;
 
     private final HttpClient client = HttpClient.newHttpClient();
-    private final Logger logger = LoggerFactory.getLogger(OKDataCheck.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataCheck.class);
     private final OkAuthorizator okAuthorizator = new OkAuthorizator();
 
     public NonCommand.AnswerPair getOKAuthCode(String text, Long chatId) {
@@ -68,11 +71,23 @@ public class OKDataCheck {
                 return new NonCommand.AnswerPair(OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER, true);
             }
 
+            long userId = Long.parseLong(getOKUserId(pair.accessToken()));
+
+            if (userId == -1) {
+                return new NonCommand.AnswerPair(USER_ID_NOT_FOUND,true);
+            }
+
+            String username = getOKUsername(pair.accessToken());
+
+            if (Objects.equals(username, "")) {
+                return new NonCommand.AnswerPair(USERNAME_NOT_FOUND, true);
+            }
+
             Account newAccount = new Account(
                     chatId,
                     SocialMedia.OK.getName(),
-                    Long.parseLong(getOKUserId(pair.accessToken())),
-                    getOKUsername(pair.accessToken()),
+                    userId,
+                    username,
                     pair.accessToken(),
                     pair.refreshToken()
             );
@@ -97,13 +112,17 @@ public class OKDataCheck {
                     String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
                     false);
         } catch (Exception e) {
-            logger.error(String.format("Unknown error: %s", e.getMessage()));
+            LOGGER.error(String.format("Unknown error: %s", e.getMessage()));
             return new NonCommand.AnswerPair(OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, true);
         }
     }
 
     public NonCommand.AnswerPair checkOKGroupAdminRights(String accessToken, Long groupId) {
         String uid = getOKUserId(accessToken);
+
+        if (Objects.equals(uid, "-1")) {
+            return new NonCommand.AnswerPair(USER_ID_NOT_FOUND, true);
+        }
 
         try {
             URI uri = new URIBuilder(OK_METHOD_DO)
@@ -145,7 +164,7 @@ public class OKDataCheck {
                 return new NonCommand.AnswerPair(USER_HAS_NO_RIGHTS, true);
             }
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return new NonCommand.AnswerPair(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, true);
         }
     }
@@ -179,7 +198,7 @@ public class OKDataCheck {
 
             return object.getLong("objectId");
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return -1L;
         }
     }
@@ -220,7 +239,7 @@ public class OKDataCheck {
 
             return object.getString("name");
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return "";
         }
     }
@@ -254,7 +273,7 @@ public class OKDataCheck {
 
             return object.getString("uid");
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return "";
         }
     }
@@ -288,7 +307,7 @@ public class OKDataCheck {
 
             return object.getString("name");
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return "";
         }
     }

@@ -1,4 +1,4 @@
-package polis.ok.domain;
+package polis.dataCheck.domain;
 
 import java.io.Serializable;
 import java.util.ArrayList;

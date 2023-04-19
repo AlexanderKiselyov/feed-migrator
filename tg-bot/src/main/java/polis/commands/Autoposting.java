@@ -13,8 +13,10 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.ok.OKDataCheck;
+import polis.dataCheck.DataCheck;
 import polis.util.State;
+
+import java.util.Objects;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
@@ -39,10 +41,10 @@ public class Autoposting extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private OKDataCheck okDataCheck;
+    private DataCheck dataCheck;
 
     private static final int rowsCount = 1;
-    private final Logger logger = LoggerFactory.getLogger(Autoposting.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Autoposting.class);
 
     public Autoposting() {
         super(State.Autoposting.getIdentifier(), State.Autoposting.getDescription());
@@ -53,7 +55,24 @@ public class Autoposting extends Command {
         CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
-        if (currentChannel != null && currentAccount != null) {
+
+        if (currentChannel != null && currentAccount != null && currentGroup != null) {
+            String groupName = dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+
+            if (Objects.equals(groupName, "")) {
+                sendAnswer(
+                        absSender,
+                        chat.getId(),
+                        this.getCommandIdentifier(),
+                        user.getUserName(),
+                        GROUP_NAME_NOT_FOUND,
+                        super.rowsCount,
+                        commandsForKeyboard,
+                        null,
+                        GO_BACK_BUTTON_TEXT);
+                return;
+            }
+
             sendAnswer(
                     absSender,
                     chat.getId(),
@@ -68,9 +87,9 @@ public class Autoposting extends Command {
             switch (currentGroup.getSocialMedia()) {
                 case OK -> autopostingEnable = String.format(AUTOPOSTING_INLINE,
                         currentChannel.getChannelUsername(),
-                        okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken()),
+                        groupName,
                         currentGroup.getSocialMedia().getName());
-                default -> logger.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
+                default -> LOGGER.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
             }
             sendAnswer(
                     absSender,

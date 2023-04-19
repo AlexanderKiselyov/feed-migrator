@@ -52,7 +52,7 @@ import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
-import polis.ok.api.OkClientImpl;
+import polis.dataCheck.api.OkClientImpl;
 import polis.util.IState;
 import polis.util.State;
 import polis.util.Substate;
@@ -68,12 +68,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
-import static polis.ok.OKDataCheck.OK_AUTH_STATE_ANSWER;
-import static polis.ok.OKDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
-import static polis.ok.OKDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
-import static polis.ok.OKDataCheck.OK_GROUP_ADDED;
-import static polis.ok.OKDataCheck.USER_HAS_NO_RIGHTS;
-import static polis.ok.OKDataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
+import static polis.dataCheck.DataCheck.OK_AUTH_STATE_ANSWER;
+import static polis.dataCheck.DataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
+import static polis.dataCheck.DataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
+import static polis.dataCheck.DataCheck.OK_GROUP_ADDED;
+import static polis.dataCheck.DataCheck.USER_HAS_NO_RIGHTS;
+import static polis.dataCheck.DataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
 import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
 import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
 import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
@@ -105,7 +105,7 @@ public class Bot extends TelegramLongPollingCommandBot {
     private final String botName;
     private final String botToken;
     private final OkPostingHelper helper;
-    private final Logger logger = LoggerFactory.getLogger(Bot.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
     private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
     private static final String GROUP_CALLBACK_TEXT = "group";
     private static final String ACCOUNT_CALLBACK_TEXT = "account";
@@ -242,7 +242,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 try {
                     parseInlineKeyboardData(callbackQueryData, msg);
                 } catch (TelegramApiException e) {
-                    logger.error(String.format("Cannot perform Telegram API operation: %s", e.getMessage()));
+                    LOGGER.error(String.format("Cannot perform Telegram API operation: %s", e.getMessage()));
                 }
                 return;
             } else if (callbackQueryData.startsWith("/")) {
@@ -254,7 +254,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         msg = update.getMessage();
 
         if (msg == null) {
-            logger.warn("Message is null");
+            LOGGER.warn("Message is null");
             return;
         }
 
@@ -275,7 +275,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         if (messageText.equals(GO_BACK_BUTTON_TEXT)) {
             IState previousState = State.getPrevState(currentStateRepository.getCurrentState(chatId).getState());
             if (previousState == null) {
-                logger.error("Previous state = null, tmp state = {}", currentStateRepository.getCurrentState(chatId)
+                LOGGER.error("Previous state = null, tmp state = {}", currentStateRepository.getCurrentState(chatId)
                         .getState().getIdentifier());
                 return;
             }
@@ -392,12 +392,12 @@ public class Bot extends TelegramLongPollingCommandBot {
                                         .addPoll(poll)
                                         .addAnimations(animations)
                                         .post(accessToken, smg.getGroupId());
-                                sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getAccountId());
+                                sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getGroupId());
                             } catch (URISyntaxException | IOException ignored) {
                                 //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а
                             }
                         }
-                        default -> logger.error(String.format("Social media not found: %s",
+                        default -> LOGGER.error(String.format("Social media not found: %s",
                                 smg.getSocialMedia()));
                     }
                 }
@@ -435,9 +435,9 @@ public class Bot extends TelegramLongPollingCommandBot {
             execute(answer);
         } catch (TelegramApiException e) {
             if (userName != null) {
-                logger.error(String.format("Cannot execute command of user %s: %s", userName, e.getMessage()));
+                LOGGER.error(String.format("Cannot execute command of user %s: %s", userName, e.getMessage()));
             } else {
-                logger.error(String.format("Cannot execute command: %s", e.getMessage()));
+                LOGGER.error(String.format("Cannot execute command: %s", e.getMessage()));
             }
         }
     }
@@ -463,7 +463,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                         getRegisteredCommand(State.TgChannelDescription.getIdentifier()).processMessage(this, msg,
                                 null);
                     } else {
-                        logger.error(String.format("Cannot find such a telegram channel id: %s", dataParts[1]));
+                        LOGGER.error(String.format("Cannot find such a telegram channel id: %s", dataParts[1]));
                     }
                 } else if (Objects.equals(dataParts[2], "1")) {
                     List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(chatId);
@@ -479,7 +479,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                     deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.TgChannelsList.getIdentifier()).processMessage(this, msg, null);
                 } else {
-                    logger.error(String.format("Wrong Telegram channel data. Inline keyboard data: %s", data));
+                    LOGGER.error(String.format("Wrong Telegram channel data. Inline keyboard data: %s", data));
                 }
             }
             case GROUP_CALLBACK_TEXT -> {
@@ -510,12 +510,12 @@ public class Bot extends TelegramLongPollingCommandBot {
                 } else if (Objects.equals(dataParts[2], "2")) {
                     changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.Autoposting);
                 } else {
-                    logger.error(String.format("Wrong group data. Inline keyboard data: %s", data));
+                    LOGGER.error(String.format("Wrong group data. Inline keyboard data: %s", data));
                 }
             }
             case ACCOUNT_CALLBACK_TEXT -> {
                 if (dataParts.length < 2) {
-                    logger.error(String.format("Wrong account-callback data: %s", data));
+                    LOGGER.error(String.format("Wrong account-callback data: %s", data));
                     return;
                 }
                 for (Account account : accountsRepository.getAccountsForUser(chatId)) {
@@ -590,7 +590,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 getRegisteredCommand(State.TgChannelDescription.getIdentifier()).processMessage(this, msg, null);
             }
             case NO_CALLBACK_TEXT -> deleteLastMessage(msg, chatId);
-            default -> logger.error(String.format("Unknown inline keyboard data: %s", data));
+            default -> LOGGER.error(String.format("Unknown inline keyboard data: %s", data));
         }
     }
 
@@ -603,7 +603,7 @@ public class Bot extends TelegramLongPollingCommandBot {
             getRegisteredCommand(command.getIdentifier()).processMessage(this, msg,
                     null);
         } else {
-            logger.error(String.format("Cannot find such a social media group id: %s", dataParts[1]));
+            LOGGER.error(String.format("Cannot find such a social media group id: %s", dataParts[1]));
         }
     }
 

@@ -13,7 +13,7 @@ import polis.data.domain.CurrentChannel;
 import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.CurrentChannelRepository;
-import polis.ok.OKDataCheck;
+import polis.dataCheck.DataCheck;
 import polis.util.State;
 
 import java.util.List;
@@ -43,9 +43,9 @@ public class TgSyncGroups extends Command {
     private ChannelGroupsRepository channelGroupsRepository;
 
     @Autowired
-    private OKDataCheck okDataCheck;
+    private DataCheck dataCheck;
 
-    private final Logger logger = LoggerFactory.getLogger(TgSyncGroups.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TgSyncGroups.class);
 
     public TgSyncGroups() {
         super(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription());
@@ -58,7 +58,39 @@ public class TgSyncGroups extends Command {
         if (currentChannel != null && accounts != null && !accounts.isEmpty()) {
             List<ChannelGroup> channelGroups =
                     channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId());
+
             if (channelGroups != null) {
+                String groupName = "";
+
+                for (ChannelGroup group : channelGroups) {
+                    switch (group.getSocialMedia()) {
+                        case OK -> {
+                            for (Account socialMediaAccount : accounts) {
+                                if (Objects.equals(socialMediaAccount.getAccountId(), group.getAccountId())) {
+                                    groupName = dataCheck.getOKGroupName(group.getGroupId(),
+                                            socialMediaAccount.getAccessToken());
+                                    break;
+                                }
+                            }
+                        }
+                        default -> LOGGER.error(String.format("Social media not found: %s", group.getSocialMedia()));
+                    }
+                }
+
+                if (Objects.equals(groupName, "")) {
+                    sendAnswer(
+                            absSender,
+                            chat.getId(),
+                            this.getCommandIdentifier(),
+                            user.getUserName(),
+                            GROUP_NAME_NOT_FOUND,
+                            1,
+                            List.of(State.TgChannelDescription.getDescription()),
+                            null,
+                            GO_BACK_BUTTON_TEXT);
+                    return;
+                }
+
                 sendAnswer(absSender,
                         chat.getId(),
                         this.getCommandIdentifier(),
@@ -76,7 +108,7 @@ public class TgSyncGroups extends Command {
                         TG_SYNC_GROUPS_INLINE,
                         channelGroups.size(),
                         commandsForKeyboard,
-                        getTgChannelGroupsArray(channelGroups, accounts));
+                        getTgChannelGroupsArray(channelGroups, groupName));
             } else {
                 sendAnswer(
                         absSender,
@@ -103,32 +135,18 @@ public class TgSyncGroups extends Command {
         }
     }
 
-    private String[] getTgChannelGroupsArray(List<ChannelGroup> groups, List<Account> socialMediaAccounts) {
+    private String[] getTgChannelGroupsArray(List<ChannelGroup> groups, String groupName) {
         String[] buttons = new String[groups.size() * 6];
         for (int i = 0; i < groups.size(); i++) {
             int tmpIndex = i * 6;
-            String groupName = null;
-            switch (groups.get(i).getSocialMedia()) {
-                case OK -> {
-                    for (Account socialMediaAccount : socialMediaAccounts) {
-                        if (Objects.equals(socialMediaAccount.getAccountId(), groups.get(i).getAccountId())) {
-                            groupName = okDataCheck.getOKGroupName(groups.get(i).getGroupId(),
-                                    socialMediaAccount.getAccessToken());
-                            break;
-                        }
-                    }
-                }
-                default -> logger.error(String.format("Social media not found: %s", groups.get(i).getSocialMedia()));
-            }
-            if (groupName != null) {
-                buttons[tmpIndex] = String.format("%s (%s)", groupName,
-                        groups.get(i).getSocialMedia().getName());
-                buttons[tmpIndex + 1] = String.format("group %s %d", groups.get(i).getGroupId(), 0);
-                buttons[tmpIndex + 2] = "\uD83D\uDD04 Автопостинг";
-                buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getGroupId(), 2);
-                buttons[tmpIndex + 4] = "\uD83D\uDDD1 Удалить";
-                buttons[tmpIndex + 5] = String.format("group %s %d", groups.get(i).getGroupId(), 1);
-            }
+
+            buttons[tmpIndex] = String.format("%s (%s)", groupName,
+                    groups.get(i).getSocialMedia().getName());
+            buttons[tmpIndex + 1] = String.format("group %s %d", groups.get(i).getGroupId(), 0);
+            buttons[tmpIndex + 2] = "\uD83D\uDD04 Автопостинг";
+            buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getGroupId(), 2);
+            buttons[tmpIndex + 4] = "\uD83D\uDDD1 Удалить";
+            buttons[tmpIndex + 5] = String.format("group %s %d", groups.get(i).getGroupId(), 1);
         }
 
         return buttons;
