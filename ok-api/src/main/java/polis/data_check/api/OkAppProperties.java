@@ -1,4 +1,4 @@
-package polis.dataCheck.api;
+package polis.data_check.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

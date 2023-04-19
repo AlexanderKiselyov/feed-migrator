@@ -16,7 +16,7 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
-import polis.dataCheck.DataCheck;
+import polis.data_check.DataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.IState;
 import polis.util.SocialMedia;

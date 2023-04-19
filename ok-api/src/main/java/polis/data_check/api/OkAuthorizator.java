@@ -1,4 +1,4 @@
-package polis.dataCheck.api;
+package polis.data_check.api;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -14,9 +14,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import static polis.dataCheck.api.LoggingUtils.parseResponse;
-import static polis.dataCheck.api.LoggingUtils.sendRequest;
-import static polis.dataCheck.api.LoggingUtils.wrapAndLog;
+import static polis.data_check.api.LoggingUtils.parseResponse;
+import static polis.data_check.api.LoggingUtils.sendRequest;
+import static polis.data_check.api.LoggingUtils.wrapAndLog;
 
 public final class OkAuthorizator {
     private static final String AUTH_URI = "https://connect.ok.ru/oauth/authorize";

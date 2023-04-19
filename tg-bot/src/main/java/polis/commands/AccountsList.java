@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.Account;
 import polis.data.repositories.AccountsRepository;
-import polis.dataCheck.DataCheck;
+import polis.data_check.DataCheck;
 import polis.util.State;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package polis.dataCheck;
+package polis.data_check;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONArray;
@@ -14,8 +14,8 @@ import polis.data.domain.CurrentState;
 import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentStateRepository;
-import polis.dataCheck.api.OkAppProperties;
-import polis.dataCheck.api.OkAuthorizator;
+import polis.data_check.api.OkAppProperties;
+import polis.data_check.api.OkAuthorizator;
 import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;

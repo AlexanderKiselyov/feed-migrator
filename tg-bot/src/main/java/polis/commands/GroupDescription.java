@@ -10,7 +10,7 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.dataCheck.DataCheck;
+import polis.data_check.DataCheck;
 import polis.util.State;
 
 import java.util.Objects;
