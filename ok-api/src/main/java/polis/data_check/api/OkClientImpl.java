@@ -22,31 +22,35 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
+import static polis.data_check.api.LoggingUtils.formExceptionAndLog;
 import static polis.data_check.api.LoggingUtils.parseResponse;
 import static polis.data_check.api.LoggingUtils.sendRequest;
 import static polis.data_check.api.LoggingUtils.wrapAndLog;
 
 public class OkClientImpl implements OKClient {
+    private static final Integer CLIENT_RESPONSE_TIMEOUT = 5;
+    private static final Integer RESPONSE_MAX_LENGTH = 2048;
+    private static final String OK_METHODS_URI = "https://api.ok.ru/fb.do";
     private static final String POST_MEDIA_TOPIC = "mediatopic.post";
     private static final String UPLOAD_PHOTO = "photosV2.getUploadUrl";
     private static final String UPLOAD_VIDEO = "video.getUploadUrl";
     private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
-    private final Integer clientResponseTimeout = 5;
     private final RequestConfig config;
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
     public OkClientImpl() {
          config = RequestConfig.custom()
-                .setConnectTimeout(clientResponseTimeout * 1000)
-                .setConnectionRequestTimeout(clientResponseTimeout * 1000)
-                .setSocketTimeout(clientResponseTimeout * 1000).build();
+                .setConnectTimeout(CLIENT_RESPONSE_TIMEOUT * 1000)
+                .setConnectionRequestTimeout(CLIENT_RESPONSE_TIMEOUT * 1000)
+                .setSocketTimeout(CLIENT_RESPONSE_TIMEOUT * 1000).build();
     }
 
     public void postMediaTopic(String accessToken, long groupId, Attachment attachment)
@@ -61,6 +65,11 @@ public class OkClientImpl implements OKClient {
                 .addParameter("sig", OkAuthorizator.sig(accessToken, POST_MEDIA_TOPIC))
                 .addParameter("access_token", accessToken)
                 .build();
+
+        if (uri.toString().getBytes(StandardCharsets.UTF_8).length > RESPONSE_MAX_LENGTH) {
+            throw formExceptionAndLog("520", "Request URI is too long.", null, null, logger);
+        }
+
         HttpRequest request = HttpRequest.newBuilder().GET()
                 .uri(uri)
                 .build();
@@ -126,7 +135,7 @@ public class OkClientImpl implements OKClient {
 
     private PhotoUploadUrlResponse photoUploadUrl(String accessToken, long groupId, List<File> photos)
             throws URISyntaxException, IOException, OkApiException {
-        URI uri = new URIBuilder("https://api.ok.ru/fb.do")
+        URI uri = new URIBuilder(OK_METHODS_URI)
                 .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                 .addParameter("count", String.valueOf(photos.size()))
                 .addParameter("format", "json")
@@ -156,7 +165,7 @@ public class OkClientImpl implements OKClient {
 
     private VideoUploadUrlResponse videoUploadUrl(String accessToken, long groupId, String fileName, long fileSize)
             throws URISyntaxException, IOException, OkApiException {
-        URI uri = new URIBuilder("https://api.ok.ru/fb.do")
+        URI uri = new URIBuilder(OK_METHODS_URI)
                 .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                 .addParameter("file_name", fileName)
                 .addParameter("file_size", String.valueOf(fileSize))
