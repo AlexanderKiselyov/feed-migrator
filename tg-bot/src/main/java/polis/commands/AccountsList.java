@@ -88,18 +88,16 @@ public class AccountsList extends Command {
         }
     }
 
-    private String[] getAccountsArray(List<AuthData> socialMediaAccounts) {
+    private String[] getAccountsArray(List<Account> socialMediaAccounts) {
         String[] buttons = new String[socialMediaAccounts.size() * 4];
         for (int i = 0; i < socialMediaAccounts.size(); i++) {
             int tmpIndex = i * 4;
-            buttons[tmpIndex] = String.format("%s (%s) 0",
+            buttons[tmpIndex] = String.format("%s (%s)",
                     dataCheck.getOKUsername(socialMediaAccounts.get(i).getAccessToken()),
                     socialMediaAccounts.get(i).getSocialMedia());
-            buttons[tmpIndex + 1] = String.format("account %d", socialMediaAccounts.get(i).getAccountId());
+            buttons[tmpIndex + 1] = String.format("account %d 0", socialMediaAccounts.get(i).getAccountId());
             buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
-            buttons[tmpIndex + 3] = String.format("%s (%s) 1",
-                    dataCheck.getOKUsername(socialMediaAccounts.get(i).getAccessToken()),
-                    socialMediaAccounts.get(i).getSocialMedia());
+            buttons[tmpIndex + 3] = String.format("account %d 1", socialMediaAccounts.get(i).getAccountId());
         }
 
         return buttons;

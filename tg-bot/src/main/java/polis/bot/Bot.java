@@ -76,12 +76,6 @@ import static polis.data_check.DataCheck.OK_GROUP_ADDED;
 import static polis.data_check.DataCheck.USER_HAS_NO_RIGHTS;
 import static polis.data_check.DataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
-import static polis.ok.OKDataCheck.OK_AUTH_STATE_ANSWER;
-import static polis.ok.OKDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
-import static polis.ok.OKDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
-import static polis.ok.OKDataCheck.OK_GROUP_ADDED;
-import static polis.ok.OKDataCheck.USER_HAS_NO_RIGHTS;
-import static polis.ok.OKDataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
 import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
 import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
 import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
@@ -191,6 +185,9 @@ public class Bot extends TelegramLongPollingCommandBot {
     @Autowired
     private Autoposting autoposting;
 
+    @Autowired
+    private Notifications notifications;
+
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
         this.botName = botName;
@@ -226,6 +223,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         register(syncOkGroupDescription);
         register(syncOkTg);
         register(autoposting);
+        register(notifications);
     }
 
     /**
@@ -349,7 +347,8 @@ public class Bot extends TelegramLongPollingCommandBot {
     private void processPostItems(List<Message> postItems) {
         long chatId = postItems.get(0).getChatId();
         try {
-            if (!isAutoposting.containsKey(chatId) || !isAutoposting.get(chatId)) {
+            long ownerChatId = userChannelsRepository.getUserChatId(chatId);
+            if (!userChannelsRepository.isSetAutoposting(ownerChatId, chatId)) {
                 return;
             }
             List<PhotoSize> photos = new ArrayList<>(1);
@@ -359,6 +358,11 @@ public class Bot extends TelegramLongPollingCommandBot {
             List<Animation> animations = new ArrayList<>(1);
             List<Document> documents = new ArrayList<>(1);
             for (Message postItem : postItems) {
+                Chat forwardFromChat = postItem.getForwardFromChat();
+                if (forwardFromChat != null && forwardFromChat.getId() != chatId) {
+                    checkAndSendNotification(chatId, ownerChatId, AUTHOR_RIGHTS_MSG);
+                    return;
+                }
                 if (postItem.hasPhoto()) {
                     postItem.getPhoto().stream()
                             .max(Comparator.comparingInt(PhotoSize::getFileSize))
@@ -439,7 +443,7 @@ public class Bot extends TelegramLongPollingCommandBot {
     }
 
     private void checkAndSendNotification(long chatId, Long ownerChatId, String smg) {
-        if (areNotifications.containsKey(chatId) && areNotifications.get(chatId)) {
+        if (userChannelsRepository.isSetNotification(ownerChatId, chatId)) {
             sendAnswer(ownerChatId, smg);
         }
     }
@@ -513,7 +517,6 @@ public class Bot extends TelegramLongPollingCommandBot {
                     if (tgChannels.size() == 0) {
                         currentChannelRepository.deleteCurrentChannel(chatId);
                     }
-                    tgChannels.put(chatId, channels);
                     deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.TgChannelsList.getIdentifier()).processMessage(this, msg, null);
                 } else {
@@ -554,28 +557,13 @@ public class Bot extends TelegramLongPollingCommandBot {
                     LOGGER.error(String.format("Wrong account-callback data: %s", data));
                     return;
                 }
-                for (Account account : accountsRepository.getAccountsForUser(chatId)) {
-                    if (Objects.equals(String.valueOf(account.getAccountId()), dataParts[1])) {
-                        currentAccountRepository.insertCurrentAccount(
-                                new CurrentAccount(
-                                        chatId,
-                                        account.getSocialMedia().getName(),
-                                        account.getAccountId(),
-                                        account.getUserFullName(),
-                                        account.getAccessToken(),
-                                        account.getRefreshToken()
-                                )
-                        );
-                        break;
-                    }
-                }
-                deleteLastMessage(msg, chatId);
-                getRegisteredCommand(State.OkAccountDescription.getIdentifier())
-                        .processMessage(this, msg, null);
-//                boolean shouldDelete = dataParts[2].equals("1");
-//                State state = shouldDelete ? State.AddGroup : State.OkAccountDescription;
-//                processAccountCallback(msg, chatId, dataParts, state, shouldDelete);
-//                currentState.put(chatId, state);
+                boolean shouldDelete = dataParts[2].equals("1");
+                State state = shouldDelete ? State.AddGroup : State.OkAccountDescription;
+                processAccountCallback(msg, chatId, dataParts, state, shouldDelete);
+                currentStateRepository.insertCurrentState(new CurrentState(
+                        chatId,
+                        state.getIdentifier()
+                ));
             }
             case YES_NO_CALLBACK_TEXT -> {
                 if (Objects.equals(dataParts[1], "0")) {
@@ -634,11 +622,14 @@ public class Bot extends TelegramLongPollingCommandBot {
             }
             case NOTIFICATIONS -> {
                 boolean areEnable = Objects.equals(dataParts[2], "0");
-                areNotifications.put(Long.parseLong(dataParts[1]), areEnable);
+                userChannelsRepository.setNotification(chatId, Long.parseLong(dataParts[1]), areEnable);
                 sendAnswer(chatId, String.format("Уведомления %s.", (areEnable ? "включены" : "выключены")));
                 deleteLastMessage(msg, chatId);
+                currentStateRepository.insertCurrentState(new CurrentState(
+                        chatId,
+                        State.GroupDescription.getIdentifier()
+                ));
                 getRegisteredCommand(State.GroupDescription.getIdentifier()).processMessage(this, msg, null);
-                currentState.put(chatId, State.GroupDescription);
             }
             case NO_CALLBACK_TEXT -> deleteLastMessage(msg, chatId);
             default -> LOGGER.error(String.format("Unknown inline keyboard data: %s", data));
@@ -647,34 +638,25 @@ public class Bot extends TelegramLongPollingCommandBot {
 
     private void processAccountCallback(Message msg, Long chatId, String[] dataParts, State state, boolean shouldDelete)
             throws TelegramApiException {
-        for (AuthData account : socialMediaAccounts.get(chatId)) {
-            if (Objects.equals(String.valueOf(account.getTokenId()), dataParts[1])) {
+        for (Account account : accountsRepository.getAccountsForUser(chatId)) {
+            if (Objects.equals(String.valueOf(account.getAccountId()), dataParts[1])) {
                 if (!shouldDelete) {
-                    currentSocialMediaAccount.put(chatId, account);
+                    currentAccountRepository.insertCurrentAccount(
+                            new CurrentAccount(
+                                    chatId,
+                                    account.getSocialMedia().getName(),
+                                    account.getAccountId(),
+                                    account.getUserFullName(),
+                                    account.getAccessToken(),
+                                    account.getRefreshToken()
+                            )
+                    );
                     break;
                 }
-                List<TelegramChannel> tgChannelsOfUser = tgChannels.get(chatId);
-                TelegramChannel tmpTgChannel = null;
-                for (TelegramChannel tgChannel : tgChannelsOfUser) {
-                    if (tgChannel.equals(currentTgChannel.get(chatId))) {
-                        tmpTgChannel = tgChannel;
-                    }
-                }
-                if (tmpTgChannel == null) {
-                    logger.error(String.format("Current TG channel for chat %d is null", chatId));
-                    return;
-                }
-                List<SocialMediaGroup> synchronizedGroups = tmpTgChannel.getSynchronizedGroups();
-                List<SocialMediaGroup> groupsToDelete = new ArrayList<>();
-                for (SocialMediaGroup smg : synchronizedGroups) {
-                    if (smg.getSocialMedia().equals(account.getSocialMedia())
-                            && smg.getTokenId().equals(account.getTokenId())) {
-                        groupsToDelete.add(smg);
-                    }
-                }
-                tmpTgChannel.getSynchronizedGroups().removeAll(groupsToDelete);
-                socialMediaAccounts.get(chatId).remove(account);
-                currentSocialMediaAccount.remove(chatId, account);
+                CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chatId);
+                channelGroupsRepository.deleteAllChannelGroups(currentChannel.getChannelId(),
+                        account.getSocialMedia().getName());
+                accountsRepository.deleteAccount(chatId, account.getAccountId(), account.getSocialMedia().getName());
                 break;
             }
         }

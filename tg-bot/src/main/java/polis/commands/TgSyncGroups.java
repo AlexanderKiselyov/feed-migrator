@@ -14,7 +14,6 @@ import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data_check.DataCheck;
-import polis.util.AuthData;
 import polis.util.State;
 
 import java.util.List;
@@ -109,6 +108,7 @@ public class TgSyncGroups extends Command {
                         channelGroups.size(),
                         commandsForKeyboard,
                         getTgChannelGroupsArray(channelGroups, groupName));
+                // TODO сюда бы return, чтобы не делать ниже два одинаковых else
             } else {
                 sendAnswer(
                         absSender,
@@ -139,26 +139,12 @@ public class TgSyncGroups extends Command {
         String[] buttons = new String[groups.size() * 4];
         for (int i = 0; i < groups.size(); i++) {
             int tmpIndex = i * 4;
-            String groupName = null;
-            switch (groups.get(i).getSocialMedia()) {
-                case OK -> {
-                    for (AuthData socialMediaAccount : socialMediaAccounts) {
-                        if (Objects.equals(socialMediaAccount.getTokenId(), groups.get(i).getTokenId())) {
-                            groupName = okDataCheck.getOKGroupName(groups.get(i).getId(),
-                                    socialMediaAccount.getAccessToken());
-                            break;
-                        }
-                    }
-                }
-                default -> logger.error(String.format("Social media not found: %s", groups.get(i).getSocialMedia()));
-            }
-            if (groupName != null) {
-                buttons[tmpIndex] = String.format("%s (%s)", groupName,
-                        groups.get(i).getSocialMedia().getName());
-                buttons[tmpIndex + 1] = String.format("group %s %d", groups.get(i).getGroupId(), 0);
-                buttons[tmpIndex + 4] = "\uD83D\uDDD1 Удалить";
-                buttons[tmpIndex + 5] = String.format("group %s %d", groups.get(i).getGroupId(), 1);
-            }
+
+            buttons[tmpIndex] = String.format("%s (%s)", groupName,
+                    groups.get(i).getSocialMedia().getName());
+            buttons[tmpIndex + 1] = String.format("group %s %d", groups.get(i).getGroupId(), 0);
+            buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
+            buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getGroupId(), 1);
         }
 
         return buttons;

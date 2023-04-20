@@ -9,13 +9,15 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
+import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
+import polis.data.repositories.UserChannelsRepository;
 import polis.data_check.DataCheck;
 import polis.util.State;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
@@ -40,6 +42,12 @@ public class GroupDescription extends Command {
 
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private UserChannelsRepository userChannelsRepository;
 
     @Autowired
     private DataCheck dataCheck;
@@ -77,14 +85,13 @@ public class GroupDescription extends Command {
                         GO_BACK_BUTTON_TEXT);
                 return;
             }
-            long channelId = currentTgChannel.get(chat.getId()).getTelegramChannelId();
-            boolean isAutopostingEnable = isAutoposting.containsKey(channelId) && isAutoposting.get(channelId);
+            long channelId = currentChannelRepository.getCurrentChannel(chat.getId()).getChannelId();
+            boolean isAutopostingEnable = userChannelsRepository.isSetAutoposting(chat.getId(), channelId);
             String msgToSend = isAutopostingEnable ? GROUP_DESCRIPTION_EXTENDED : GROUP_DESCRIPTION;
             if (isAutopostingEnable && !commandsForKeyboard.contains(State.Notifications.getDescription())) {
                 commandsForKeyboard.add(State.Notifications.getDescription());
                 rowsCount++;
-            } else if (isAutoposting.containsKey(channelId) && !isAutoposting.get(channelId)
-                    && commandsForKeyboard.contains(State.Notifications.getDescription())) {
+            } else if (!isAutopostingEnable && commandsForKeyboard.contains(State.Notifications.getDescription())) {
                 commandsForKeyboard.remove(State.Notifications.getDescription());
                 rowsCount--;
             }
@@ -95,7 +102,7 @@ public class GroupDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(msgToSend, groupName,
-                            currentGroup.get(chat.getId()).getSocialMedia().getName()),
+                            currentGroup.getSocialMedia().getName()),
                     rowsCount,
                     commandsForKeyboard,
                     null,
