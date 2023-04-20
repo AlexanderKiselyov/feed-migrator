@@ -1,15 +1,18 @@
 package polis.commands;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.data.domain.UserChannels;
+import polis.data.repositories.UserChannelsRepository;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
-import polis.util.TelegramChannel;
 
 import java.util.List;
-import java.util.Map;
 
+@Component
 public class TgChannelsList extends Command {
     private static final String TG_CHANNELS_LIST = "Список добавленных Телеграм-каналов.";
     private static final String TG_CHANNELS_LIST_INLINE = """
@@ -18,7 +21,10 @@ public class TgChannelsList extends Command {
     private static final String NO_TG_CHANNELS = """
             Список добавленных Телеграм-каналов пуст.
             Пожалуйста, добавьте хотя бы один канал.""";
-    private final Map<Long, List<TelegramChannel>> tgChannels;
+
+    @Autowired
+    private UserChannelsRepository userChannelsRepository;
+
     private final TelegramDataCheck telegramDataCheck;
     private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
@@ -26,16 +32,15 @@ public class TgChannelsList extends Command {
             State.MainMenu.getDescription()
     );
 
-    public TgChannelsList(String commandIdentifier, String description, Map<Long, List<TelegramChannel>> tgChannels) {
-        super(commandIdentifier, description);
-        this.tgChannels = tgChannels;
+    public TgChannelsList() {
+        super(State.TgChannelsList.getIdentifier(), State.TgChannelsList.getDescription());
         telegramDataCheck = new TelegramDataCheck();
     }
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        List<TelegramChannel> channels = tgChannels.get(chat.getId());
-        if (tgChannels.containsKey(chat.getId()) && channels.size() != 0) {
+        List<UserChannels> channels = userChannelsRepository.getUserChannels(chat.getId());
+        if (channels != null && !channels.isEmpty()) {
             sendAnswer(
                     absSender,
                     chat.getId(),
@@ -67,12 +72,12 @@ public class TgChannelsList extends Command {
         }
     }
 
-    private String[] getUserTgChannelsArray(List<TelegramChannel> channels) {
+    private String[] getUserTgChannelsArray(List<UserChannels> channels) {
         String[] buttons = new String[channels.size() * 4];
         for (int i = 0; i < channels.size(); i++) {
             int tmpIndex = i * 4;
-            String telegramChannelUsername = channels.get(i).getTelegramChannelUsername();
-            Long telegramChannelId = channels.get(i).getTelegramChannelId();
+            String telegramChannelUsername = channels.get(i).getChannelUsername();
+            Long telegramChannelId = channels.get(i).getChannelId();
             buttons[tmpIndex] = String.valueOf(telegramDataCheck.getChatParameter(telegramChannelUsername, "title"));
             buttons[tmpIndex + 1] = String.format("tg_channel %s %d", telegramChannelId, 0);
             buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";

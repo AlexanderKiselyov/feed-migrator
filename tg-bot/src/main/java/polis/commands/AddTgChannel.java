@@ -18,8 +18,8 @@ public class AddTgChannel extends Command {
             State.MainMenu.getDescription()
     );
 
-    public AddTgChannel(String commandIdentifier, String description) {
-        super(commandIdentifier, description);
+    public AddTgChannel() {
+        super(State.AddTgChannel.getIdentifier(), State.AddTgChannel.getDescription());
     }
 
     @Override

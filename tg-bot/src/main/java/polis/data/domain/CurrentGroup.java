@@ -6,34 +6,34 @@ import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.core.mapping.Table;
 import polis.util.SocialMedia;
 
-@Table("accounts")
-public class Account {
+@Table("current_group")
+public class CurrentGroup {
     @PrimaryKeyColumn(type = PrimaryKeyType.PARTITIONED, name = "chat_id")
     private final long chatId;
 
     @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "social_media")
     private final String socialMedia;
 
-    @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "account_id")
+    @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "group_id")
+    private final long groupId;
+
+    @Column("group_name")
+    private final String groupName;
+
+    @Column("account_id")
     private final long accountId;
 
-    @Column(value = "user_full_name")
-    private final String userFullName;
-
-    @Column(value = "access_token")
+    @Column("access_token")
     private final String accessToken;
 
-    @Column(value = "refresh_token")
-    private final String refreshToken;
-
-    public Account(long chatId, String socialMedia, long accountId, String userFullName, String accessToken,
-                   String refreshToken) {
+    public CurrentGroup(long chatId, String socialMedia, long groupId, String groupName, long accountId,
+                        String accessToken) {
         this.chatId = chatId;
         this.socialMedia = socialMedia;
+        this.groupId = groupId;
+        this.groupName = groupName;
         this.accountId = accountId;
-        this.userFullName = userFullName;
         this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
     }
 
     public long getChatId() {
@@ -44,31 +44,31 @@ public class Account {
         return SocialMedia.findSocialMediaByName(socialMedia);
     }
 
-    public long getAccountId() {
-        return accountId;
+    public long getGroupId() {
+        return groupId;
     }
 
-    public String getUserFullName() {
-        return userFullName;
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public long getAccountId() {
+        return accountId;
     }
 
     public String getAccessToken() {
         return accessToken;
     }
 
-    public String getRefreshToken() {
-        return refreshToken;
-    }
-
     @Override
     public String toString() {
-        return "Account{"
+        return "CurrentGroup{"
                 + "chatId=" + chatId
                 + ", socialMedia='" + socialMedia + '\''
+                + ", groupId=" + groupId
+                + ", groupName='" + groupName + '\''
                 + ", accountId=" + accountId
-                + ", userFullName='" + userFullName + '\''
                 + ", accessToken='" + accessToken + '\''
-                + ", refreshToken='" + refreshToken + '\''
                 + '}';
     }
 }
