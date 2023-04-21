@@ -108,31 +108,19 @@ public class TgSyncGroups extends Command {
                         channelGroups.size(),
                         commandsForKeyboard,
                         getTgChannelGroupsArray(channelGroups, groupName));
-                // TODO сюда бы return, чтобы не делать ниже два одинаковых else
-            } else {
-                sendAnswer(
-                        absSender,
-                        chat.getId(),
-                        this.getCommandIdentifier(),
-                        user.getUserName(),
-                        String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
-                        1,
-                        List.of(State.TgChannelDescription.getDescription()),
-                        null,
-                        GO_BACK_BUTTON_TEXT);
+                return;
             }
-        } else {
-            sendAnswer(
-                    absSender,
-                    chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
-                    String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
-                    1,
-                    List.of(State.TgChannelDescription.getDescription()),
-                    null,
-                    GO_BACK_BUTTON_TEXT);
         }
+        sendAnswer(
+                absSender,
+                chat.getId(),
+                this.getCommandIdentifier(),
+                user.getUserName(),
+                String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
+                1,
+                List.of(State.TgChannelDescription.getDescription()),
+                null,
+                GO_BACK_BUTTON_TEXT);
     }
 
     private String[] getTgChannelGroupsArray(List<ChannelGroup> groups, String groupName) {
