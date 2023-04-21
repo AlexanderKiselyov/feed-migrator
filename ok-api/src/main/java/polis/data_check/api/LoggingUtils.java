@@ -68,7 +68,7 @@ class LoggingUtils {
         return new OkApiException("Получена ошибка от сервера Одноклассников " + errorCode + ": " + errorDescription);
     }
 
-    private static JSONObject parseResponse(String responseBody, String responseStatus, Logger logger)
+    static JSONObject parseResponse(String responseBody, String responseStatus, Logger logger)
             throws OkApiException {
         try {
             JSONObject jsonResponse = new JSONObject(responseBody);
@@ -87,7 +87,7 @@ class LoggingUtils {
         }
     }
 
-    private static String apacheResponseBody(org.apache.http.HttpResponse response) {
+    static String apacheResponseBody(org.apache.http.HttpResponse response) {
         try {
             return new BufferedReader(
                     new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8))

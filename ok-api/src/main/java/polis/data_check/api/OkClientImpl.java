@@ -1,13 +1,16 @@
 package polis.data_check.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,14 +32,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
-import static polis.data_check.api.LoggingUtils.formExceptionAndLog;
+import static polis.data_check.api.LoggingUtils.apacheResponseBody;
 import static polis.data_check.api.LoggingUtils.parseResponse;
 import static polis.data_check.api.LoggingUtils.sendRequest;
 import static polis.data_check.api.LoggingUtils.wrapAndLog;
 
 public class OkClientImpl implements OKClient {
     private static final Integer CLIENT_RESPONSE_TIMEOUT = 5;
-    private static final Integer RESPONSE_MAX_LENGTH = 2048;
     private static final String OK_METHODS_URI = "https://api.ok.ru/fb.do";
     private static final String POST_MEDIA_TOPIC = "mediatopic.post";
     private static final String UPLOAD_PHOTO = "photosV2.getUploadUrl";
@@ -55,31 +57,33 @@ public class OkClientImpl implements OKClient {
 
     public void postMediaTopic(String accessToken, long groupId, Attachment attachment)
             throws URISyntaxException, IOException, OkApiException {
-        URI uri = new URIBuilder("https://api.ok.ru/fb.do")
-                .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
-                .addParameter("attachment", mapper.writeValueAsString(attachment))
-                .addParameter("format", "json")
-                .addParameter("gid", String.valueOf(groupId))
-                .addParameter("method", POST_MEDIA_TOPIC)
-                .addParameter("type", "GROUP_THEME")
-                .addParameter("sig", OkAuthorizator.sig(accessToken, POST_MEDIA_TOPIC))
-                .addParameter("access_token", accessToken)
-                .build();
+        List<NameValuePair> parameters = new ArrayList<>();
+        parameters.add(new BasicNameValuePair("application_key", OkAppProperties.APPLICATION_KEY));
+        parameters.add(new BasicNameValuePair("attachment", mapper.writeValueAsString(attachment)));
+        parameters.add(new BasicNameValuePair("format", "json"));
+        parameters.add(new BasicNameValuePair("gid", String.valueOf(groupId)));
+        parameters.add(new BasicNameValuePair("method", POST_MEDIA_TOPIC));
+        parameters.add(new BasicNameValuePair("type", "GROUP_THEME"));
+        parameters.add(new BasicNameValuePair("sig", OkAuthorizator.sig(accessToken, POST_MEDIA_TOPIC)));
+        parameters.add(new BasicNameValuePair("access_token", accessToken));
 
-        if (uri.toString().getBytes(StandardCharsets.UTF_8).length > RESPONSE_MAX_LENGTH) {
-            throw formExceptionAndLog("520", "Request URI is too long.", null, null, logger);
-        }
+        HttpPost request = new HttpPost(URI.create(OK_METHODS_URI));
+        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.setEntity(new UrlEncodedFormEntity(parameters, StandardCharsets.UTF_8));
 
-        HttpRequest request = HttpRequest.newBuilder().GET()
-                .uri(uri)
-                .build();
-        HttpResponse<String> response = sendRequest(client, request, logger);
-        Matcher matcher = Pattern.compile("\"(\\d+)\"").matcher(response.body());
-        if (matcher.matches()) {
-            String postId = matcher.group(1);
-            logger.info("Posted post %s to group %d".formatted(postId, groupId));
-        } else {
-            parseResponse(response, logger);
+        try (CloseableHttpClient advancedClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
+            org.apache.http.HttpResponse response = sendRequest(advancedClient, request, logger);
+
+            String statusLine = response.getStatusLine().toString();
+            String body = apacheResponseBody(response);
+
+            Matcher matcher = Pattern.compile("\"(\\d+)\"").matcher(body);
+            if (matcher.matches()) {
+                String postId = matcher.group(1);
+                logger.info("Posted post %s to group %d".formatted(postId, groupId));
+            } else {
+                parseResponse(body, statusLine, logger);
+            }
         }
     }
 
