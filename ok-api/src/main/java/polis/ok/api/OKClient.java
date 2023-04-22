@@ -1,6 +1,6 @@
-package polis.api;
+package polis.ok.api;
 
-import polis.domain.Attachment;
+import polis.ok.domain.Attachment;
 
 import java.io.File;
 import java.io.IOException;

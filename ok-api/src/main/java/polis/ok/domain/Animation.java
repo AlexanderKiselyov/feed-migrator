@@ -1,4 +1,4 @@
-package polis.domain;
+package polis.ok.domain;
 
 import java.io.Serializable;
 

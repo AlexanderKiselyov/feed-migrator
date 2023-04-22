@@ -1,4 +1,4 @@
-package polis.api;
+package polis.ok.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.NameValuePair;
@@ -16,7 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import polis.domain.Attachment;
+import polis.ok.domain.Attachment;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,10 +32,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
-import static polis.api.LoggingUtils.apacheResponseBody;
-import static polis.api.LoggingUtils.parseResponse;
-import static polis.api.LoggingUtils.sendRequest;
-import static polis.api.LoggingUtils.wrapAndLog;
+import static polis.ok.api.LoggingUtils.apacheResponseBody;
+import static polis.ok.api.LoggingUtils.parseResponse;
+import static polis.ok.api.LoggingUtils.sendRequest;
+import static polis.ok.api.LoggingUtils.wrapAndLog;
 
 public class OkClientImpl implements OKClient {
     private static final Integer CLIENT_RESPONSE_TIMEOUT = 5;
