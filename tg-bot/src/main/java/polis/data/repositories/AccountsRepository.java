@@ -33,12 +33,12 @@ public class AccountsRepository {
                 Account.class);
     }
 
-    public void deleteAccount(long chatId, long accountId, String socialMedia) throws DataAccessException {
-        cassandraOperations.delete(
-                query(
-                        where(CHAT_ID).is(chatId))
+    public Account getAccountByKey(long chatId, String socialMedia, long accountId){
+        return cassandraOperations.selectOne(
+                query(where(CHAT_ID).is(chatId))
                         .and(where(SOCIAL_MEDIA).is(socialMedia))
                         .and(where(ACCOUNT_ID).is(accountId)),
-                Account.class);
+                Account.class
+        );
     }
 }
