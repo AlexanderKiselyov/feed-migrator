@@ -69,12 +69,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static polis.data_check.DataCheck.OK_AUTH_STATE_ANSWER;
-import static polis.data_check.DataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
-import static polis.data_check.DataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
-import static polis.data_check.DataCheck.OK_GROUP_ADDED;
-import static polis.data_check.DataCheck.USER_HAS_NO_RIGHTS;
-import static polis.data_check.DataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
+import static polis.datacheck.DataCheck.OK_AUTH_STATE_ANSWER;
+import static polis.datacheck.DataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
+import static polis.datacheck.DataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
+import static polis.datacheck.DataCheck.OK_GROUP_ADDED;
+import static polis.datacheck.DataCheck.USER_HAS_NO_RIGHTS;
+import static polis.datacheck.DataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
 import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
