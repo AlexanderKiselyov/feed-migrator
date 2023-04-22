@@ -18,7 +18,7 @@ public abstract class PostingHelper {
         this.tgApiHelper = tgApiHelper;
     }
 
-    public abstract Post newPost(long chatId, long groupId, String accessToken);
+    public abstract Post newPost(long groupId, String accessToken);
 
     public abstract static class Post {
         final long groupId;

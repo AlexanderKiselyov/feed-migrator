@@ -33,7 +33,7 @@ public class OkPostingHelper extends PostingHelper {
     }
 
     @Override
-    public OkPost newPost(long chatId, long groupId, String accessToken) {
+    public OkPost newPost(long groupId, String accessToken) {
         return new OkPost(groupId, accessToken);
     }
 
