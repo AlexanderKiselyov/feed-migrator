@@ -1,4 +1,4 @@
-package polis.ok.api;
+package polis.data_check.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.config.RequestConfig;
@@ -13,7 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import polis.ok.domain.Attachment;
+import polis.data_check.domain.Attachment;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,9 +28,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
-import static polis.ok.api.LoggingUtils.parseResponse;
-import static polis.ok.api.LoggingUtils.sendRequest;
-import static polis.ok.api.LoggingUtils.wrapAndLog;
+import static polis.data_check.api.LoggingUtils.parseResponse;
+import static polis.data_check.api.LoggingUtils.sendRequest;
+import static polis.data_check.api.LoggingUtils.wrapAndLog;
 
 public class OkClientImpl implements OKClient {
     private static final String POST_MEDIA_TOPIC = "mediatopic.post";

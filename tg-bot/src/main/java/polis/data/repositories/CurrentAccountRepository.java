@@ -5,29 +5,29 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.cassandra.core.CassandraOperations;
 import org.springframework.stereotype.Repository;
 import polis.data.domain.Account;
+import polis.data.domain.CurrentAccount;
 
 import javax.validation.constraints.NotNull;
-
-import java.util.List;
 
 import static org.springframework.data.cassandra.core.query.Criteria.where;
 import static org.springframework.data.cassandra.core.query.Query.query;
 
 @Repository
-public class AccountsRepository {
+public class CurrentAccountRepository {
     private static final String CHAT_ID = "chat_id";
 
     @Autowired
     private CassandraOperations cassandraOperations;
 
-    public void insertNewAccount(@NotNull Account account) throws DataAccessException {
-        cassandraOperations.update(account);
+    public CurrentAccount getCurrentAccount(long chatId) throws DataAccessException {
+        return cassandraOperations.selectOne(
+                query(
+                        where(CHAT_ID).is(chatId)
+                ),
+                CurrentAccount.class);
     }
 
-    public List<Account> getAccountsForUser(long chatId) throws DataAccessException {
-        return cassandraOperations.select(
-                query(
-                        where(CHAT_ID).is(chatId)),
-                Account.class);
+    public void insertCurrentAccount(@NotNull CurrentAccount newAccount) throws DataAccessException {
+        cassandraOperations.update(newAccount);
     }
 }

@@ -1,6 +1,7 @@
 package polis.util;
 
 import java.util.Map;
+import java.util.Objects;
 
 public enum Substate implements IState {
     AddOkAccount_AuthCode(State.AddOkAccount.getIdentifier(), "Получение кода авторизации Одноклассников"),
@@ -29,5 +30,14 @@ public enum Substate implements IState {
     public static IState nextSubstate(IState currentSubstate) {
         IState nextSubstate = NEXT_SUBSTATE.get(currentSubstate);
         return nextSubstate == null ? currentSubstate : nextSubstate;
+    }
+
+    public static Substate findSubstate(String name) {
+        for (Substate substate : Substate.values()) {
+            if (Objects.equals(substate.getIdentifier(), name)) {
+                return substate;
+            }
+        }
+        return null;
     }
 }

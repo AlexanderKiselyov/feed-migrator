@@ -1,5 +1,7 @@
 package polis.util;
 
+import java.util.Objects;
+
 public enum SocialMedia {
     OK("Одноклассники");
 
@@ -11,5 +13,14 @@ public enum SocialMedia {
 
     public String getName() {
         return name;
+    }
+
+    public static SocialMedia findSocialMediaByName(String name) {
+        for (SocialMedia socialMedia : SocialMedia.values()) {
+            if (Objects.equals(socialMedia.getName(), name)) {
+                return socialMedia;
+            }
+        }
+        return null;
     }
 }

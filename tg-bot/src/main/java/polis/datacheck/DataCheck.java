@@ -1,15 +1,21 @@
-package polis.ok;
+package polis.datacheck;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import polis.commands.NonCommand;
-import polis.ok.api.OkAppProperties;
-import polis.ok.api.OkAuthorizator;
-import polis.util.AuthData;
-import polis.util.IState;
+import polis.data.domain.Account;
+import polis.data.domain.CurrentAccount;
+import polis.data.domain.CurrentState;
+import polis.data.repositories.AccountsRepository;
+import polis.data.repositories.CurrentAccountRepository;
+import polis.data.repositories.CurrentStateRepository;
+import polis.data_check.api.OkAppProperties;
+import polis.data_check.api.OkAuthorizator;
 import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
@@ -20,12 +26,13 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
-public class OKDataCheck {
+import static polis.commands.Command.USERNAME_NOT_FOUND;
+import static polis.commands.Command.USER_ID_NOT_FOUND;
+
+@Component
+public class DataCheck {
     public static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
             "Введенный код авторизации неверный. Пожалуйста, попробуйте еще раз.";
     public static final String OK_AUTH_STATE_ANSWER = """
@@ -42,19 +49,19 @@ public class OKDataCheck {
     public static final String USER_HAS_NO_RIGHTS = """
             Пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
-    private final Map<Long, AuthData> currentSocialMediaAccount;
-    private final Map<Long, List<AuthData>> socialMediaAccounts;
-    private final Map<Long, IState> currentState;
-    private final HttpClient client = HttpClient.newHttpClient();
-    private final Logger logger = LoggerFactory.getLogger(OKDataCheck.class);
-    private final OkAuthorizator okAuthorizator = new OkAuthorizator();
 
-    public OKDataCheck(Map<Long, AuthData> currentSocialMediaAccount, Map<Long, IState> currentState, Map<Long,
-            List<AuthData>> socialMediaAccounts) {
-        this.currentSocialMediaAccount = currentSocialMediaAccount;
-        this.currentState = currentState;
-        this.socialMediaAccounts = socialMediaAccounts;
-    }
+    @Autowired
+    private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private AccountsRepository accountsRepository;
+
+    @Autowired
+    private CurrentStateRepository currentStateRepository;
+
+    private final HttpClient client = HttpClient.newHttpClient();
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataCheck.class);
+    private final OkAuthorizator okAuthorizator = new OkAuthorizator();
 
     public NonCommand.AnswerPair getOKAuthCode(String text, Long chatId) {
         OkAuthorizator.TokenPair pair;
@@ -64,25 +71,58 @@ public class OKDataCheck {
                 return new NonCommand.AnswerPair(OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER, true);
             }
 
-            AuthData newAccount = new AuthData(SocialMedia.OK, socialMediaAccounts.size() + 1,
-                    pair.accessToken(), pair.refreshToken());
-            currentSocialMediaAccount.put(chatId, newAccount);
-            socialMediaAccounts.computeIfAbsent(chatId, k -> new ArrayList<>());
-            socialMediaAccounts.get(chatId).add(newAccount);
+            long userId = Long.parseLong(getOKUserId(pair.accessToken()));
 
-            currentState.put(chatId, Substate.nextSubstate(State.OkAccountDescription));
+            if (userId == -1) {
+                return new NonCommand.AnswerPair(USER_ID_NOT_FOUND,true);
+            }
+
+            String username = getOKUsername(pair.accessToken());
+
+            if (Objects.equals(username, "")) {
+                return new NonCommand.AnswerPair(USERNAME_NOT_FOUND, true);
+            }
+
+            Account newAccount = new Account(
+                    chatId,
+                    SocialMedia.OK.getName(),
+                    userId,
+                    username,
+                    pair.accessToken(),
+                    pair.refreshToken()
+            );
+
+            currentAccountRepository.insertCurrentAccount(
+                    new CurrentAccount(
+                            chatId,
+                            newAccount.getSocialMedia().getName(),
+                            newAccount.getAccountId(),
+                            newAccount.getUserFullName(),
+                            newAccount.getAccessToken(),
+                            newAccount.getRefreshToken()
+                    )
+            );
+
+            accountsRepository.insertNewAccount(newAccount);
+
+            currentStateRepository.insertCurrentState(new CurrentState(chatId,
+                    Substate.nextSubstate(State.OkAccountDescription).getIdentifier()));
 
             return new NonCommand.AnswerPair(
                     String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
                     false);
         } catch (Exception e) {
-            logger.error(String.format("Unknown error: %s", e.getMessage()));
+            LOGGER.error(String.format("Unknown error: %s", e.getMessage()));
             return new NonCommand.AnswerPair(OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, true);
         }
     }
 
     public NonCommand.AnswerPair checkOKGroupAdminRights(String accessToken, Long groupId) {
         String uid = getOKUserId(accessToken);
+
+        if (Objects.equals(uid, "-1")) {
+            return new NonCommand.AnswerPair(USER_ID_NOT_FOUND, true);
+        }
 
         try {
             URI uri = new URIBuilder(OK_METHOD_DO)
@@ -124,7 +164,7 @@ public class OKDataCheck {
                 return new NonCommand.AnswerPair(USER_HAS_NO_RIGHTS, true);
             }
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return new NonCommand.AnswerPair(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, true);
         }
     }
@@ -158,7 +198,7 @@ public class OKDataCheck {
 
             return object.getLong("objectId");
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return -1L;
         }
     }
@@ -199,7 +239,7 @@ public class OKDataCheck {
 
             return object.getString("name");
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return "";
         }
     }
@@ -233,7 +273,7 @@ public class OKDataCheck {
 
             return object.getString("uid");
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return "";
         }
     }
@@ -267,7 +307,7 @@ public class OKDataCheck {
 
             return object.getString("name");
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error(String.format("Cannot create request: %s", e.getMessage()));
+            LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return "";
         }
     }

@@ -18,8 +18,8 @@ public class StartCommand extends Command {
             State.AddTgChannel.getDescription()
     );
 
-    public StartCommand(String commandIdentifier, String description) {
-        super(commandIdentifier, description);
+    public StartCommand() {
+        super(State.Start.getIdentifier(), State.Start.getDescription());
     }
 
     @Override

@@ -1,15 +1,18 @@
 package polis.commands;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.data.domain.CurrentChannel;
+import polis.data.repositories.CurrentChannelRepository;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
-import polis.util.TelegramChannel;
 
 import java.util.List;
-import java.util.Map;
 
+@Component
 public class TgChannelDescription extends Command {
     private static final String TELEGRAM_CHANNEL_DESCRIPTION = """
             Текущий выбранный Телеграм-канал <b>%s</b>.
@@ -19,7 +22,10 @@ public class TgChannelDescription extends Command {
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""",
             State.MainMenu.getIdentifier());
-    private final Map<Long, TelegramChannel> currentTgChannel;
+
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
     private final TelegramDataCheck telegramDataCheck;
     private static final int rowsCount = 3;
     private static final List<String> commandsForKeyboard = List.of(
@@ -28,25 +34,22 @@ public class TgChannelDescription extends Command {
             State.MainMenu.getDescription()
     );
 
-    public TgChannelDescription(String commandIdentifier, String description, Map<Long,
-            TelegramChannel> currentTgChannel) {
-        super(commandIdentifier, description);
-        this.currentTgChannel = currentTgChannel;
+    public TgChannelDescription() {
+        super(State.TgChannelDescription.getIdentifier(), State.TgChannelDescription.getDescription());
         telegramDataCheck = new TelegramDataCheck();
     }
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        if (currentTgChannel.containsKey(chat.getId()) && currentTgChannel.get(chat.getId()) != null) {
+        CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
+        if (currentChannel != null) {
             sendAnswer(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(TELEGRAM_CHANNEL_DESCRIPTION,
-                            telegramDataCheck.getChatParameter(
-                                    currentTgChannel.get(chat.getId()).getTelegramChannelUsername(), "title"
-                            ),
+                            telegramDataCheck.getChatParameter(currentChannel.getChannelUsername(), "title"),
                             State.TgSyncGroups.getIdentifier(),
                             State.AddGroup.getIdentifier()
                     ),

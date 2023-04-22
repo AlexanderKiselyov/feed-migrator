@@ -1,6 +1,6 @@
-package polis.ok.api;
+package polis.data_check.api;
 
-import polis.ok.domain.Attachment;
+import polis.data_check.domain.Attachment;
 
 import java.io.File;
 import java.io.IOException;

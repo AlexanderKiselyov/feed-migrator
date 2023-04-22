@@ -2,58 +2,78 @@ package polis.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import polis.ok.OKDataCheck;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import polis.data.domain.ChannelGroup;
+import polis.data.domain.CurrentAccount;
+import polis.data.domain.CurrentChannel;
+import polis.data.domain.CurrentGroup;
+import polis.data.domain.UserChannels;
+import polis.data.repositories.AccountsRepository;
+import polis.data.repositories.ChannelGroupsRepository;
+import polis.data.repositories.CurrentAccountRepository;
+import polis.data.repositories.CurrentChannelRepository;
+import polis.data.repositories.CurrentGroupRepository;
+import polis.data.repositories.CurrentStateRepository;
+import polis.data.repositories.UserChannelsRepository;
+import polis.datacheck.DataCheck;
 import polis.telegram.TelegramDataCheck;
-import polis.util.AuthData;
 import polis.util.IState;
 import polis.util.SocialMedia;
-import polis.util.SocialMediaGroup;
 import polis.util.State;
 import polis.util.Substate;
-import polis.util.TelegramChannel;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 import static polis.commands.AddOkGroup.SAME_SOCIAL_MEDIA;
+import static polis.commands.Command.GROUP_NAME_NOT_FOUND;
 
+@Component
 public class NonCommand {
     private static final String START_STATE_ANSWER = "Не могу распознать команду. Попробуйте еще раз.";
     private static final String BOT_WRONG_STATE_ANSWER = "Неверная команда бота. Попробуйте еще раз.";
+    private static final String GROUP_NOT_FOUND = "Не удалось получить id группы. Попробуйте еще раз.";
     private static final String WRONG_LINK_TELEGRAM = """
              Ссылка неверная.
              Пожалуйста, проверьте, что ссылка на канал является верной и введите ссылку еще раз.""";
     private static final String WRONG_OK_ACCOUNT = """
             Неверный аккаунт Одноклассников.
             Пожалуйста, вернитесь в главное меню (%s) и следуйте дальнейшим инструкциям.""";
-    private final Map<Long, AuthData> currentSocialMediaAccount;
-    private final Map<Long, List<TelegramChannel>> tgChannels;
-    private final Map<Long, TelegramChannel> currentTgChannel;
-    private final Map<Long, SocialMediaGroup> currentSocialMediaGroup;
-    private final Map<Long, Long> tgChannelOwner;
-    private final OKDataCheck okDataCheck;
-    private final TelegramDataCheck telegramDataCheck;
-    private final Logger logger = LoggerFactory.getLogger(NonCommand.class);
 
-    public NonCommand(OKDataCheck okDataCheck,
-                      Map<Long, AuthData> currentSocialMediaAccount,
-                      Map<Long, List<TelegramChannel>> tgChannels,
-                      Map<Long, TelegramChannel> currentChannel,
-                      Map<Long, SocialMediaGroup> currentSocialMediaGroup,
-                      Map<Long, Long> tgChannelOwner) {
-        this.currentSocialMediaAccount = currentSocialMediaAccount;
-        this.tgChannels = tgChannels;
-        this.currentTgChannel = currentChannel;
-        this.okDataCheck = okDataCheck;
-        this.currentSocialMediaGroup = currentSocialMediaGroup;
-        this.tgChannelOwner = tgChannelOwner;
+    @Autowired
+    private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private UserChannelsRepository userChannelsRepository;
+
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private CurrentGroupRepository currentGroupRepository;
+
+    @Autowired
+    private ChannelGroupsRepository channelGroupsRepository;
+
+    @Autowired
+    private CurrentStateRepository currentStateRepository;
+
+    @Autowired
+    private AccountsRepository accountsRepository;
+
+    @Autowired
+    private DataCheck dataCheck;
+
+    private final TelegramDataCheck telegramDataCheck;
+    private static final Logger LOGGER = LoggerFactory.getLogger(NonCommand.class);
+
+    public NonCommand() {
         telegramDataCheck = new TelegramDataCheck();
     }
 
     public AnswerPair nonCommandExecute(String text, Long chatId, IState state) {
         if (state == null) {
-            logger.error("Null state");
+            LOGGER.error("Null state");
             return new AnswerPair(BOT_WRONG_STATE_ANSWER, true);
         }
 
@@ -68,50 +88,53 @@ public class NonCommand {
 
             AnswerPair answer = telegramDataCheck.checkTelegramChannelLink(checkChannelLink);
             if (!answer.getError()) {
-                TelegramChannel newTgChannel;
-                if (tgChannels.containsKey(chatId)) {
-                    List<TelegramChannel> currentTelegramChannels = tgChannels.get(chatId);
-                    newTgChannel = new TelegramChannel(
-                            (Long) telegramDataCheck.getChatParameter(checkChannelLink, "id"),
-                            checkChannelLink, new ArrayList<>(1));
-                    currentTelegramChannels.add(newTgChannel);
-                    tgChannels.put(chatId, currentTelegramChannels);
-                } else {
-                    List<TelegramChannel> newTelegramChannel = new ArrayList<>(1);
-                    newTgChannel = new TelegramChannel(
-                            (Long) telegramDataCheck.getChatParameter(checkChannelLink, "id"),
-                            checkChannelLink, new ArrayList<>(1));
-                    newTelegramChannel.add(newTgChannel);
-                    tgChannels.put(chatId, newTelegramChannel);
-                }
-                currentTgChannel.put(chatId, newTgChannel);
-                tgChannelOwner.put(newTgChannel.getTelegramChannelId(), chatId);
+                UserChannels newTgChannel = new UserChannels(
+                        chatId,
+                        (Long) telegramDataCheck.getChatParameter(checkChannelLink, "id"),
+                        checkChannelLink
+                );
+                userChannelsRepository.insertUserChannel(newTgChannel);
+                currentChannelRepository.insertCurrentChannel(new CurrentChannel(chatId, newTgChannel.getChannelId(),
+                        newTgChannel.getChannelUsername()));
             }
             return answer;
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
-            return okDataCheck.getOKAuthCode(text, chatId);
+            return dataCheck.getOKAuthCode(text, chatId);
         } else if (state.equals(Substate.AddOkGroup_AddGroup)) {
-            if (currentSocialMediaAccount.get(chatId) == null) {
+            CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chatId);
+            if (currentAccount == null) {
                 return new AnswerPair(String.format(WRONG_OK_ACCOUNT, State.MainMenu.getIdentifier()),
                         true);
             }
 
-            for (SocialMediaGroup smg : currentTgChannel.get(chatId).getSynchronizedGroups()) {
+            for (ChannelGroup smg : channelGroupsRepository
+                    .getGroupsForChannel(currentChannelRepository.getCurrentChannel(chatId).getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.OK) {
                     return new AnswerPair(String.format(SAME_SOCIAL_MEDIA, SocialMedia.OK.getName()), true);
                 }
             }
 
-            String accessToken = currentSocialMediaAccount.get(chatId).getAccessToken();
+            String accessToken = currentAccount.getAccessToken();
 
-            Long groupId = okDataCheck.getOKGroupId(text, accessToken);
+            Long groupId = dataCheck.getOKGroupId(text, accessToken);
 
-            AnswerPair answer = okDataCheck.checkOKGroupAdminRights(accessToken, groupId);
+            if (groupId == -1) {
+                return new AnswerPair(GROUP_NOT_FOUND, true);
+            }
+
+            AnswerPair answer = dataCheck.checkOKGroupAdminRights(accessToken, groupId);
+
+            String groupName = dataCheck.getOKGroupName(groupId, currentAccount.getAccessToken());
+
+            if (Objects.equals(groupName, "")) {
+                return new AnswerPair(GROUP_NAME_NOT_FOUND, true);
+            }
 
             if (!answer.getError()) {
-                SocialMediaGroup newGroup = new SocialMediaGroup(groupId,
-                        currentSocialMediaAccount.get(chatId).getTokenId(), SocialMedia.OK);
-                currentSocialMediaGroup.put(chatId, newGroup);
+                CurrentGroup newGroup = new CurrentGroup(chatId, SocialMedia.OK.getName(), groupId,
+                        groupName,
+                        currentAccount.getAccountId(), currentAccount.getAccessToken());
+                currentGroupRepository.insertCurrentGroup(newGroup);
             }
 
             return answer;
