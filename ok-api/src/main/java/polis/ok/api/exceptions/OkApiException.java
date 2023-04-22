@@ -1,8 +1,6 @@
 package polis.ok.api.exceptions;
 
-import java.io.IOException;
-
-public class OkApiException extends IOException {
+public class OkApiException extends Exception {
     public OkApiException() {
     }
 

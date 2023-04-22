@@ -53,6 +53,7 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.ok.api.OkClientImpl;
 import polis.keyboards.ReplyKeyboard;
+import polis.posting.ApiException;
 import polis.posting.OkPostingHelper;
 import polis.posting.TgApiHelper;
 import polis.util.IState;
@@ -390,7 +391,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                                     sendAnswer(chatId, """
                                             Тип 'Документ' не поддерживается в социальной сети Одноклассники""");
                                 }
-                                helper.newPost(chatId, smg.getGroupId(), accessToken)
+                                helper.newPost(smg.getGroupId(), accessToken)
                                         .addPhotos(photos)
                                         .addVideos(videos)
                                         .addText(text)
@@ -398,7 +399,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                                         .addAnimations(animations)
                                         .post(accessToken, smg.getGroupId());
                                 sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getGroupId());
-                            } catch (URISyntaxException | IOException ignored) {
+                            } catch (ApiException | IOException | URISyntaxException ignored) {
                                 //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а
                             }
                         }
