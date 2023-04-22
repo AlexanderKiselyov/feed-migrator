@@ -46,7 +46,7 @@ public class OkPostingHelper extends PostingHelper {
 
         @Override
         public Post addPhotos(List<PhotoSize> tgPhotos)
-                throws URISyntaxException, IOException, TelegramApiException, OkApiException {
+                throws URISyntaxException, IOException, TelegramApiException, ApiException {
             if (tgPhotos == null || tgPhotos.isEmpty()) {
                 return this;
             }
@@ -56,20 +56,29 @@ public class OkPostingHelper extends PostingHelper {
                 photos.add(file);
             }
             PhotoMedia photoMedia = new PhotoMedia(photos.size());
-            okClient.uploadPhotos(accessToken, groupId, photos).stream().map(Photo::new).forEach(photoMedia::addPhoto);
+            try {
+                okClient.uploadPhotos(accessToken, groupId, photos).stream().map(Photo::new).forEach(photoMedia::addPhoto);
+            } catch (OkApiException e) {
+                throw new ApiException(e);
+            }
             attachment.addMedia(photoMedia);
             return this;
         }
 
         @Override
-        public Post addVideos(List<Video> videos) throws URISyntaxException, IOException, TelegramApiException {
+        public Post addVideos(List<Video> videos) throws URISyntaxException, IOException, TelegramApiException, ApiException {
             if (videos == null || videos.isEmpty()) {
                 return this;
             }
             VideoMedia videoMedia = new VideoMedia(videos.size());
             for (Video video : videos) {
                 File file = tgApiHelper.download(video);
-                long videoId = okClient.uploadVideo(accessToken, groupId, file);
+                long videoId;
+                try {
+                    videoId = okClient.uploadVideo(accessToken, groupId, file);
+                } catch (OkApiException e) {
+                    throw new ApiException(e);
+                }
                 videoMedia.addVideo(new polis.ok.api.domain.Video(videoId));
             }
             attachment.addMedia(videoMedia);
@@ -110,7 +119,7 @@ public class OkPostingHelper extends PostingHelper {
 
         @Override
         public Post addAnimations(List<Animation> animations) throws URISyntaxException, IOException,
-                TelegramApiException {
+                TelegramApiException, ApiException {
             if (animations == null || animations.isEmpty()) {
                 return this;
             }
@@ -139,8 +148,12 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public void post(String accessToken, long groupId) throws URISyntaxException, IOException {
-            okClient.postMediaTopic(accessToken, groupId, attachment);
+        public void post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
+            try {
+                okClient.postMediaTopic(accessToken, groupId, attachment);
+            } catch (OkApiException e) {
+                throw new ApiException(e);
+            }
         }
 
     }
