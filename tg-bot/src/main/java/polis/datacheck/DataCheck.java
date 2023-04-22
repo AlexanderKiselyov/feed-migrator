@@ -1,4 +1,4 @@
-package polis.data_check;
+package polis.datacheck;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONArray;
