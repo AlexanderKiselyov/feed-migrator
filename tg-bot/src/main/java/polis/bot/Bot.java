@@ -53,6 +53,8 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.ok.api.OkClientImpl;
+import polis.posting.OkPostingHelper;
+import polis.posting.TgApiHelper;
 import polis.util.IState;
 import polis.util.State;
 import polis.util.Substate;
@@ -176,7 +178,10 @@ public class Bot extends TelegramLongPollingCommandBot {
         super();
         this.botName = botName;
         this.botToken = botToken;
-        this.helper = new OkPostingHelper(this, botToken, new TgApiHelper(), new OkClientImpl());
+        this.helper = new OkPostingHelper(
+                new TgApiHelper(botToken, this::downloadFile),
+                new OkClientImpl()
+        );
     }
 
     @Override
