@@ -60,14 +60,6 @@ class LoggingUtils {
         return new OkApiException("Сервер Одноклассников ответил в некорректном формате", e);
     }
 
-    static OkApiException formExceptionAndLog(String errorCode, String errorDescription, String responseStatus,
-                                                      String responseBody, Logger logger) {
-        String logMsg = "Received error from OK. %s: %s\nResponse: \n%s\n%s\n".formatted(errorCode, errorDescription,
-                responseStatus, responseBody);
-        logger.error(logMsg);
-        return new OkApiException("Получена ошибка от сервера Одноклассников " + errorCode + ": " + errorDescription);
-    }
-
     static JSONObject parseResponse(String responseBody, String responseStatus, Logger logger)
             throws OkApiException {
         try {
