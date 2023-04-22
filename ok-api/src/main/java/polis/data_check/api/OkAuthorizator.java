@@ -14,6 +14,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import static polis.data_check.api.LoggingUtils.parseResponse;
+import static polis.data_check.api.LoggingUtils.sendRequest;
+import static polis.data_check.api.LoggingUtils.wrapAndLog;
 import static polis.ok.api.LoggingUtils.parseResponse;
 import static polis.ok.api.LoggingUtils.sendRequest;
 
