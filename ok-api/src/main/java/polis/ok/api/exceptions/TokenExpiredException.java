@@ -1,4 +1,4 @@
-package polis.ok.api;
+package polis.ok.api.exceptions;
 
 public class TokenExpiredException extends OkApiException{
 
