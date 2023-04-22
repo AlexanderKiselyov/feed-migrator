@@ -1,4 +1,4 @@
-package polis.data_check.domain;
+package polis.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

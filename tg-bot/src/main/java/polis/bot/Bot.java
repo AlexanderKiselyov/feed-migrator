@@ -51,7 +51,7 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
-import polis.data_check.api.OkClientImpl;
+import polis.api.OkClientImpl;
 import polis.keyboards.ReplyKeyboard;
 import polis.util.IState;
 import polis.util.State;
