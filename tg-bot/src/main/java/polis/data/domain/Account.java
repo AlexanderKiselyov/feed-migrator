@@ -18,13 +18,13 @@ public class Account {
     private final long accountId;
 
     @Column(value = "user_full_name")
-    private final String userFullName;
+    private String userFullName;
 
     @Column(value = "access_token")
-    private final String accessToken;
+    private String accessToken;
 
     @Column(value = "refresh_token")
-    private final String refreshToken;
+    private String refreshToken;
 
     public Account(long chatId, String socialMedia, long accountId, String userFullName, String accessToken,
                    String refreshToken) {
@@ -58,6 +58,18 @@ public class Account {
 
     public String getRefreshToken() {
         return refreshToken;
+    }
+
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     @Override

@@ -20,13 +20,13 @@ public class ChannelGroup {
     private final long groupId;
 
     @Column("group_name")
-    private final String groupName;
+    private String groupName;
 
     @Column("account_id")
     private final long accountId;
 
     @Column("access_token")
-    private final String accessToken;
+    private String accessToken;
 
     @Column("chat_id")
     private final long chatId;
@@ -85,6 +85,14 @@ public class ChannelGroup {
 
     public long getChatId() {
         return chatId;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
     @Override
