@@ -144,7 +144,7 @@ public class OkPostingHelper extends PostingHelper {
 
         @Override
         public Post addDocuments(List<Document> documents) {
-            return this;
+            throw new UnsupportedOperationException();
         }
 
         @Override
