@@ -396,7 +396,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                                         .addText(text)
                                         .addPoll(poll)
                                         .addAnimations(animations)
-                                        .post(accessToken, smg.getGroupId());
+                                        .post();
                                 sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getAccountId());
                             } catch (ApiException | IOException | URISyntaxException ignored) {
                                 //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а

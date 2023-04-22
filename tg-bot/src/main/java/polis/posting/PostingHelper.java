@@ -41,7 +41,12 @@ public abstract class PostingHelper {
 
         public abstract Post addDocuments(List<Document> documents);
 
-        public abstract void post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
+        public abstract void post(String accessToken) throws URISyntaxException, IOException, ApiException;
+
+        public void post() throws URISyntaxException, IOException, ApiException {
+            post(accessToken);
+        }
+
     }
 }
 

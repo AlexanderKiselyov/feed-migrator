@@ -148,7 +148,7 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public void post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
+        public void post(String accessToken) throws URISyntaxException, IOException, ApiException {
             try {
                 okClient.postMediaTopic(accessToken, groupId, attachment);
             } catch (OkApiException e) {
