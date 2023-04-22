@@ -7,10 +7,11 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.CurrentAccount;
 import polis.data.repositories.CurrentAccountRepository;
-import polis.ok.OKDataCheck;
+import polis.datacheck.DataCheck;
 import polis.util.State;
 
 import java.util.List;
+import java.util.Objects;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
@@ -26,7 +27,7 @@ public class OkAccountDescription extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private OKDataCheck okDataCheck;
+    private DataCheck dataCheck;
 
     private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
@@ -40,13 +41,28 @@ public class OkAccountDescription extends Command {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
+
         if (currentAccount != null) {
+            String username = dataCheck.getOKUsername(currentAccount.getAccessToken());
+
+            if (Objects.equals(username, "")) {
+                sendAnswer(absSender,
+                        chat.getId(),
+                        this.getCommandIdentifier(),
+                        user.getUserName(),
+                        USERNAME_NOT_FOUND,
+                        rowsCount,
+                        commandsForKeyboard,
+                        null,
+                        GO_BACK_BUTTON_TEXT);
+                return;
+            }
+
             sendAnswer(absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    String.format(ACCOUNT_DESCRIPTION,
-                            okDataCheck.getOKUsername(currentAccount.getAccessToken())),
+                    String.format(ACCOUNT_DESCRIPTION, username),
                     rowsCount,
                     commandsForKeyboard,
                     null,

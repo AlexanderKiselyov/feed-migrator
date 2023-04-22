@@ -17,7 +17,7 @@ public class AddOkAccount extends Command {
                     Для авторизации в социальной сети Одноклассники перейдите по ссылке:
                     %s
                     После авторизации скопируйте код авторизации из адресной строки и отправьте его в этот диалог.""";
-    private final Logger logger = LoggerFactory.getLogger(AddOkAccount.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AddOkAccount.class);
 
     public AddOkAccount() {
         super(State.AddOkAccount.getIdentifier(), State.AddOkAccount.getDescription());
@@ -38,7 +38,7 @@ public class AddOkAccount extends Command {
                     null,
                     GO_BACK_BUTTON_TEXT);
         } catch (URISyntaxException e) {
-            logger.error(String.format("Cannot form link: %s", e));
+            LOGGER.error(String.format("Cannot form link: %s", e));
         }
     }
 }

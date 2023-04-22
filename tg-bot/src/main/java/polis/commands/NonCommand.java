@@ -16,19 +16,23 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
-import polis.ok.OKDataCheck;
+import polis.datacheck.DataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
 
+import java.util.Objects;
+
 import static polis.commands.AddOkGroup.SAME_SOCIAL_MEDIA;
+import static polis.commands.Command.GROUP_NAME_NOT_FOUND;
 
 @Component
 public class NonCommand {
     private static final String START_STATE_ANSWER = "Не могу распознать команду. Попробуйте еще раз.";
     private static final String BOT_WRONG_STATE_ANSWER = "Неверная команда бота. Попробуйте еще раз.";
+    private static final String GROUP_NOT_FOUND = "Не удалось получить id группы. Попробуйте еще раз.";
     private static final String WRONG_LINK_TELEGRAM = """
              Ссылка неверная.
              Пожалуйста, проверьте, что ссылка на канал является верной и введите ссылку еще раз.""";
@@ -58,10 +62,10 @@ public class NonCommand {
     private AccountsRepository accountsRepository;
 
     @Autowired
-    private OKDataCheck okDataCheck;
+    private DataCheck dataCheck;
 
     private final TelegramDataCheck telegramDataCheck;
-    private final Logger logger = LoggerFactory.getLogger(NonCommand.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NonCommand.class);
 
     public NonCommand() {
         telegramDataCheck = new TelegramDataCheck();
@@ -69,7 +73,7 @@ public class NonCommand {
 
     public AnswerPair nonCommandExecute(String text, Long chatId, IState state) {
         if (state == null) {
-            logger.error("Null state");
+            LOGGER.error("Null state");
             return new AnswerPair(BOT_WRONG_STATE_ANSWER, true);
         }
 
@@ -95,7 +99,7 @@ public class NonCommand {
             }
             return answer;
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
-            return okDataCheck.getOKAuthCode(text, chatId);
+            return dataCheck.getOKAuthCode(text, chatId);
         } else if (state.equals(Substate.AddOkGroup_AddGroup)) {
             CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chatId);
             if (currentAccount == null) {
@@ -112,13 +116,23 @@ public class NonCommand {
 
             String accessToken = currentAccount.getAccessToken();
 
-            Long groupId = okDataCheck.getOKGroupId(text, accessToken);
+            Long groupId = dataCheck.getOKGroupId(text, accessToken);
 
-            AnswerPair answer = okDataCheck.checkOKGroupAdminRights(accessToken, groupId);
+            if (groupId == -1) {
+                return new AnswerPair(GROUP_NOT_FOUND, true);
+            }
+
+            AnswerPair answer = dataCheck.checkOKGroupAdminRights(accessToken, groupId);
+
+            String groupName = dataCheck.getOKGroupName(groupId, currentAccount.getAccessToken());
+
+            if (Objects.equals(groupName, "")) {
+                return new AnswerPair(GROUP_NAME_NOT_FOUND, true);
+            }
 
             if (!answer.getError()) {
                 CurrentGroup newGroup = new CurrentGroup(chatId, SocialMedia.OK.getName(), groupId,
-                        okDataCheck.getOKGroupName(groupId, currentAccount.getAccessToken()),
+                        groupName,
                         currentAccount.getAccountId(), currentAccount.getAccessToken());
                 currentGroupRepository.insertCurrentGroup(newGroup);
             }
