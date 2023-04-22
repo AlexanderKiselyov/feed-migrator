@@ -13,7 +13,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import polis.ok.domain.Attachment;
+import polis.ok.api.domain.Attachment;
+import polis.ok.api.exceptions.OkApiException;
 
 import java.io.File;
 import java.io.IOException;
