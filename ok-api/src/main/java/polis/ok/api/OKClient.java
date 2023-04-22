@@ -1,6 +1,7 @@
 package polis.ok.api;
 
-import polis.ok.domain.Attachment;
+import polis.ok.api.domain.Attachment;
+import polis.ok.api.exceptions.OkApiException;
 
 import java.io.File;
 import java.io.IOException;
