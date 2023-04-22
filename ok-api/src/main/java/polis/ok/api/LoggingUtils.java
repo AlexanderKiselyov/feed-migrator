@@ -24,6 +24,7 @@ class LoggingUtils {
     private static final String ERROR = "error";
     private static final String ERROR_MSG = "error_msg";
     private static final String ERROR_CODE = "error_code";
+    public static final String PARAM_SESSION_EXPIRED_ERROR_CODE = "102";
 
     static HttpResponse<String> sendRequest(HttpClient client, HttpRequest request, Logger logger) throws IOException {
         try {
@@ -74,11 +75,8 @@ class LoggingUtils {
     }
 
     private static void checkForApiErrors(String responseBody, String responseStatus, Logger logger, JSONObject jsonResponse) throws OkApiException {
-        if (!jsonResponse.has(ERROR_CODE) && !jsonResponse.has(ERROR)) {
-            return;
-        }
-        String errorCode = null;
-        String errorDesc = null;
+        String errorCode;
+        String errorDesc;
 
         if (jsonResponse.has(ERROR_CODE)) {
             errorCode = String.valueOf(jsonResponse.getInt(ERROR_CODE));
@@ -86,13 +84,15 @@ class LoggingUtils {
         } else if (jsonResponse.has(ERROR)) {
             errorCode = jsonResponse.getString(ERROR);
             errorDesc = jsonResponse.getString(ERROR_DESCRIPTION);
+        } else {
+            return;
         }
 
         logger.error("Received error from OK. %s: %s\nResponse: \n%s\n%s\n"
                 .formatted(errorCode, errorDesc, responseStatus, responseBody)
         );
 
-        if (errorCode.equals("102") && errorDesc.contains("PARAM_SESSION_EXPIRED")) {
+        if (errorCode.equals(PARAM_SESSION_EXPIRED_ERROR_CODE)) {
             throw new TokenExpiredException();
         }
 
