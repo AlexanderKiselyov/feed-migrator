@@ -1,4 +1,4 @@
-package polis.data_check.api;
+package polis.ok.api;
 
 import java.io.IOException;
 

@@ -1,4 +1,4 @@
-package polis.data_check.api;
+package polis.ok.api;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -14,9 +14,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import static polis.data_check.api.LoggingUtils.parseResponse;
-import static polis.data_check.api.LoggingUtils.sendRequest;
-import static polis.data_check.api.LoggingUtils.wrapAndLog;
+import static polis.ok.api.LoggingUtils.parseResponse;
+import static polis.ok.api.LoggingUtils.sendRequest;
+import static polis.ok.api.LoggingUtils.parseResponse;
+import static polis.ok.api.LoggingUtils.sendRequest;
 
 public final class OkAuthorizator {
     private static final String AUTH_URI = "https://connect.ok.ru/oauth/authorize";
@@ -47,7 +48,7 @@ public final class OkAuthorizator {
                     responseJson.getString("refresh_token")
             );
         } catch (JSONException e) {
-            throw wrapAndLog(e, response.toString(), response.body(), logger);
+            throw LoggingUtils.wrapAndLog(e, response.toString(), response.body(), logger);
         }
     }
 

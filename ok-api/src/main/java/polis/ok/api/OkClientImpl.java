@@ -1,19 +1,22 @@
-package polis.data_check.api;
+package polis.ok.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import polis.data_check.domain.Attachment;
+import polis.ok.domain.Attachment;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,55 +25,65 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
-import static polis.data_check.api.LoggingUtils.parseResponse;
-import static polis.data_check.api.LoggingUtils.sendRequest;
-import static polis.data_check.api.LoggingUtils.wrapAndLog;
+import static polis.ok.api.LoggingUtils.apacheResponseBody;
+import static polis.ok.api.LoggingUtils.parseResponse;
+import static polis.ok.api.LoggingUtils.sendRequest;
+import static polis.ok.api.LoggingUtils.wrapAndLog;
 
 public class OkClientImpl implements OKClient {
+    private static final Integer CLIENT_RESPONSE_TIMEOUT = 5;
+    private static final String OK_METHODS_URI = "https://api.ok.ru/fb.do";
     private static final String POST_MEDIA_TOPIC = "mediatopic.post";
     private static final String UPLOAD_PHOTO = "photosV2.getUploadUrl";
     private static final String UPLOAD_VIDEO = "video.getUploadUrl";
     private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
-    private final Integer clientResponseTimeout = 5;
     private final RequestConfig config;
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
     public OkClientImpl() {
          config = RequestConfig.custom()
-                .setConnectTimeout(clientResponseTimeout * 1000)
-                .setConnectionRequestTimeout(clientResponseTimeout * 1000)
-                .setSocketTimeout(clientResponseTimeout * 1000).build();
+                .setConnectTimeout(CLIENT_RESPONSE_TIMEOUT * 1000)
+                .setConnectionRequestTimeout(CLIENT_RESPONSE_TIMEOUT * 1000)
+                .setSocketTimeout(CLIENT_RESPONSE_TIMEOUT * 1000).build();
     }
 
     public void postMediaTopic(String accessToken, long groupId, Attachment attachment)
             throws URISyntaxException, IOException, OkApiException {
-        URI uri = new URIBuilder("https://api.ok.ru/fb.do")
-                .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
-                .addParameter("attachment", mapper.writeValueAsString(attachment))
-                .addParameter("format", "json")
-                .addParameter("gid", String.valueOf(groupId))
-                .addParameter("method", POST_MEDIA_TOPIC)
-                .addParameter("type", "GROUP_THEME")
-                .addParameter("sig", OkAuthorizator.sig(accessToken, POST_MEDIA_TOPIC))
-                .addParameter("access_token", accessToken)
-                .build();
-        HttpRequest request = HttpRequest.newBuilder().GET()
-                .uri(uri)
-                .build();
-        HttpResponse<String> response = sendRequest(client, request, logger);
-        Matcher matcher = Pattern.compile("\"(\\d+)\"").matcher(response.body());
-        if (matcher.matches()) {
-            String postId = matcher.group(1);
-            logger.info("Posted post %s to group %d".formatted(postId, groupId));
-        } else {
-            parseResponse(response, logger);
+        List<NameValuePair> parameters = new ArrayList<>();
+        parameters.add(new BasicNameValuePair("application_key", OkAppProperties.APPLICATION_KEY));
+        parameters.add(new BasicNameValuePair("attachment", mapper.writeValueAsString(attachment)));
+        parameters.add(new BasicNameValuePair("format", "json"));
+        parameters.add(new BasicNameValuePair("gid", String.valueOf(groupId)));
+        parameters.add(new BasicNameValuePair("method", POST_MEDIA_TOPIC));
+        parameters.add(new BasicNameValuePair("type", "GROUP_THEME"));
+        parameters.add(new BasicNameValuePair("sig", OkAuthorizator.sig(accessToken, POST_MEDIA_TOPIC)));
+        parameters.add(new BasicNameValuePair("access_token", accessToken));
+
+        HttpPost request = new HttpPost(URI.create(OK_METHODS_URI));
+        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.setEntity(new UrlEncodedFormEntity(parameters, StandardCharsets.UTF_8));
+
+        try (CloseableHttpClient advancedClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
+            org.apache.http.HttpResponse response = sendRequest(advancedClient, request, logger);
+
+            String statusLine = response.getStatusLine().toString();
+            String body = apacheResponseBody(response);
+
+            Matcher matcher = Pattern.compile("\"(\\d+)\"").matcher(body);
+            if (matcher.matches()) {
+                String postId = matcher.group(1);
+                logger.info("Posted post %s to group %d".formatted(postId, groupId));
+            } else {
+                parseResponse(body, statusLine, logger);
+            }
         }
     }
 
@@ -126,7 +139,7 @@ public class OkClientImpl implements OKClient {
 
     private PhotoUploadUrlResponse photoUploadUrl(String accessToken, long groupId, List<File> photos)
             throws URISyntaxException, IOException, OkApiException {
-        URI uri = new URIBuilder("https://api.ok.ru/fb.do")
+        URI uri = new URIBuilder(OK_METHODS_URI)
                 .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                 .addParameter("count", String.valueOf(photos.size()))
                 .addParameter("format", "json")
@@ -156,7 +169,7 @@ public class OkClientImpl implements OKClient {
 
     private VideoUploadUrlResponse videoUploadUrl(String accessToken, long groupId, String fileName, long fileSize)
             throws URISyntaxException, IOException, OkApiException {
-        URI uri = new URIBuilder("https://api.ok.ru/fb.do")
+        URI uri = new URIBuilder(OK_METHODS_URI)
                 .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                 .addParameter("file_name", fileName)
                 .addParameter("file_size", String.valueOf(fileSize))
