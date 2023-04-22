@@ -4,6 +4,7 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
+import polis.ok.api.exceptions.OkApiException;
 
 import java.io.BufferedReader;
 import java.io.IOException;

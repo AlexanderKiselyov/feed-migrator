@@ -8,13 +8,13 @@ import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.ok.api.OKClient;
-import polis.ok.api.OkApiException;
-import polis.ok.domain.Attachment;
-import polis.ok.domain.Photo;
-import polis.ok.domain.PhotoMedia;
-import polis.ok.domain.PollMedia;
-import polis.ok.domain.TextMedia;
-import polis.ok.domain.VideoMedia;
+import polis.ok.api.exceptions.OkApiException;
+import polis.ok.api.domain.Attachment;
+import polis.ok.api.domain.Photo;
+import polis.ok.api.domain.PhotoMedia;
+import polis.ok.api.domain.PollMedia;
+import polis.ok.api.domain.TextMedia;
+import polis.ok.api.domain.VideoMedia;
 
 import java.io.File;
 import java.io.IOException;
@@ -150,7 +150,7 @@ public class OkPostingHelper extends PostingHelper {
                     bot.sendAnswer(chatId, "Проблемы с сетью при загрузке видео в Одноклассники: " + e.getMessage());
                     throw e;
                 }
-                videoMedia.addVideo(new polis.ok.domain.Video(videoId));
+                videoMedia.addVideo(new polis.ok.api.domain.Video(videoId));
             }
             attachment.addMedia(videoMedia);
             return this;

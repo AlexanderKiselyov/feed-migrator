@@ -1,4 +1,4 @@
-package polis.ok.domain;
+package polis.ok.api.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
