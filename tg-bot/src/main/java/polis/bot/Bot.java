@@ -51,10 +51,14 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
+import polis.ok.api.OkAuthorizator;
 import polis.ok.api.OkClientImpl;
 import polis.keyboards.ReplyKeyboard;
+import polis.ok.api.exceptions.OkApiException;
+import polis.ok.api.exceptions.TokenExpiredException;
 import polis.posting.ApiException;
 import polis.posting.OkPostingHelper;
+import polis.posting.PostingHelper;
 import polis.posting.TgApiHelper;
 import polis.util.IState;
 import polis.util.State;
@@ -105,9 +109,12 @@ public class Bot extends TelegramLongPollingCommandBot {
             BOT_NOT_ADMIN,
             EMPTY_LIST
     );
+
     private final String botName;
     private final String botToken;
     private final OkPostingHelper helper;
+    private final OkAuthorizator okAuthorizator = null;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
     private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
     private static final String GROUP_CALLBACK_TEXT = "group";
@@ -375,42 +382,71 @@ public class Bot extends TelegramLongPollingCommandBot {
                 if (!tgChannel.isAutoposting()) {
                     return;
                 }
-                for (ChannelGroup smg : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
-                    String accessToken = "";
-                    for (Account account : accountsRepository.getAccountsForUser(userChatId)) {
-                        if (Objects.equals(account.getAccountId(), smg.getAccountId())) {
-                            accessToken = account.getAccessToken();
-                            break;
-                        }
-                    }
-                    switch (smg.getSocialMedia()) { //Здесь бы смапить группы на подходящие PostingHelper'ы
+                for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
+                    switch (group.getSocialMedia()) { //Здесь бы смапить группы на подходящие PostingHelper'ы
                         // и с помощью каждого запостить пост
                         case OK -> {
+
+                            if (!documents.isEmpty() && animations.isEmpty()) {
+                                sendAnswer(chatId, """
+                                        Тип 'Документ' не поддерживается в социальной сети Одноклассники""");
+                            }
+                            PostingHelper.Post post;
                             try {
-                                if (!documents.isEmpty() && animations.isEmpty()) {
-                                    sendAnswer(chatId, """
-                                            Тип 'Документ' не поддерживается в социальной сети Одноклассники""");
-                                }
-                                helper.newPost(smg.getGroupId(), accessToken)
+                                post = helper.newPost(group.getGroupId(), group.getAccessToken())
                                         .addPhotos(photos)
                                         .addVideos(videos)
                                         .addText(text)
                                         .addPoll(poll)
-                                        .addAnimations(animations)
-                                        .post();
-                                sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getGroupId());
-                            } catch (ApiException | IOException | URISyntaxException ignored) {
-                                //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а
+                                        .addAnimations(animations);
+                            } catch (ApiException | IOException | TelegramApiException | URISyntaxException ignored) {
+                                return; //TODO log
                             }
+                            doPostSafely(post, group);
                         }
                         default -> LOGGER.error(String.format("Social media not found: %s",
-                                smg.getSocialMedia()));
+                                group.getSocialMedia()));
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             sendAnswer(chatId, "Произошла непредвиденная ошибка  " + e);
         }
+    }
+
+    private void doPostSafely(PostingHelper.Post post, ChannelGroup group) {
+        try {
+            post.post();
+        } catch (URISyntaxException | IOException e) {
+            //TODO log
+        } catch (ApiException e) {
+            if (e.getCause() instanceof TokenExpiredException) {
+                Account account = accountsRepository.getAccountByKey(group.getChatId(), group.getSocialMedia().toString(), group.getAccountId());
+                String token;
+                try {
+                    token = refreshToken(group, account);
+                } catch (URISyntaxException | IOException | OkApiException ex) {
+                    return; //TODO log
+                }
+                try {
+                    post.post(token);
+                } catch (URISyntaxException | IOException | ApiException ex) {
+                    //TODO log
+                }
+            }
+        }
+    }
+
+    private String refreshToken(ChannelGroup group, Account account) throws URISyntaxException, IOException, OkApiException {
+        OkAuthorizator.TokenPair tokenPair = okAuthorizator.refreshToken(account.getRefreshToken());
+
+        account.setRefreshToken(tokenPair.refreshToken());
+        account.setAccessToken(tokenPair.accessToken());
+        group.setAccessToken(tokenPair.accessToken());
+        accountsRepository.insertNewAccount(account);
+        channelGroupsRepository.insertChannelGroup(group);
+
+        return tokenPair.accessToken();
     }
 
     private String getUserName(Message msg) {
