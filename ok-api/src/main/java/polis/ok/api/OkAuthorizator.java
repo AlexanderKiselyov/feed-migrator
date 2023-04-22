@@ -14,9 +14,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import static polis.data_check.api.LoggingUtils.parseResponse;
-import static polis.data_check.api.LoggingUtils.sendRequest;
-import static polis.data_check.api.LoggingUtils.wrapAndLog;
+import static polis.ok.api.LoggingUtils.parseResponse;
+import static polis.ok.api.LoggingUtils.sendRequest;
 import static polis.ok.api.LoggingUtils.parseResponse;
 import static polis.ok.api.LoggingUtils.sendRequest;
 
@@ -40,8 +39,8 @@ public final class OkAuthorizator {
         HttpRequest request = HttpRequest.newBuilder().POST(HttpRequest.BodyPublishers.ofByteArray(new byte[]{}))
                 .uri(uri)
                 .build();
-        HttpResponse<String> response = LoggingUtils.sendRequest(client, request, logger);
-        JSONObject responseJson = LoggingUtils.parseResponse(response, logger);
+        HttpResponse<String> response = sendRequest(client, request, logger);
+        JSONObject responseJson = parseResponse(response, logger);
 
         try {
             return new TokenPair(

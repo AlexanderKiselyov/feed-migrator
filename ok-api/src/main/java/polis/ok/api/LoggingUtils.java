@@ -1,4 +1,4 @@
-package polis.data_check.api;
+package polis.ok.api;
 
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.json.JSONException;
