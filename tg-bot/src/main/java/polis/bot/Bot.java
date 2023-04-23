@@ -327,9 +327,11 @@ public class Bot extends TelegramLongPollingCommandBot {
     private void processPostsInChannel(long chatId, List<Message> channelPosts) {
         try {
             if (!postsLimiter.allowRequest(chatId)) {
+                sendAnswer(chatId, "Превышено количество запросов в единицу времени");
                 return;
             }
         } catch (ExecutionException e) {
+            sendAnswer(chatId, "Проблема на сервере");
             return;
         }
         Map<String, List<Message>> posts = channelPosts.stream().collect(
