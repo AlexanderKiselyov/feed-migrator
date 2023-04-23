@@ -53,18 +53,22 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.ok.api.OkClientImpl;
 import polis.keyboards.ReplyKeyboard;
+import polis.ratelim.GuavaRateLimiter;
+import polis.ratelim.RateLimiter;
 import polis.util.IState;
 import polis.util.State;
 import polis.util.Substate;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static polis.datacheck.DataCheck.OK_AUTH_STATE_ANSWER;
@@ -102,6 +106,7 @@ public class Bot extends TelegramLongPollingCommandBot {
             BOT_NOT_ADMIN,
             EMPTY_LIST
     );
+    private final RateLimiter postsLimiter;
     private final String botName;
     private final String botToken;
     private final OkPostingHelper helper;
@@ -172,11 +177,18 @@ public class Bot extends TelegramLongPollingCommandBot {
     @Autowired
     private Autoposting autoposting;
 
-    public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
+    public Bot(
+            @Value("${bot.name}") String botName,
+            @Value("${bot.token}") String botToken,
+            @Value("{bot.ratelimiter.permits-per-second}") double permitsPerSecond,
+            @Value("{bot.ratelimiter.records-maxsize}") int recordsMaxSize,
+            @Value("{bot.ratelimiter.records-ttl}") long recordsTtl
+    ) {
         super();
         this.botName = botName;
         this.botToken = botToken;
         this.helper = new OkPostingHelper(this, botToken, new TgApiHelper(), new OkClientImpl());
+        this.postsLimiter = new GuavaRateLimiter(permitsPerSecond, recordsMaxSize, Duration.ofHours(recordsTtl));
     }
 
     @Override
@@ -309,12 +321,17 @@ public class Bot extends TelegramLongPollingCommandBot {
         updates.get(channelPosts).stream()
                 .map(Update::getChannelPost)
                 .collect(Collectors.groupingBy(Message::getChatId))
-                .values()
                 .forEach(this::processPostsInChannel);
-        //То, что сейчас делает forEach, потом следует сабмитить в executor
     }
 
-    private void processPostsInChannel(List<Message> channelPosts) {
+    private void processPostsInChannel(long chatId, List<Message> channelPosts) {
+        try {
+            if (!postsLimiter.allowRequest(chatId)) {
+                return;
+            }
+        } catch (ExecutionException e) {
+            return;
+        }
         Map<String, List<Message>> posts = channelPosts.stream().collect(
                 Collectors.groupingBy(
                         post -> post.getMediaGroupId() == null ? SINGLE_ITEM_POSTS : post.getMediaGroupId(),
