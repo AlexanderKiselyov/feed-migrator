@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.util.State;
 import polis.ok.api.OkAuthorizator;
+import polis.util.State;
 
 import java.net.URISyntaxException;
 
