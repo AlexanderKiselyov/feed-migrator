@@ -346,8 +346,8 @@ public class Bot extends TelegramLongPollingCommandBot {
 
     private void processPostItems(List<Message> postItems) {
         long chatId = postItems.get(0).getChatId();
+        long ownerChatId = userChannelsRepository.getUserChatId(chatId);
         try {
-            long ownerChatId = userChannelsRepository.getUserChatId(chatId);
             if (!userChannelsRepository.isSetAutoposting(ownerChatId, chatId)) {
                 return;
             }
@@ -419,7 +419,6 @@ public class Bot extends TelegramLongPollingCommandBot {
                                         .addPoll(poll)
                                         .addAnimations(animations)
                                         .post(accessToken, smg.getGroupId());
-                                //sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getId());
                                 checkAndSendNotification(chatId, ownerChatId,
                                         "Успешно опубликовал пост в ok.ru/group/" + smg.getGroupId());
                             } catch (URISyntaxException | IOException ignored) {
@@ -437,8 +436,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 }
             }
         } catch (Exception e) {
-            sendAnswer(chatId, "Произошла непредвиденная ошибка  " + e);
-            //TODO Пишем в канал или в чат пользователя?
+            sendAnswer(ownerChatId, "Произошла непредвиденная ошибка  " + e);
         }
     }
 
