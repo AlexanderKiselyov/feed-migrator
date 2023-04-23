@@ -44,7 +44,7 @@ public class ChannelGroupsRepository {
         );
     }
 
-    public void deleteAllChannelGroups(long channelId, String socialMedia) throws DataAccessException {
+    public void deleteChannelGroup(long channelId, String socialMedia) throws DataAccessException {
         cassandraOperations.delete(
                 query(
                         where(CHANNEL_ID).is(channelId))

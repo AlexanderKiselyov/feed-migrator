@@ -651,9 +651,13 @@ public class Bot extends TelegramLongPollingCommandBot {
                     );
                     break;
                 }
-                CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chatId);
-                channelGroupsRepository.deleteAllChannelGroups(currentChannel.getChannelId(),
-                        account.getSocialMedia().getName());
+                currentGroupRepository.deleteCurrentGroup(chatId);
+                currentAccountRepository.deleteCurrentAccount(chatId);
+                List<UserChannels> userChannels = userChannelsRepository.getUserChannels(chatId);
+                for (UserChannels userChannel: userChannels) {
+                    channelGroupsRepository.deleteChannelGroup(userChannel.getChannelId(),
+                            account.getSocialMedia().getName());
+                }
                 accountsRepository.deleteAccount(chatId, account.getAccountId(), account.getSocialMedia().getName());
                 break;
             }
