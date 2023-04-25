@@ -29,6 +29,9 @@ public class Notifications extends Command {
     private static final String NO_CURRENT_TG_CHANNEL = """
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
+
+    private static final String WRONG_SOCIAL_MEDIA_MSG = """
+            Социальная сеть неверная.""";
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
 
@@ -65,15 +68,15 @@ public class Notifications extends Command {
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
-            String notificationsEnable = "";
+            String notificationsEnable;
             if (currentGroup.getSocialMedia() == SocialMedia.OK) {
                 notificationsEnable = String.format(NOTIFICATIONS_MSG_INLINE,
                         currentChannel.getChannelUsername(),
                         dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken()),
                         currentGroup.getGroupName());
             } else {
-                logger.error(String.format("Social media incorrect: %s",
-                        currentGroup.getSocialMedia()));
+                logger.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
+                notificationsEnable = WRONG_SOCIAL_MEDIA_MSG;
             }
             sendAnswer(
                     absSender,

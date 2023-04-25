@@ -53,8 +53,8 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
-import polis.ok.api.OkClientImpl;
 import polis.keyboards.ReplyKeyboard;
+import polis.ok.api.OkClientImpl;
 import polis.util.IState;
 import polis.util.State;
 import polis.util.Substate;
@@ -84,8 +84,8 @@ import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
 @Component
 public class Bot extends TelegramLongPollingCommandBot {
     private static final List<String> EMPTY_LIST = List.of();
-    private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в " +
-            "курсе автоматически опубликованных записей с помощью команды /notifications";
+    private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в "
+            + "курсе автоматически опубликованных записей с помощью команды /notifications";
     private static final String AUTOPOSTING_ENABLE_AND_NOTIFICATIONS = "Функция автопостинга включена."
             + TURN_ON_NOTIFICATIONS_MSG;
     private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.of(
@@ -122,10 +122,10 @@ public class Bot extends TelegramLongPollingCommandBot {
     private static final String NOTIFICATIONS = "notifications";
     private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
     private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
-    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n" +
-            "Не удалось опубликовать пост в ok.ru/group/";
-    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в " +
-            "соответствии с Законом об авторском праве.";
+    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n"
+            + "Не удалось опубликовать пост в ok.ru/group/";
+    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
+            + "соответствии с Законом об авторском праве.";
     private static final String SINGLE_ITEM_POSTS = "";
 
     @Autowired
