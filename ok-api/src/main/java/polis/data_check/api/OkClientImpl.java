@@ -8,6 +8,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,20 +34,21 @@ import static polis.data_check.api.LoggingUtils.sendRequest;
 import static polis.data_check.api.LoggingUtils.wrapAndLog;
 
 public class OkClientImpl implements OKClient {
+    private static final Integer CLIENT_RESPONSE_TIMEOUT = 5;
     private static final String POST_MEDIA_TOPIC = "mediatopic.post";
     private static final String UPLOAD_PHOTO = "photosV2.getUploadUrl";
     private static final String UPLOAD_VIDEO = "video.getUploadUrl";
     private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
-    private final Integer clientResponseTimeout = 5;
-    private final RequestConfig config;
     private final HttpClient client = HttpClient.newHttpClient();
+    private final CloseableHttpClient advancedClient;
     private final ObjectMapper mapper = new ObjectMapper();
 
     public OkClientImpl() {
-         config = RequestConfig.custom()
-                .setConnectTimeout(clientResponseTimeout * 1000)
-                .setConnectionRequestTimeout(clientResponseTimeout * 1000)
-                .setSocketTimeout(clientResponseTimeout * 1000).build();
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(CLIENT_RESPONSE_TIMEOUT * 1000)
+                .setConnectionRequestTimeout(CLIENT_RESPONSE_TIMEOUT * 1000)
+                .setSocketTimeout(CLIENT_RESPONSE_TIMEOUT * 1000).build();
+         advancedClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
     }
 
     public void postMediaTopic(String accessToken, long groupId, Attachment attachment)
@@ -86,24 +88,24 @@ public class OkClientImpl implements OKClient {
         }
         httpPost.setEntity(multipartEntityBuilder.build());
 
-        try (CloseableHttpClient advancedClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
-            org.apache.http.HttpResponse response = sendRequest(advancedClient, httpPost, logger);
-            JSONObject responseJson = parseResponse(response, logger);
+        org.apache.http.HttpResponse response = sendRequest(advancedClient, httpPost, logger);
+        JSONObject responseJson = parseResponse(response, logger);
 
-            try {
-                JSONObject photoIds = responseJson.getJSONObject("photos");
-                List<String> result = new ArrayList<>(photos.size());
-                for (int i = 0; i < photos.size(); i++) {
-                    String photoToken = uploadUrlResponse.photoTokens.get(i);
-                    String photoId = photoIds.getJSONObject(photoToken).getString("token");
-                    result.add(photoId);
-                }
-                return result;
-            } catch (JSONException e) {
-                throw wrapAndLog(e, "", "", logger);
-            } catch (IndexOutOfBoundsException e) {
-                throw new OkApiException(e);
+        EntityUtils.consume(response.getEntity());
+
+        try {
+            JSONObject photoIds = responseJson.getJSONObject("photos");
+            List<String> result = new ArrayList<>(photos.size());
+            for (int i = 0; i < photos.size(); i++) {
+                String photoToken = uploadUrlResponse.photoTokens.get(i);
+                String photoId = photoIds.getJSONObject(photoToken).getString("token");
+                result.add(photoId);
             }
+            return result;
+        } catch (JSONException e) {
+            throw wrapAndLog(e, "", "", logger);
+        } catch (IndexOutOfBoundsException e) {
+            throw new OkApiException(e);
         }
     }
 
@@ -117,9 +119,9 @@ public class OkClientImpl implements OKClient {
         multipartEntityBuilder.addPart("video", new FileBody(video));
         httpPost.setEntity(multipartEntityBuilder.build());
 
-        try (CloseableHttpClient advancedClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
-            sendRequest(advancedClient, httpPost, logger);
-        }
+        org.apache.http.HttpResponse response = sendRequest(advancedClient, httpPost, logger);
+
+        EntityUtils.consume(response.getEntity());
 
         return uploadUrlResponse.videoId;
     }
