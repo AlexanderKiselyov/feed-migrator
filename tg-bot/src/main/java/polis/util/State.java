@@ -17,11 +17,14 @@ public enum State implements IState {
     OkAccountDescription("ok_account_description", "\uD83D\uDCD1 Информация по аккаунту "
             + "Одноклассников"),
     AccountsList("accounts_list", "\uD83D\uDCC4 Список добавленных аккаунтов"),
-    AddOkGroup("add_ok_group_and_sync", "➕ Добавление группы Одноклассников"),
+    AddOkGroup("add_ok_group_and_sync", " Одноклассников"),
     SyncOkGroupDescription("ok_group_description",
             "\uD83D\uDCD1 Описание синрхронизованной с Телеграм-каналом группы Одноклассников"),
     SyncOkTg("sync_ok_tg", "\uD83D\uDD04 Синхронизация группы Одноклассников с Телеграм-каналом"),
-    Autoposting("autoposting", "\uD83D\uDD04 Настройка функции автопостинга");
+    Autoposting("autoposting", "\uD83D\uDD04 Настройка функции автопостинга"),
+    AddVkAccount("add_vk_account", "\uD83C\uDF10 Добавление аккаунта ВКонтакте"),
+    VkAccountDescription("vk_account_description", "\uD83D\uDCD1 Информация по аккаунту ВКонтакте"),
+    AddVkGroup("add_vk_group", "➕ Добавление группы ВКонтакте");
 
     private final String identifier;
     private final String description;
@@ -39,7 +42,10 @@ public enum State implements IState {
             Map.entry(AddOkGroup, OkAccountDescription),
             Map.entry(SyncOkGroupDescription, OkAccountDescription),
             Map.entry(Autoposting, SyncOkGroupDescription),
-            Map.entry(AddTgChannel, MainMenu)
+            Map.entry(AddTgChannel, MainMenu),
+            Map.entry(AddVkAccount, AddGroup),
+            Map.entry(Substate.AddVkAccount_AuthCode, AddGroup),
+            Map.entry(VkAccountDescription, AddGroup)
     );
 
     State(String identifier, String description) {

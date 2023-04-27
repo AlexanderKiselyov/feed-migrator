@@ -13,7 +13,7 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
 import polis.util.State;
 
 import java.util.Objects;
@@ -41,7 +41,7 @@ public class Autoposting extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
 
     private static final int rowsCount = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(Autoposting.class);
@@ -57,7 +57,7 @@ public class Autoposting extends Command {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
 
         if (currentChannel != null && currentAccount != null && currentGroup != null) {
-            String groupName = dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+            String groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
 
             if (Objects.equals(groupName, "")) {
                 sendAnswer(

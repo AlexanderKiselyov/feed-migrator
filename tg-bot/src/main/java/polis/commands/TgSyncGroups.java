@@ -13,7 +13,7 @@ import polis.data.domain.CurrentChannel;
 import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.CurrentChannelRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
 import polis.util.State;
 
 import java.util.List;
@@ -43,7 +43,7 @@ public class TgSyncGroups extends Command {
     private ChannelGroupsRepository channelGroupsRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TgSyncGroups.class);
 
@@ -67,7 +67,7 @@ public class TgSyncGroups extends Command {
                         case OK -> {
                             for (Account socialMediaAccount : accounts) {
                                 if (Objects.equals(socialMediaAccount.getAccountId(), group.getAccountId())) {
-                                    groupName = dataCheck.getOKGroupName(group.getGroupId(),
+                                    groupName = okDataCheck.getOKGroupName(group.getGroupId(),
                                             socialMediaAccount.getAccessToken());
                                     break;
                                 }

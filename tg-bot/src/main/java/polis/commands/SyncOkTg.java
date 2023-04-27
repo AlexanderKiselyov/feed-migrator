@@ -11,7 +11,7 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
 
@@ -39,7 +39,7 @@ public class SyncOkTg extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
 
     private final TelegramDataCheck telegramDataCheck;
     private static final int rowsCount = 1;
@@ -55,7 +55,7 @@ public class SyncOkTg extends Command {
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
-            String groupName = dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+            String groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
 
             if (Objects.equals(groupName, "")) {
                 sendAnswer(

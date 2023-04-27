@@ -10,7 +10,7 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
 import polis.util.State;
 
 import java.util.Objects;
@@ -32,7 +32,7 @@ public class GroupDescription extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupDescription.class);
 
@@ -47,7 +47,7 @@ public class GroupDescription extends Command {
 
         if (currentGroup != null) {
             switch (currentGroup.getSocialMedia()) {
-                case OK -> groupName = dataCheck.getOKGroupName(currentGroup.getGroupId(),
+                case OK -> groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(),
                         currentAccountRepository.getCurrentAccount(chat.getId()).getAccessToken());
                 default -> LOGGER.error(String.format("Social media not found: %s",
                         currentGroup.getSocialMedia()));

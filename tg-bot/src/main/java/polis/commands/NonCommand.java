@@ -16,7 +16,8 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.IState;
 import polis.util.SocialMedia;
@@ -62,7 +63,10 @@ public class NonCommand {
     private AccountsRepository accountsRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
+
+    @Autowired
+    private VkDataCheck vkDataCheck;
 
     private final TelegramDataCheck telegramDataCheck;
     private static final Logger LOGGER = LoggerFactory.getLogger(NonCommand.class);
@@ -99,7 +103,7 @@ public class NonCommand {
             }
             return answer;
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
-            return dataCheck.getOKAuthCode(text, chatId);
+            return okDataCheck.getOKAuthCode(text, chatId);
         } else if (state.equals(Substate.AddOkGroup_AddGroup)) {
             CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chatId);
             if (currentAccount == null) {
@@ -116,15 +120,15 @@ public class NonCommand {
 
             String accessToken = currentAccount.getAccessToken();
 
-            Long groupId = dataCheck.getOKGroupId(text, accessToken);
+            Long groupId = okDataCheck.getOKGroupId(text, accessToken);
 
             if (groupId == -1) {
                 return new AnswerPair(GROUP_NOT_FOUND, true);
             }
 
-            AnswerPair answer = dataCheck.checkOKGroupAdminRights(accessToken, groupId);
+            AnswerPair answer = okDataCheck.checkOKGroupAdminRights(accessToken, groupId);
 
-            String groupName = dataCheck.getOKGroupName(groupId, currentAccount.getAccessToken());
+            String groupName = okDataCheck.getOKGroupName(groupId, currentAccount.getAccessToken());
 
             if (Objects.equals(groupName, "")) {
                 return new AnswerPair(GROUP_NAME_NOT_FOUND, true);
@@ -138,6 +142,8 @@ public class NonCommand {
             }
 
             return answer;
+        } else if (state.equals(Substate.AddVkAccount_AuthCode)) {
+            return vkDataCheck.getVkAuthCode(text, chatId);
         }
         return new AnswerPair(BOT_WRONG_STATE_ANSWER, true);
     }

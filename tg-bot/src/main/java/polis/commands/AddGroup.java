@@ -29,7 +29,8 @@ public class AddGroup extends Command {
     private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
             State.AccountsList.getDescription(),
-            State.AddOkAccount.getDescription()
+            State.AddOkAccount.getDescription(),
+            State.AddVkAccount.getDescription()
     );
 
     public AddGroup() {

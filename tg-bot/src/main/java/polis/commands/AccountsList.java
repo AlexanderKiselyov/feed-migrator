@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.Account;
 import polis.data.repositories.AccountsRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
 import polis.util.State;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public class AccountsList extends Command {
     private AccountsRepository accountsRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
 
     public AccountsList() {
         super(State.AccountsList.getIdentifier(), State.AccountsList.getDescription());
@@ -40,7 +40,7 @@ public class AccountsList extends Command {
 
         if (accounts != null && !accounts.isEmpty()) {
             for (Account account : accounts) {
-                if (Objects.equals(dataCheck.getOKUsername(account.getAccessToken()), "")) {
+                if (Objects.equals(okDataCheck.getOKUsername(account.getAccessToken()), "")) {
                     sendAnswer(
                             absSender,
                             chat.getId(),
@@ -93,7 +93,7 @@ public class AccountsList extends Command {
         for (int i = 0; i < socialMediaAccounts.size(); i++) {
             int tmpIndex = i * 2;
             buttons[tmpIndex] = String.format("%s (%s)",
-                    dataCheck.getOKUsername(socialMediaAccounts.get(i).getAccessToken()),
+                    okDataCheck.getOKUsername(socialMediaAccounts.get(i).getAccessToken()),
                     socialMediaAccounts.get(i).getSocialMedia());
             buttons[tmpIndex + 1] = String.format("account %d", socialMediaAccounts.get(i).getAccountId());
         }
