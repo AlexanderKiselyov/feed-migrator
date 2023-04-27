@@ -29,15 +29,18 @@ public abstract class PostingHelper {
             this.accessToken = accessToken;
         }
 
-        public abstract Post addPhotos(List<PhotoSize> photos) throws URISyntaxException, IOException, TelegramApiException, ApiException;
+        public abstract Post addPhotos(List<PhotoSize> photos) throws URISyntaxException, IOException,
+                TelegramApiException, ApiException;
 
-        public abstract Post addVideos(List<Video> videos) throws URISyntaxException, IOException, TelegramApiException, ApiException;
+        public abstract Post addVideos(List<Video> videos) throws URISyntaxException, IOException,
+                TelegramApiException, ApiException;
 
         public abstract Post addText(String text);
 
         public abstract Post addPoll(Poll poll);
 
-        public abstract Post addAnimations(List<Animation> animations) throws URISyntaxException, IOException, TelegramApiException, ApiException;
+        public abstract Post addAnimations(List<Animation> animations) throws URISyntaxException, IOException,
+                TelegramApiException, ApiException;
 
         public abstract Post addDocuments(List<Document> documents);
 

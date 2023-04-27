@@ -8,19 +8,17 @@ import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.ok.api.OKClient;
-import polis.ok.api.exceptions.OkApiException;
 import polis.ok.api.domain.Attachment;
 import polis.ok.api.domain.Photo;
 import polis.ok.api.domain.PhotoMedia;
 import polis.ok.api.domain.PollMedia;
 import polis.ok.api.domain.TextMedia;
 import polis.ok.api.domain.VideoMedia;
+import polis.ok.api.exceptions.OkApiException;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,7 +55,9 @@ public class OkPostingHelper extends PostingHelper {
             }
             PhotoMedia photoMedia = new PhotoMedia(photos.size());
             try {
-                okClient.uploadPhotos(accessToken, groupId, photos).stream().map(Photo::new).forEach(photoMedia::addPhoto);
+                okClient.uploadPhotos(accessToken, groupId, photos).stream()
+                        .map(Photo::new)
+                        .forEach(photoMedia::addPhoto);
             } catch (OkApiException e) {
                 throw new ApiException(e);
             }
@@ -66,7 +66,8 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public Post addVideos(List<Video> videos) throws URISyntaxException, IOException, TelegramApiException, ApiException {
+        public Post addVideos(List<Video> videos) throws URISyntaxException, IOException, TelegramApiException,
+                ApiException {
             if (videos == null || videos.isEmpty()) {
                 return this;
             }

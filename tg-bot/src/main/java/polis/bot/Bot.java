@@ -21,7 +21,25 @@ import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.commands.*;
+import polis.commands.AccountsList;
+import polis.commands.AddGroup;
+import polis.commands.AddOkAccount;
+import polis.commands.AddOkGroup;
+import polis.commands.AddTgChannel;
+import polis.commands.AddVkAccount;
+import polis.commands.AddVkGroup;
+import polis.commands.Autoposting;
+import polis.commands.GroupDescription;
+import polis.commands.MainMenu;
+import polis.commands.NonCommand;
+import polis.commands.OkAccountDescription;
+import polis.commands.StartCommand;
+import polis.commands.SyncOkGroupDescription;
+import polis.commands.SyncOkTg;
+import polis.commands.TgChannelDescription;
+import polis.commands.TgChannelsList;
+import polis.commands.TgSyncGroups;
+import polis.commands.VkAccountDescription;
 import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentAccount;
@@ -36,9 +54,9 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
+import polis.keyboards.ReplyKeyboard;
 import polis.ok.api.OkAuthorizator;
 import polis.ok.api.OkClientImpl;
-import polis.keyboards.ReplyKeyboard;
 import polis.ok.api.exceptions.OkApiException;
 import polis.ok.api.exceptions.TokenExpiredException;
 import polis.posting.ApiException;
@@ -415,7 +433,8 @@ public class Bot extends TelegramLongPollingCommandBot {
             //TODO log
         } catch (ApiException e) {
             if (e.getCause() instanceof TokenExpiredException) {
-                Account account = accountsRepository.getAccountByKey(group.getChatId(), group.getSocialMedia().toString(), group.getAccountId());
+                Account account = accountsRepository.getAccountByKey(group.getChatId(),
+                        group.getSocialMedia().toString(), group.getAccountId());
                 String token;
                 try {
                     token = refreshToken(group, account);
@@ -431,7 +450,8 @@ public class Bot extends TelegramLongPollingCommandBot {
         }
     }
 
-    private String refreshToken(ChannelGroup group, Account account) throws URISyntaxException, IOException, OkApiException {
+    private String refreshToken(ChannelGroup group, Account account) throws URISyntaxException, IOException,
+            OkApiException {
         OkAuthorizator.TokenPair tokenPair = okAuthorizator.refreshToken(account.getRefreshToken());
 
         account.setRefreshToken(tokenPair.refreshToken());

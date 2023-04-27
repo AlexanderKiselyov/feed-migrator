@@ -53,7 +53,7 @@ public class VkDataCheck {
                     tokenWithId.userId(),
                     username,
                     tokenWithId.accessToken(),
-                    ""                              // FIXME подумать над отсутствующим refresh_token в ВК
+                    "" // FIXME подумать над отсутствующим refresh_token в ВК
             );
 
             currentAccountRepository.insertCurrentAccount(

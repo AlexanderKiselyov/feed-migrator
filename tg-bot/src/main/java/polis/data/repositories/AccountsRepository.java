@@ -33,7 +33,7 @@ public class AccountsRepository {
                 Account.class);
     }
 
-    public Account getAccountByKey(long chatId, String socialMedia, long accountId){
+    public Account getAccountByKey(long chatId, String socialMedia, long accountId) {
         return cassandraOperations.selectOne(
                 query(where(CHAT_ID).is(chatId))
                         .and(where(SOCIAL_MEDIA).is(socialMedia))
