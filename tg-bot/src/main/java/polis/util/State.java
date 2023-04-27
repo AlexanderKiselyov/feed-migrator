@@ -17,7 +17,7 @@ public enum State implements IState {
     OkAccountDescription("ok_account_description", "\uD83D\uDCD1 Информация по аккаунту "
             + "Одноклассников"),
     AccountsList("accounts_list", "\uD83D\uDCC4 Список добавленных аккаунтов"),
-    AddOkGroup("add_ok_group_and_sync", " Одноклассников"),
+    AddOkGroup("add_ok_group_and_sync", "➕ Добавление группы Одноклассников"),
     SyncOkGroupDescription("ok_group_description",
             "\uD83D\uDCD1 Описание синрхронизованной с Телеграм-каналом группы Одноклассников"),
     SyncOkTg("sync_ok_tg", "\uD83D\uDD04 Синхронизация группы Одноклассников с Телеграм-каналом"),
