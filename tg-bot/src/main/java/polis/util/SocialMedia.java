@@ -3,7 +3,8 @@ package polis.util;
 import java.util.Objects;
 
 public enum SocialMedia {
-    OK("Одноклассники");
+    OK("Одноклассники"),
+    VK("ВКонтакте");
 
     private final String name;
 

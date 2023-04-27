@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.Account;
 import polis.data.repositories.AccountsRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
 import polis.util.State;
 
 import java.util.List;
@@ -23,13 +23,12 @@ public class AccountsList extends Command {
     private static final String NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST = """
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
-    private static final String trashEmoji = "\uD83D\uDDD1";
 
     @Autowired
     private AccountsRepository accountsRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
 
     public AccountsList() {
         super(State.AccountsList.getIdentifier(), State.AccountsList.getDescription());
@@ -41,7 +40,7 @@ public class AccountsList extends Command {
 
         if (accounts != null && !accounts.isEmpty()) {
             for (Account account : accounts) {
-                if (Objects.equals(dataCheck.getOKUsername(account.getAccessToken()), "")) {
+                if (Objects.equals(okDataCheck.getOKUsername(account.getAccessToken()), "")) {
                     sendAnswer(
                             absSender,
                             chat.getId(),
@@ -74,7 +73,7 @@ public class AccountsList extends Command {
                     ACCOUNTS_LIST_INLINE,
                     accounts.size(),
                     commandsForKeyboard,
-                    getButtonsForAccounts(accounts));
+                    getAccountsArray(accounts));
         } else {
             sendAnswer(
                     absSender,
@@ -89,18 +88,14 @@ public class AccountsList extends Command {
         }
     }
 
-    private String[] getButtonsForAccounts(List<Account> socialMediaAccounts) {
-        String[] buttons = new String[socialMediaAccounts.size() * 4];
+    private String[] getAccountsArray(List<Account> socialMediaAccounts) {
+        String[] buttons = new String[socialMediaAccounts.size() * 2];
         for (int i = 0; i < socialMediaAccounts.size(); i++) {
-            int tmpIndex = i * 4;
-            Account tmpAccount = socialMediaAccounts.get(i);
-            String accountUsername = dataCheck.getOKUsername(tmpAccount.getAccessToken());
-            long tmpAccountId = tmpAccount.getAccountId();
-
-            buttons[tmpIndex] = String.format("%s (%s)", accountUsername, tmpAccount.getSocialMedia());
-            buttons[tmpIndex + 1] = String.format("account %d 0", tmpAccountId);
-            buttons[tmpIndex + 2] = trashEmoji + " Удалить";
-            buttons[tmpIndex + 3] = String.format("account %d 1", tmpAccountId);
+            int tmpIndex = i * 2;
+            buttons[tmpIndex] = String.format("%s (%s)",
+                    okDataCheck.getOKUsername(socialMediaAccounts.get(i).getAccessToken()),
+                    socialMediaAccounts.get(i).getSocialMedia());
+            buttons[tmpIndex + 1] = String.format("account %d", socialMediaAccounts.get(i).getAccountId());
         }
 
         return buttons;

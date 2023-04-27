@@ -32,7 +32,7 @@ import static polis.commands.Command.USERNAME_NOT_FOUND;
 import static polis.commands.Command.USER_ID_NOT_FOUND;
 
 @Component
-public class DataCheck {
+public class OkDataCheck {
     public static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
             "Введенный код авторизации неверный. Пожалуйста, попробуйте еще раз.";
     public static final String OK_AUTH_STATE_ANSWER = """
@@ -60,7 +60,7 @@ public class DataCheck {
     private CurrentStateRepository currentStateRepository;
 
     private final HttpClient client = HttpClient.newHttpClient();
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataCheck.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OkDataCheck.class);
     private final OkAuthorizator okAuthorizator = new OkAuthorizator();
 
     public NonCommand.AnswerPair getOKAuthCode(String text, Long chatId) {

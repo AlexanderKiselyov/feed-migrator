@@ -12,6 +12,7 @@ repositories {
 
 dependencies {
     implementation(project(":ok-api"))
+    implementation(project(":vk-api"))
     implementation("org.json:json:20230227")
     implementation("org.telegram:telegrambots:6.5.0")
     implementation("org.telegram:telegrambotsextensions:6.5.0")
@@ -22,6 +23,8 @@ dependencies {
 
     implementation("org.slf4j:slf4j-api:2.0.7")
     runtimeOnly("org.slf4j:slf4j-simple:2.0.7")
+
+    runtimeOnly("com.vk.api:sdk:1.0.9")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
@@ -40,6 +43,12 @@ configurations.all {
     }
     resolutionStrategy.capabilitiesResolution.withCapability("dev.jacomet.logging", "commons-logging-impl:1.0") {
         select("commons-logging:commons-logging:0")
+    }
+    resolutionStrategy.capabilitiesResolution.withCapability("dev.jacomet.logging", "log4j2-vs-slf4j:1.0") {
+        select("org.apache.logging.log4j:log4j-to-slf4j:0")
+    }
+    resolutionStrategy.capabilitiesResolution.withCapability("dev.jacomet.logging", "log4j2-impl:1.0") {
+        select("org.apache.logging.log4j:log4j-core:0")
     }
 }
 
