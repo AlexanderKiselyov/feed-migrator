@@ -24,7 +24,8 @@ public enum State implements IState {
     Autoposting("autoposting", "\uD83D\uDD04 Настройка функции автопостинга"),
     AddVkAccount("add_vk_account", "\uD83C\uDF10 Добавление аккаунта ВКонтакте"),
     VkAccountDescription("vk_account_description", "\uD83D\uDCD1 Информация по аккаунту ВКонтакте"),
-    AddVkGroup("add_vk_group", "➕ Добавление группы ВКонтакте");
+    AddVkGroup("add_vk_group", "➕ Добавление группы ВКонтакте"),
+    SyncVkTg("sync_vk_tg", "\uD83D\uDD04 Синхронизация группы ВКонтакте с Телеграм-каналом");
 
     private final String identifier;
     private final String description;
@@ -45,7 +46,9 @@ public enum State implements IState {
             Map.entry(AddTgChannel, MainMenu),
             Map.entry(AddVkAccount, AddGroup),
             Map.entry(Substate.AddVkAccount_AuthCode, AddGroup),
-            Map.entry(VkAccountDescription, AddGroup)
+            Map.entry(VkAccountDescription, AddGroup),
+            Map.entry(AddVkGroup, VkAccountDescription),
+            Map.entry(Substate.AddVkGroup_AddGroup, AddVkGroup)
     );
 
     State(String identifier, String description) {

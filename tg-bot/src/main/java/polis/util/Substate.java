@@ -6,14 +6,16 @@ import java.util.Objects;
 public enum Substate implements IState {
     AddOkAccount_AuthCode(State.AddOkAccount.getIdentifier(), "Получение кода авторизации Одноклассников"),
     AddOkGroup_AddGroup(State.AddOkGroup.getIdentifier(), "Добавление новой группы Одноклассников"),
-    AddVkAccount_AuthCode(State.AddVkAccount.getIdentifier(), "Получение кода авторизации ВКонтакте");
+    AddVkAccount_AuthCode(State.AddVkAccount.getIdentifier(), "Получение кода авторизации ВКонтакте"),
+    AddVkGroup_AddGroup(State.AddVkGroup.getIdentifier(), "Добавление новой группы ВКонтакте");
 
     private final String identifier;
     private final String description;
     private static final Map<IState, IState> NEXT_SUBSTATE = Map.of(
             State.AddOkAccount, AddOkAccount_AuthCode,
             State.AddOkGroup, AddOkGroup_AddGroup,
-            State.AddVkAccount, AddVkAccount_AuthCode
+            State.AddVkAccount, AddVkAccount_AuthCode,
+            State.AddVkGroup, AddVkGroup_AddGroup
     );
 
     Substate(String identifier, String description) {

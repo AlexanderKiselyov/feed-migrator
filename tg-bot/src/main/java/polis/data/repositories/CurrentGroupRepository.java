@@ -28,6 +28,7 @@ public class CurrentGroupRepository {
     }
 
     public void insertCurrentGroup(@NotNull CurrentGroup currentGroup) throws DataAccessException {
+        deleteCurrentGroup(currentGroup.getChatId());
         cassandraOperations.update(currentGroup);
     }
 

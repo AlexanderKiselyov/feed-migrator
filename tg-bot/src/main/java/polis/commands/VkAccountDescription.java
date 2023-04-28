@@ -30,7 +30,7 @@ public class VkAccountDescription extends Command {
     @Autowired
     private VkDataCheck vkDataCheck;
 
-    private static final int rowsCount = 2;
+    private static final int rowsCount = 1;
     private static final List<String> commandsForKeyboard = List.of(
             State.AddVkGroup.getDescription()
     );

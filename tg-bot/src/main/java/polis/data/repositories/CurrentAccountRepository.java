@@ -27,6 +27,12 @@ public class CurrentAccountRepository {
     }
 
     public void insertCurrentAccount(@NotNull CurrentAccount newAccount) throws DataAccessException {
+        cassandraOperations.delete(
+                query(
+                    where(CHAT_ID).is(newAccount.getChatId())
+                ),
+                CurrentAccount.class
+        );
         cassandraOperations.update(newAccount);
     }
 

@@ -4,6 +4,8 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.UserAuthResponse;
 import com.vk.api.sdk.objects.users.responses.GetResponse;
+import com.vk.api.sdk.objects.groups.responses.GetByIdLegacyResponse;
+import com.vk.api.sdk.queries.groups.GroupsGetByIdQueryWithLegacy;
 import com.vk.api.sdk.queries.oauth.OAuthUserAuthorizationCodeFlowQuery;
 import com.vk.api.sdk.queries.users.UsersGetQuery;
 import org.slf4j.Logger;
@@ -67,6 +69,46 @@ public class LoggingUtils {
             }
 
             throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+        }
+    }
+
+    static Integer getGroupId(GroupsGetByIdQueryWithLegacy request, Logger logger) throws VkApiException {
+        try {
+            List<GetByIdLegacyResponse> response = request.execute();
+            return response.get(0).getId();
+        } catch (ApiException e) {
+            logger.error(String.format("Received error from VK: %s", e.getMessage()));
+
+            if (Objects.equals(e.getCode(), PARAM_SESSION_EXPIRED_ERROR_CODE)) {
+                throw new TokenExpiredException();
+            }
+
+            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+        } catch (ClientException e) {
+            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
+
+            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
+                    e.getMessage()));
+        }
+    }
+
+    static Boolean getIsGroupAdmin(GroupsGetByIdQueryWithLegacy request, Logger logger) throws VkApiException {
+        try {
+            List<GetByIdLegacyResponse> response = request.execute();
+            return response.get(0).isAdmin();
+        } catch (ApiException e) {
+            logger.error(String.format("Received error from VK: %s", e.getMessage()));
+
+            if (Objects.equals(e.getCode(), PARAM_SESSION_EXPIRED_ERROR_CODE)) {
+                throw new TokenExpiredException();
+            }
+
+            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+        } catch (ClientException e) {
+            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
+
+            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
+                    e.getMessage()));
         }
     }
 }

@@ -14,6 +14,7 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
+import polis.vk.api.VKApiMethods;
 import polis.vk.api.VkAuthorizator;
 import polis.vk.api.exceptions.VkApiException;
 
@@ -27,6 +28,7 @@ public class VkDataCheck {
             Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
     private static final Logger LOGGER = LoggerFactory.getLogger(OkDataCheck.class);
     private final VkAuthorizator vkAuthorizator = new VkAuthorizator();
+    private final VKApiMethods vkApiMethods = new VKApiMethods();
 
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
@@ -83,7 +85,25 @@ public class VkDataCheck {
 
     public String getVkUsername(VkAuthorizator.TokenWithId tokenWithId) {
         try {
-            return vkAuthorizator.getVkUsername(tokenWithId);
+            return vkApiMethods.getVkUsername(tokenWithId);
+        } catch (VkApiException e) {
+            LOGGER.error(String.format("Unknown error: %s", e.getMessage()));
+            return null;
+        }
+    }
+
+    public Integer getVkGroupId(VkAuthorizator.TokenWithId tokenWithId, String groupId) {
+        try {
+            return vkApiMethods.getVkGroupId(tokenWithId, groupId);
+        } catch (VkApiException e) {
+            LOGGER.error(String.format("Unknown error: %s", e.getMessage()));
+            return null;
+        }
+    }
+
+    public Boolean getIsVkGroupAdmin(VkAuthorizator.TokenWithId tokenWithId, String groupId) {
+        try {
+            return vkApiMethods.getIsVkGroupAdmin(tokenWithId, groupId);
         } catch (VkApiException e) {
             LOGGER.error(String.format("Unknown error: %s", e.getMessage()));
             return null;

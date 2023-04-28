@@ -26,7 +26,7 @@ public class AddGroup extends Command {
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
 
-    private static final int rowsCount = 2;
+    private static final int rowsCount = 3;
     private static final List<String> commandsForKeyboard = List.of(
             State.AccountsList.getDescription(),
             State.AddOkAccount.getDescription(),
