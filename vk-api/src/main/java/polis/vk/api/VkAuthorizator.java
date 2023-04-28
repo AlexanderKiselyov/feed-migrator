@@ -2,10 +2,8 @@ package polis.vk.api;
 
 import com.vk.api.sdk.client.TransportClient;
 import com.vk.api.sdk.client.VkApiClient;
-import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.queries.oauth.OAuthUserAuthorizationCodeFlowQuery;
-import com.vk.api.sdk.queries.users.UsersGetQuery;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +13,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static polis.vk.api.LoggingUtils.getAccessToken;
-import static polis.vk.api.LoggingUtils.getUsername;
 
 public class VkAuthorizator {
     private static final String AUTH_URL = "https://oauth.vk.com/authorize";
@@ -33,13 +30,6 @@ public class VkAuthorizator {
                         code
                 );
         return getAccessToken(request, logger);
-    }
-
-    public String getVkUsername(TokenWithId tokenWithId) throws VkApiException {
-        UsersGetQuery request = vk.users()
-                .get(new UserActor(tokenWithId.userId, tokenWithId.accessToken))
-                .fields();
-        return getUsername(request, logger);
     }
 
     public static String formAuthorizationUrl() throws URISyntaxException {

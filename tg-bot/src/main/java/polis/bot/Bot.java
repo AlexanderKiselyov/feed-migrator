@@ -36,6 +36,7 @@ import polis.commands.OkAccountDescription;
 import polis.commands.StartCommand;
 import polis.commands.SyncOkGroupDescription;
 import polis.commands.SyncOkTg;
+import polis.commands.SyncVkTg;
 import polis.commands.TgChannelDescription;
 import polis.commands.TgChannelsList;
 import polis.commands.TgSyncGroups;
@@ -64,6 +65,7 @@ import polis.posting.OkPostingHelper;
 import polis.posting.PostingHelper;
 import polis.posting.TgApiHelper;
 import polis.util.IState;
+import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
 
@@ -191,6 +193,9 @@ public class Bot extends TelegramLongPollingCommandBot {
     @Autowired
     private AddVkGroup addVkGroup;
 
+    @Autowired
+    private SyncVkTg syncVkTg;
+
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
         this.botName = botName;
@@ -232,6 +237,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         register(new AddVkAccount());
         register(vkAccountDescription);
         register(addVkGroup);
+        register(syncVkTg);
     }
 
     /**
@@ -574,6 +580,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                     LOGGER.error(String.format("Wrong account-callback data: %s", data));
                     return;
                 }
+                SocialMedia currentAccountSocialMedia = SocialMedia.OK;
                 for (Account account : accountsRepository.getAccountsForUser(chatId)) {
                     if (Objects.equals(String.valueOf(account.getAccountId()), dataParts[1])) {
                         currentAccountRepository.insertCurrentAccount(
@@ -586,12 +593,18 @@ public class Bot extends TelegramLongPollingCommandBot {
                                         account.getRefreshToken()
                                 )
                         );
+                        currentAccountSocialMedia = account.getSocialMedia();
                         break;
                     }
                 }
                 deleteLastMessage(msg, chatId);
-                getRegisteredCommand(State.OkAccountDescription.getIdentifier())
-                        .processMessage(this, msg, null);
+                switch (currentAccountSocialMedia) {
+                    case OK -> getRegisteredCommand(State.OkAccountDescription.getIdentifier())
+                            .processMessage(this, msg, null);
+                    case VK -> getRegisteredCommand(State.VkAccountDescription.getIdentifier())
+                            .processMessage(this, msg, null);
+                    default -> LOGGER.error(String.format("Unknown social media: %s", currentAccountSocialMedia));
+                }
             }
             case YES_NO_CALLBACK_TEXT -> {
                 if (Objects.equals(dataParts[1], "0")) {

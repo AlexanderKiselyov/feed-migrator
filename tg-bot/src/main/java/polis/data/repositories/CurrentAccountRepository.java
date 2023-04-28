@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.cassandra.core.CassandraOperations;
 import org.springframework.stereotype.Repository;
-import polis.data.domain.Account;
 import polis.data.domain.CurrentAccount;
 
 import javax.validation.constraints.NotNull;
@@ -28,6 +27,12 @@ public class CurrentAccountRepository {
     }
 
     public void insertCurrentAccount(@NotNull CurrentAccount newAccount) throws DataAccessException {
+        cassandraOperations.delete(
+                query(
+                    where(CHAT_ID).is(newAccount.getChatId())
+                ),
+                CurrentAccount.class
+        );
         cassandraOperations.update(newAccount);
     }
 }

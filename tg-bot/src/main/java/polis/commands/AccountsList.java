@@ -8,7 +8,10 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.Account;
 import polis.data.repositories.AccountsRepository;
 import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
+import polis.util.SocialMedia;
 import polis.util.State;
+import polis.vk.api.VkAuthorizator;
 
 import java.util.List;
 import java.util.Objects;
@@ -30,6 +33,9 @@ public class AccountsList extends Command {
     @Autowired
     private OkDataCheck okDataCheck;
 
+    @Autowired
+    private VkDataCheck vkDataCheck;
+
     public AccountsList() {
         super(State.AccountsList.getIdentifier(), State.AccountsList.getDescription());
     }
@@ -40,7 +46,10 @@ public class AccountsList extends Command {
 
         if (accounts != null && !accounts.isEmpty()) {
             for (Account account : accounts) {
-                if (Objects.equals(okDataCheck.getOKUsername(account.getAccessToken()), "")) {
+                if (Objects.equals(okDataCheck.getOKUsername(account.getAccessToken()), "")
+                        && Objects.equals(vkDataCheck.getVkUsername(
+                                new VkAuthorizator.TokenWithId(account.getAccessToken(),
+                                        (int) account.getAccountId())), null)) {
                     sendAnswer(
                             absSender,
                             chat.getId(),
@@ -92,10 +101,18 @@ public class AccountsList extends Command {
         String[] buttons = new String[socialMediaAccounts.size() * 2];
         for (int i = 0; i < socialMediaAccounts.size(); i++) {
             int tmpIndex = i * 2;
-            buttons[tmpIndex] = String.format("%s (%s)",
-                    okDataCheck.getOKUsername(socialMediaAccounts.get(i).getAccessToken()),
-                    socialMediaAccounts.get(i).getSocialMedia());
-            buttons[tmpIndex + 1] = String.format("account %d", socialMediaAccounts.get(i).getAccountId());
+            Account account = socialMediaAccounts.get(i);
+            if (account.getSocialMedia() == SocialMedia.OK) {
+                buttons[tmpIndex] = String.format("%s (%s)",
+                        okDataCheck.getOKUsername(account.getAccessToken()),
+                        account.getSocialMedia());
+            } else {
+                buttons[tmpIndex] = String.format("%s (%s)",
+                        vkDataCheck.getVkUsername(new VkAuthorizator.TokenWithId(account.getAccessToken(),
+                                (int) account.getAccountId())),
+                        account.getSocialMedia());
+            }
+            buttons[tmpIndex + 1] = String.format("account %d", account.getAccountId());
         }
 
         return buttons;
