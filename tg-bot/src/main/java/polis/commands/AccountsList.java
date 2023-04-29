@@ -23,6 +23,7 @@ public class AccountsList extends Command {
     private static final String NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST = """
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
+    private static final String trashEmoji = "\uD83D\uDDD1";
 
     @Autowired
     private AccountsRepository accountsRepository;
@@ -73,7 +74,7 @@ public class AccountsList extends Command {
                     ACCOUNTS_LIST_INLINE,
                     accounts.size(),
                     commandsForKeyboard,
-                    getAccountsArray(accounts));
+                    getButtonsForAccounts(accounts));
         } else {
             sendAnswer(
                     absSender,
@@ -88,16 +89,18 @@ public class AccountsList extends Command {
         }
     }
 
-    private String[] getAccountsArray(List<Account> socialMediaAccounts) {
+    private String[] getButtonsForAccounts(List<Account> socialMediaAccounts) {
         String[] buttons = new String[socialMediaAccounts.size() * 4];
         for (int i = 0; i < socialMediaAccounts.size(); i++) {
             int tmpIndex = i * 4;
-            buttons[tmpIndex] = String.format("%s (%s)",
-                    dataCheck.getOKUsername(socialMediaAccounts.get(i).getAccessToken()),
-                    socialMediaAccounts.get(i).getSocialMedia());
-            buttons[tmpIndex + 1] = String.format("account %d 0", socialMediaAccounts.get(i).getAccountId());
-            buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
-            buttons[tmpIndex + 3] = String.format("account %d 1", socialMediaAccounts.get(i).getAccountId());
+            Account tmpAccount = socialMediaAccounts.get(i);
+            String accountUsername = dataCheck.getOKUsername(tmpAccount.getAccessToken());
+            long tmpAccountId = tmpAccount.getAccountId();
+
+            buttons[tmpIndex] = String.format("%s (%s)", accountUsername, tmpAccount.getSocialMedia());
+            buttons[tmpIndex + 1] = String.format("account %d 0", tmpAccountId);
+            buttons[tmpIndex + 2] = trashEmoji + " Удалить";
+            buttons[tmpIndex + 3] = String.format("account %d 1", tmpAccountId);
         }
 
         return buttons;
