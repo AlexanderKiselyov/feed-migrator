@@ -53,6 +53,7 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.ok.api.OkClientImpl;
+import polis.posting.ApiException;
 import polis.posting.OkPostingHelper;
 import polis.posting.TgApiHelper;
 import polis.util.IState;
