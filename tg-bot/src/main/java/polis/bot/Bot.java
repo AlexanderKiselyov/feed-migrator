@@ -55,11 +55,11 @@ import polis.keyboards.ReplyKeyboard;
 import polis.ok.api.OkClientImpl;
 import polis.posting.ApiException;
 import polis.posting.OkPostingHelper;
-import polis.posting.TgApiHelper;
 import polis.util.IState;
 import polis.util.State;
 import polis.util.Substate;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -83,7 +83,7 @@ import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
 
 @Configuration
 @Component
-public class Bot extends TelegramLongPollingCommandBot {
+public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
     public static final List<String> EMPTY_LIST = List.of();
     private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.of(
             String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
@@ -175,14 +175,13 @@ public class Bot extends TelegramLongPollingCommandBot {
     @Autowired
     private Autoposting autoposting;
 
+    private final TgContentManager tgContentManager = new TgContentManager(this);
+
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
         this.botName = botName;
         this.botToken = botToken;
-        this.helper = new OkPostingHelper(
-                new TgApiHelper(botToken, this::downloadFile),
-                new OkClientImpl()
-        );
+        this.helper = new OkPostingHelper(new OkClientImpl());
     }
 
     @Override
@@ -391,13 +390,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                                     sendAnswer(chatId, """
                                             Тип 'Документ' не поддерживается в социальной сети Одноклассники""");
                                 }
-                                helper.newPost(smg.getGroupId(), accessToken)
-                                        .addPhotos(photos)
-                                        .addVideos(videos)
-                                        .addText(text)
-                                        .addPoll(poll)
-                                        .addAnimations(animations)
-                                        .post(accessToken);
+                                postToOk(videos, photos, text, poll, smg, accessToken);
                                 sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getGroupId());
                             } catch (URISyntaxException | IOException ignored) {
                                 //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а
@@ -631,5 +624,39 @@ public class Bot extends TelegramLongPollingCommandBot {
         lastMessage.setChatId(chatId);
         lastMessage.setMessageId(msg.getMessageId());
         execute(lastMessage);
+    }
+
+    private void postToOk(
+            List<Video> videos,
+            List<PhotoSize> photos,
+            String text,
+            Poll poll,
+            ChannelGroup smg,
+            String accessToken
+    ) throws URISyntaxException, IOException, TelegramApiException, ApiException {
+        OkPostingHelper.OkPost post = helper
+                .newPost(smg.getGroupId(), accessToken)
+                .addPoll(poll)
+                .addText(text);
+        List<File> files = new ArrayList<>(Math.max(videos.size(), photos.size()));
+        for (Video video : videos) {
+            File file = tgContentManager.download(video);
+            files.add(file);
+        }
+        post.addVideos(files);
+        files.clear();
+        for (PhotoSize photo : photos) {
+            File file = tgContentManager.download(photo);
+            files.add(file);
+        }
+        post.addPhotos(files);
+    }
+
+    @Override
+    public File downloadFileById(String fileId) throws URISyntaxException, IOException, TelegramApiException {
+        TgContentManager.GetFilePathResponse pathResponse = tgContentManager.retrieveFilePath(botToken, fileId);
+        String tgApiFilePath = pathResponse.getFilePath();
+        File file = downloadFile(tgApiFilePath);
+        return TgContentManager.fileWithOrigExtension(tgApiFilePath, file);
     }
 }

@@ -1,26 +1,18 @@
 package polis.posting;
 
-import org.telegram.telegrambots.meta.api.objects.Document;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.Video;
-import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
-public abstract class PostingHelper {
-    protected final TgApiHelper tgApiHelper;
+public interface PostingHelper {
 
-    protected PostingHelper(TgApiHelper tgApiHelper) {
-        this.tgApiHelper = tgApiHelper;
-    }
+    Post newPost(long groupId, String accessToken);
 
-    public abstract Post newPost(long groupId, String accessToken);
-
-    public abstract static class Post {
+    abstract class Post {
         final long groupId;
         final String accessToken;
 
@@ -29,17 +21,17 @@ public abstract class PostingHelper {
             this.accessToken = accessToken;
         }
 
-        public abstract Post addPhotos(List<PhotoSize> photos) throws URISyntaxException, IOException, TelegramApiException, ApiException;
+        public abstract Post addPhotos(List<File> photos) throws URISyntaxException, IOException, TelegramApiException, ApiException;
 
-        public abstract Post addVideos(List<Video> videos) throws URISyntaxException, IOException, TelegramApiException, ApiException;
+        public abstract Post addVideos(List<File> videos) throws URISyntaxException, IOException, TelegramApiException, ApiException;
 
         public abstract Post addText(String text);
 
         public abstract Post addPoll(Poll poll);
 
-        public abstract Post addAnimations(List<Animation> animations) throws URISyntaxException, IOException, TelegramApiException, ApiException;
+        public abstract Post addAnimations(List<File> animations) throws URISyntaxException, IOException, TelegramApiException, ApiException;
 
-        public abstract Post addDocuments(List<Document> documents);
+        public abstract Post addDocuments(List<File> documents);
 
         public abstract void post(String accessToken) throws URISyntaxException, IOException, ApiException;
 

@@ -1,34 +1,22 @@
 package polis.posting;
 
-import org.telegram.telegrambots.meta.api.objects.Document;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.Video;
-import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.ok.api.OKClient;
+import polis.ok.api.domain.*;
 import polis.ok.api.exceptions.OkApiException;
-import polis.ok.api.domain.Attachment;
-import polis.ok.api.domain.Photo;
-import polis.ok.api.domain.PhotoMedia;
-import polis.ok.api.domain.PollMedia;
-import polis.ok.api.domain.TextMedia;
-import polis.ok.api.domain.VideoMedia;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OkPostingHelper extends PostingHelper {
+public class OkPostingHelper implements PostingHelper {
     private final OKClient okClient;
 
-    public OkPostingHelper(TgApiHelper tgApiHelper, OKClient okClient) {
-        super(tgApiHelper);
+    public OkPostingHelper(OKClient okClient) {
         this.okClient = okClient;
     }
 
@@ -45,15 +33,10 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public Post addPhotos(List<PhotoSize> tgPhotos)
+        public Post addPhotos(List<File> photos)
                 throws URISyntaxException, IOException, TelegramApiException, ApiException {
-            if (tgPhotos == null || tgPhotos.isEmpty()) {
+            if (photos == null || photos.isEmpty()) {
                 return this;
-            }
-            List<File> photos = new ArrayList<>(tgPhotos.size());
-            for (PhotoSize tgPhoto : tgPhotos) {
-                File file = tgApiHelper.download(tgPhoto);
-                photos.add(file);
             }
             PhotoMedia photoMedia = new PhotoMedia(photos.size());
             try {
@@ -66,16 +49,15 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public Post addVideos(List<Video> videos) throws URISyntaxException, IOException, TelegramApiException, ApiException {
+        public OkPost addVideos(List<File> videos) throws URISyntaxException, IOException, TelegramApiException, ApiException {
             if (videos == null || videos.isEmpty()) {
                 return this;
             }
             VideoMedia videoMedia = new VideoMedia(videos.size());
-            for (Video video : videos) {
-                File file = tgApiHelper.download(video);
+            for (File video : videos) {
                 long videoId;
                 try {
-                    videoId = okClient.uploadVideo(accessToken, groupId, file);
+                    videoId = okClient.uploadVideo(accessToken, groupId, video);
                 } catch (OkApiException e) {
                     throw new ApiException(e);
                 }
@@ -86,7 +68,7 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public Post addText(String text) {
+        public OkPost addText(String text) {
             if (text != null && !text.isEmpty()) {
                 attachment.addMedia(new TextMedia(text));
             }
@@ -94,7 +76,7 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public Post addPoll(Poll poll) {
+        public OkPost addPoll(Poll poll) {
             if (poll == null) {
                 return this;
             }
@@ -118,32 +100,16 @@ public class OkPostingHelper extends PostingHelper {
         }
 
         @Override
-        public Post addAnimations(List<Animation> animations) throws URISyntaxException, IOException,
+        public OkPost addAnimations(List<File> animations) throws URISyntaxException, IOException,
                 TelegramApiException, ApiException {
             if (animations == null || animations.isEmpty()) {
                 return this;
             }
-
-            List<Video> videos = new ArrayList<>(1);
-            for (Animation animation : animations) {
-                Video video = new Video();
-                video.setDuration(animation.getDuration());
-                video.setFileId(animation.getFileId());
-                video.setFileName(animation.getFileName());
-                video.setHeight(animation.getHeight());
-                video.setThumb(animation.getThumb());
-                video.setFileSize(animation.getFileSize());
-                video.setFileUniqueId(animation.getFileUniqueId());
-                video.setMimeType(animation.getMimetype());
-                video.setWidth(animation.getWidth());
-                videos.add(video);
-            }
-
-            return addVideos(videos);
+            return addVideos(animations);
         }
 
         @Override
-        public Post addDocuments(List<Document> documents) {
+        public OkPost addDocuments(List<File> documents) {
             return this;
         }
 

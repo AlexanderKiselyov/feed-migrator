@@ -1,4 +1,4 @@
-package polis.posting;
+package polis.bot;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
+import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.File;
@@ -21,53 +22,32 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
-public class TgApiHelper {
+final class TgContentManager {
     private static final String TELEGRAM_API_URL = "https://api.telegram.org";
-    private static final Logger logger = LoggerFactory.getLogger(TgApiHelper.class);
+    private static final Logger logger = LoggerFactory.getLogger(TgContentManager.class);
 
-    private final String botToken;
+    private final TgFileLoader fileLoader;
     private final HttpClient client = HttpClient.newHttpClient();
-    private final FileDownloader fileDownloader;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public TgApiHelper(String botToken, FileDownloader fileDownloader) {
-        this.botToken = botToken;
-        this.fileDownloader = fileDownloader;
+    TgContentManager(TgFileLoader fileLoader) {
+        this.fileLoader = fileLoader;
     }
 
     File download(Video video) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = video.getFileId();
-        return downloadFile(fileId);
+        return fileLoader.downloadFileById(fileId);
     }
 
     File download(PhotoSize tgPhoto) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = tgPhoto.getFileId();
-        return downloadFile(fileId);
+        return fileLoader.downloadFileById(fileId);
     }
 
-    private File downloadFile(String fileId) throws URISyntaxException, IOException, TelegramApiException {
-        GetFilePathResponse pathResponse = retrieveFilePath(fileId);
-        String tgApiFilePath = pathResponse.getFilePath();
-        File file = fileDownloader.downloadFile(tgApiFilePath);
-        return fileWithOrigExtension(tgApiFilePath, file);
-    }
-
-    private static File fileWithOrigExtension(String tgApiFilePath, File file) {
-        String origExtension = tgApiFilePath.substring(tgApiFilePath.lastIndexOf('.'));
-        String absPath = file.getAbsolutePath();
-        int dotIndex = absPath.lastIndexOf('.');
-        Path path = Path.of(absPath.substring(0, dotIndex) + origExtension);
-        try {
-            Files.move(file.toPath(), path);
-        } catch (IOException e) {
-            logger.error("Error while changing extension of " + tgApiFilePath, e);
-            throw new RuntimeException(e);
-        }
-        return path.toFile();
-    }
-
-    private GetFilePathResponse retrieveFilePath(String fileId) throws URISyntaxException, IOException {
+    GetFilePathResponse retrieveFilePath(String botToken, String fileId) throws URISyntaxException, IOException {
         //https://api.telegram.org/bot<bot_token>/getFile?file_id=the_file_id
         URI uri = new URIBuilder(getFileUrl(botToken))
                 .addParameter("file_id", fileId)
@@ -83,17 +63,44 @@ public class TgApiHelper {
         return mapper.readValue(object.getJSONObject("result").toString(), GetFilePathResponse.class);
     }
 
+    static File fileWithOrigExtension(String tgApiFilePath, File file) {
+        String origExtension = tgApiFilePath.substring(tgApiFilePath.lastIndexOf('.'));
+        String absPath = file.getAbsolutePath();
+        int dotIndex = absPath.lastIndexOf('.');
+        Path path = Path.of(absPath.substring(0, dotIndex) + origExtension);
+        try {
+            Files.move(file.toPath(), path);
+        } catch (IOException e) {
+            logger.error("Error while changing extension of " + tgApiFilePath, e);
+            throw new RuntimeException(e);
+        }
+        return path.toFile();
+    }
+
+    static List<Video> toVideos(List<Animation> animations) {
+        List<Video> videos = new ArrayList<>(1);
+        for (Animation animation : animations) {
+            Video video = new Video();
+            video.setDuration(animation.getDuration());
+            video.setFileId(animation.getFileId());
+            video.setFileName(animation.getFileName());
+            video.setHeight(animation.getHeight());
+            video.setThumb(animation.getThumb());
+            video.setFileSize(animation.getFileSize());
+            video.setFileUniqueId(animation.getFileUniqueId());
+            video.setMimeType(animation.getMimetype());
+            video.setWidth(animation.getWidth());
+            videos.add(video);
+        }
+        return videos;
+    }
+
     private static String getFileUrl(String botToken) {
         return TELEGRAM_API_URL + "/bot" + botToken + "/getFile";
     }
 
-    @FunctionalInterface
-    public interface FileDownloader {
-        File downloadFile(String filePath) throws TelegramApiException;
-    }
-
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class GetFilePathResponse {
+    static class GetFilePathResponse {
         @JsonProperty("file_id")
         private String fileId;
 
