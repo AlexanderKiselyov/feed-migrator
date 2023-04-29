@@ -18,12 +18,12 @@ public class AppConfig {
     private static final int CLIENT_RESPONSE_TIMEOUT_SECONDS = 5;
 
     @Bean
-    public HttpClient httpClient(){
+    public HttpClient httpClient() {
         return HttpClient.newHttpClient();
     }
 
     @Bean
-    public CloseableHttpClient apacheHttpClient(){
+    public CloseableHttpClient apacheHttpClient() {
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(CLIENT_RESPONSE_TIMEOUT_SECONDS * 1000)
                 .setConnectionRequestTimeout(CLIENT_RESPONSE_TIMEOUT_SECONDS * 1000)
@@ -31,24 +31,21 @@ public class AppConfig {
         return HttpClientBuilder.create().setDefaultRequestConfig(config).build();
     }
 
-
     @Bean
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
     }
 
     @Bean
-    public OkAuthorizator okAuthorizator(@Autowired HttpClient httpClient){
+    public OkAuthorizator okAuthorizator(@Autowired HttpClient httpClient) {
         return new OkAuthorizator(httpClient);
     }
 
     @Bean
     public OKClient okClient(
             @Autowired CloseableHttpClient apacheHttpClient,
-            @Autowired HttpClient httpClient,
-            @Autowired ObjectMapper objectMapper
+            @Autowired HttpClient httpClient
     ) {
         return new OkClientImpl(apacheHttpClient, httpClient);
     }
-
 }
