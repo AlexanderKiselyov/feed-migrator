@@ -11,11 +11,12 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.ok.OKDataCheck;
+import polis.datacheck.DataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
 
 import java.util.List;
+import java.util.Objects;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
@@ -38,7 +39,7 @@ public class SyncOkGroupDescription extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private OKDataCheck okDataCheck;
+    private DataCheck dataCheck;
 
     private final TelegramDataCheck telegramDataCheck;
     private final int rowsCount = 1;
@@ -56,7 +57,24 @@ public class SyncOkGroupDescription extends Command {
         CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
+
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
+            String groupName = dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+
+            if (Objects.equals(groupName, "")) {
+                sendAnswer(
+                        absSender,
+                        chat.getId(),
+                        this.getCommandIdentifier(),
+                        user.getUserName(),
+                        GROUP_NAME_NOT_FOUND,
+                        super.rowsCount,
+                        super.commandsForKeyboard,
+                        null,
+                        GO_BACK_BUTTON_TEXT);
+                return;
+            }
+
             sendAnswer(
                     absSender,
                     chat.getId(),
@@ -65,7 +83,7 @@ public class SyncOkGroupDescription extends Command {
                     String.format(
                             SYNC_OK_TG_DESCRIPTION,
                             telegramDataCheck.getChatParameter(currentChannel.getChannelUsername(), "title"),
-                            okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken()),
+                            groupName,
                             currentGroup.getSocialMedia().getName(),
                             State.Autoposting.getIdentifier()
                     ),

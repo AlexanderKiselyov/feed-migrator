@@ -17,7 +17,8 @@ import java.net.http.HttpResponse;
 
 import static polis.ok.api.LoggingUtils.parseResponse;
 import static polis.ok.api.LoggingUtils.sendRequest;
-import static polis.ok.api.LoggingUtils.wrapAndLog;
+import static polis.ok.api.LoggingUtils.parseResponse;
+import static polis.ok.api.LoggingUtils.sendRequest;
 
 public final class OkAuthorizator {
     private static final String AUTH_URI = "https://connect.ok.ru/oauth/authorize";
@@ -48,7 +49,7 @@ public final class OkAuthorizator {
                     responseJson.getString("refresh_token")
             );
         } catch (JSONException e) {
-            throw wrapAndLog(e, response.toString(), response.body(), logger);
+            throw LoggingUtils.wrapAndLog(e, response.toString(), response.body(), logger);
         }
     }
 

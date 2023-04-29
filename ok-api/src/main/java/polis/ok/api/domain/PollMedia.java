@@ -1,7 +1,6 @@
 package polis.ok.api.domain;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
