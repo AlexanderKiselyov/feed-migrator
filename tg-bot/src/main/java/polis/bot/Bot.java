@@ -52,8 +52,7 @@ import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
-import polis.ok.api.OkClientImpl;
-import polis.posting.ApiException;
+import polis.ok.api.OKClient;
 import polis.posting.OkPostingHelper;
 import polis.posting.TgApiHelper;
 import polis.util.IState;
@@ -175,14 +174,15 @@ public class Bot extends TelegramLongPollingCommandBot {
     @Autowired
     private Autoposting autoposting;
 
-    public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
+    public Bot(
+            @Value("${bot.name}") String botName,
+            @Value("${bot.token}") String botToken,
+            @Autowired OKClient okClient
+    ) {
         super();
         this.botName = botName;
         this.botToken = botToken;
-        this.helper = new OkPostingHelper(
-                new TgApiHelper(botToken, this::downloadFile),
-                new OkClientImpl()
-        );
+        this.helper = new OkPostingHelper(new TgApiHelper(botToken, this::downloadFile), okClient);
     }
 
     @Override
@@ -232,6 +232,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         }
         return false;
     }
+
 
     @Override
     public void processNonCommandUpdate(Update update) {

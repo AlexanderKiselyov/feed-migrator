@@ -7,6 +7,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -27,9 +28,13 @@ public class TgApiHelper {
     private static final Logger logger = LoggerFactory.getLogger(TgApiHelper.class);
 
     private final String botToken;
-    private final HttpClient client = HttpClient.newHttpClient();
     private final FileDownloader fileDownloader;
-    private final ObjectMapper mapper = new ObjectMapper();
+
+    @Autowired
+    private HttpClient client;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     public TgApiHelper(String botToken, FileDownloader fileDownloader) {
         this.botToken = botToken;

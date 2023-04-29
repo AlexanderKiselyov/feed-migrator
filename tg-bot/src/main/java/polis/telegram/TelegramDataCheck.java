@@ -4,6 +4,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import polis.bot.BotProperties;
 import polis.commands.NonCommand;
 import polis.util.State;
@@ -29,8 +30,10 @@ public class TelegramDataCheck {
             Посмотреть информацию по телеграм-каналу можно по команде /%s""",
             State.TgChannelDescription.getIdentifier());
     private static final String GET_CHAT = "https://api.telegram.org/bot%s/getChat";
-    private final HttpClient client = HttpClient.newHttpClient();
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramDataCheck.class);
+
+    @Autowired
+    private HttpClient client;
 
     public TelegramDataCheck() {
 
