@@ -48,7 +48,7 @@ public class AppConfig {
             @Autowired HttpClient httpClient,
             @Autowired ObjectMapper objectMapper
     ) {
-        return new OkClientImpl(apacheHttpClient, httpClient, objectMapper);
+        return new OkClientImpl(apacheHttpClient, httpClient);
     }
 
 }

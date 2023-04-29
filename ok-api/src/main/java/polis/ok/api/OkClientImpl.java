@@ -45,11 +45,10 @@ public class OkClientImpl implements OKClient {
     private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
     private final HttpClient httpClient;
     private final CloseableHttpClient apacheHttpClient;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public OkClientImpl(CloseableHttpClient apacheHttpClient, HttpClient httpClient, ObjectMapper objectMapper) {
+    public OkClientImpl(CloseableHttpClient apacheHttpClient, HttpClient httpClient) {
         this.httpClient = httpClient;
-        this.objectMapper = objectMapper;
         this.apacheHttpClient = apacheHttpClient;
     }
 
