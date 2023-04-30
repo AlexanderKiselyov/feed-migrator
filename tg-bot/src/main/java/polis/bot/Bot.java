@@ -1,5 +1,6 @@
 package polis.bot;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -234,12 +235,18 @@ public class Bot extends TelegramLongPollingCommandBot {
      */
     @Override
     public boolean filter(Message message) {
-        if (message != null) {
-            State currentState = State.findState(message.getText().replace("/", ""));
-            if (currentState != null) {
-                currentStateRepository.insertCurrentState(new CurrentState(message.getChatId(),
-                        currentState.getIdentifier()));
-            }
+        if (message == null) {
+            LOGGER.warn("Received null message");
+            return false;
+        }
+        if (LOGGER.isDebugEnabled()) {
+            String debugInfo = new ReflectionToStringBuilder(message).toString();
+            LOGGER.debug("Update from " + message.getChatId() + "\n" + debugInfo);
+        }
+        State currentState = State.findState(message.getText().replace("/", ""));
+        if (currentState != null) {
+            currentStateRepository.insertCurrentState(new CurrentState(message.getChatId(),
+                    currentState.getIdentifier()));
         }
         return false;
     }
