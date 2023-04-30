@@ -56,8 +56,8 @@ public class SyncVkTg extends Command {
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
-            String groupName = vkDataCheck.getVkUsername(new VkAuthorizator.TokenWithId(currentGroup.getAccessToken(),
-                    (int) currentGroup.getAccountId()));
+            String groupName = vkDataCheck.getVkGroupName(new VkAuthorizator.TokenWithId(currentGroup.getAccessToken(),
+                    (int) currentGroup.getAccountId()), String.valueOf(currentGroup.getGroupId()));
 
             if (Objects.equals(groupName, null)) {
                 sendAnswer(

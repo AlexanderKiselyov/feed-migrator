@@ -15,7 +15,6 @@ import static org.springframework.data.cassandra.core.query.Query.query;
 @Repository
 public class ChannelGroupsRepository {
     private static final String CHANNEL_ID = "channel_id";
-    private static final String GROUP_ID = "group_id";
     private static final String SOCIAL_MEDIA = "social_media";
 
     @Autowired
@@ -32,16 +31,6 @@ public class ChannelGroupsRepository {
 
     public void insertChannelGroup(@NotNull ChannelGroup channelGroup) throws DataAccessException {
         cassandraOperations.update(channelGroup);
-    }
-
-    public void deleteChannelGroup(long channelId, String socialMedia, long groupId) throws DataAccessException {
-        cassandraOperations.delete(
-                query(
-                        where(CHANNEL_ID).is(channelId))
-                        .and(where(SOCIAL_MEDIA).is(socialMedia))
-                        .and(where(GROUP_ID).is(groupId)),
-                ChannelGroup.class
-        );
     }
 
     public void deleteChannelGroup(long channelId, String socialMedia) throws DataAccessException {

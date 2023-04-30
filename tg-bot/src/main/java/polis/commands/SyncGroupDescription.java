@@ -23,7 +23,7 @@ import java.util.Objects;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
-public class SyncOkGroupDescription extends Command {
+public class SyncGroupDescription extends Command {
     private static final String SYNC_OK_TG_DESCRIPTION = """
             Телеграм-канал <b>%s</b> и группа <b>%s (%s)</b> были успешно синхронизированы.
             Настроить функцию автопостинга можно по команде /%s.""";
@@ -52,8 +52,8 @@ public class SyncOkGroupDescription extends Command {
             State.Autoposting.getDescription()
     );
 
-    public SyncOkGroupDescription() {
-        super(State.SyncOkGroupDescription.getIdentifier(), State.SyncOkGroupDescription.getDescription());
+    public SyncGroupDescription() {
+        super(State.SyncGroupDescription.getIdentifier(), State.SyncGroupDescription.getDescription());
         telegramDataCheck = new TelegramDataCheck();
     }
 

@@ -13,9 +13,10 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.DataCheck;
-import polis.util.SocialMedia;
+import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.util.State;
+import polis.vk.api.VkAuthorizator;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
@@ -42,10 +43,13 @@ public class Notifications extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
+
+    @Autowired
+    private VkDataCheck vkDataCheck;
 
     private static final int rowsCount = 1;
-    private final Logger logger = LoggerFactory.getLogger(Autoposting.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(Autoposting.class);
 
     public Notifications() {
         super(State.Notifications.getIdentifier(), State.Notifications.getDescription());
@@ -69,14 +73,23 @@ public class Notifications extends Command {
                     null,
                     GO_BACK_BUTTON_TEXT);
             String notificationsEnable;
-            if (currentGroup.getSocialMedia() == SocialMedia.OK) {
-                notificationsEnable = String.format(NOTIFICATIONS_MSG_INLINE,
+            switch (currentGroup.getSocialMedia()) {
+                case OK -> notificationsEnable = String.format(NOTIFICATIONS_MSG_INLINE,
                         currentChannel.getChannelUsername(),
-                        dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken()),
+                        okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken()),
                         currentGroup.getGroupName());
-            } else {
-                logger.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
-                notificationsEnable = WRONG_SOCIAL_MEDIA_MSG;
+                case VK -> notificationsEnable = String.format(NOTIFICATIONS_MSG_INLINE,
+                        currentChannel.getChannelUsername(),
+                        vkDataCheck.getVkGroupName(new VkAuthorizator.TokenWithId(
+                                        currentGroup.getAccessToken(), (int) currentAccount.getAccountId()
+                                ),
+                                String.valueOf(currentGroup.getGroupId())
+                        ),
+                        currentGroup.getGroupName());
+                default -> {
+                    LOGGER.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
+                    notificationsEnable = WRONG_SOCIAL_MEDIA_MSG;
+                }
             }
             sendAnswer(
                     absSender,

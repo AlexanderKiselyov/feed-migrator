@@ -63,7 +63,7 @@ public class TgSyncGroups extends Command {
             List<ChannelGroup> channelGroups =
                     channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId());
 
-            if (channelGroups != null) {
+            if (channelGroups != null && !channelGroups.isEmpty()) {
                 String groupName = "";
 
                 for (ChannelGroup group : channelGroups) {
