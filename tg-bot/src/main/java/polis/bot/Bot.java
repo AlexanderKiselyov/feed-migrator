@@ -410,8 +410,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                             break;
                         }
                     }
-                    switch (smg.getSocialMedia()) { //Здесь бы смапить группы на подходящие PostingHelper'ы
-                        // и с помощью каждого запостить пост
+                    switch (smg.getSocialMedia()) {
                         case OK -> {
                             try {
                                 if (!documents.isEmpty() && animations.isEmpty()) {
@@ -428,7 +427,6 @@ public class Bot extends TelegramLongPollingCommandBot {
                                 checkAndSendNotification(chatId, ownerChatId,
                                         "Успешно опубликовал пост в ok.ru/group/" + smg.getGroupId());
                             } catch (URISyntaxException | IOException | TelegramApiException ignored) {
-                                //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а
                                 checkAndSendNotification(chatId, ownerChatId, ERROR_POST_MSG + smg.getGroupId());
                             }
                         }
