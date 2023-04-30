@@ -16,6 +16,8 @@ import static org.springframework.data.cassandra.core.query.Query.query;
 @Repository
 public class AccountsRepository {
     private static final String CHAT_ID = "chat_id";
+    private static final String SOCIAL_MEDIA = "social_media";
+    private static final String ACCOUNT_ID = "account_id";
 
     @Autowired
     private CassandraOperations cassandraOperations;
@@ -28,6 +30,15 @@ public class AccountsRepository {
         return cassandraOperations.select(
                 query(
                         where(CHAT_ID).is(chatId)),
+                Account.class);
+    }
+
+    public void deleteAccount(long chatId, long accountId, String socialMedia) throws DataAccessException {
+        cassandraOperations.delete(
+                query(
+                        where(CHAT_ID).is(chatId))
+                        .and(where(SOCIAL_MEDIA).is(socialMedia))
+                        .and(where(ACCOUNT_ID).is(accountId)),
                 Account.class);
     }
 }
