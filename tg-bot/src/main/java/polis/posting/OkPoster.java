@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class OkPoster implements Poster {
@@ -27,6 +28,9 @@ public class OkPoster implements Poster {
 
     @Override
     public List<String> uploadPhotos(List<File> photos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
+        if(photos == null || photos.isEmpty()){
+            return Collections.emptyList();
+        }
         try {
             return okClient.uploadPhotos(accessToken, groupId, photos);
         } catch (OkApiException e) {
@@ -36,6 +40,9 @@ public class OkPoster implements Poster {
 
     @Override
     public List<String> uploadVideos(List<File> videos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
+        if(videos == null || videos.isEmpty()){
+            return Collections.emptyList();
+        }
         List<String> videoIds = new ArrayList<>(videos.size());
         for (File video : videos) {
             long videoId;

@@ -392,8 +392,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
                                 }
                                 postToOk(videos, photos, animations, text, poll, smg.getGroupId(), accessToken);
                                 sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getGroupId());
-                            } catch (URISyntaxException | IOException ignored) {
-                                //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а
+                            } catch (URISyntaxException | IOException | ApiException e) {
+                                sendAnswer(chatId, "Произошла ошибка " + e);
                             }
                         }
                         default -> LOGGER.error(String.format("Social media not found: %s",
