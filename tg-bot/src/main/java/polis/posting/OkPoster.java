@@ -2,9 +2,14 @@ package polis.posting;
 
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.ok.api.OKClient;
-import polis.ok.api.domain.*;
+import polis.ok.api.domain.Attachment;
+import polis.ok.api.domain.Photo;
+import polis.ok.api.domain.PhotoMedia;
+import polis.ok.api.domain.PollMedia;
+import polis.ok.api.domain.TextMedia;
+import polis.ok.api.domain.Video;
+import polis.ok.api.domain.VideoMedia;
 import polis.ok.api.exceptions.OkApiException;
 
 import java.io.File;
@@ -21,48 +26,57 @@ public class OkPoster implements Poster {
     }
 
     @Override
-    public OkPost newPost(long groupId, String accessToken) {
-        return new OkPost(groupId, accessToken);
+    public List<String> uploadPhotos(List<File> photos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
+        try {
+            return okClient.uploadPhotos(accessToken, groupId, photos);
+        } catch (OkApiException e) {
+            throw new ApiException(e);
+        }
     }
 
-    public class OkPost extends Poster.Post {
-        private final Attachment attachment = new Attachment();
-
-        private OkPost(long groupId, String accessToken) {
-            super(groupId, accessToken);
-        }
-
-        @Override
-        public Post addPhotos(List<File> photos)
-                throws URISyntaxException, IOException, TelegramApiException, ApiException {
-            if (photos == null || photos.isEmpty()) {
-                return this;
-            }
-            PhotoMedia photoMedia = new PhotoMedia(photos.size());
+    @Override
+    public List<String> uploadVideos(List<File> videos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
+        List<String> videoIds = new ArrayList<>(videos.size());
+        for (File video : videos) {
+            long videoId;
             try {
-                okClient.uploadPhotos(accessToken, groupId, photos).stream().map(Photo::new).forEach(photoMedia::addPhoto);
+                videoId = okClient.uploadVideo(accessToken, groupId, video);
             } catch (OkApiException e) {
                 throw new ApiException(e);
             }
+            videoIds.add(String.valueOf(videoId));
+        }
+        return videoIds;
+    }
+
+    @Override
+    public OkPost newPost() {
+        return new OkPost();
+    }
+
+    public class OkPost implements Poster.Post {
+        private final Attachment attachment = new Attachment();
+
+        @Override
+        public Post addPhotos(List<String> photoIds) {
+            if (photoIds == null || photoIds.isEmpty()) {
+                return this;
+            }
+            PhotoMedia photoMedia = new PhotoMedia(
+                    photoIds.stream().map(Photo::new).toList()
+            );
             attachment.addMedia(photoMedia);
             return this;
         }
 
         @Override
-        public OkPost addVideos(List<File> videos) throws URISyntaxException, IOException, TelegramApiException, ApiException {
-            if (videos == null || videos.isEmpty()) {
+        public OkPost addVideos(List<String> videoIds) {
+            if (videoIds == null || videoIds.isEmpty()) {
                 return this;
             }
-            VideoMedia videoMedia = new VideoMedia(videos.size());
-            for (File video : videos) {
-                long videoId;
-                try {
-                    videoId = okClient.uploadVideo(accessToken, groupId, video);
-                } catch (OkApiException e) {
-                    throw new ApiException(e);
-                }
-                videoMedia.addVideo(new polis.ok.api.domain.Video(videoId));
-            }
+            VideoMedia videoMedia = new VideoMedia(
+                    videoIds.stream().map(Long::parseLong).map(Video::new).toList()
+            );
             attachment.addMedia(videoMedia);
             return this;
         }
@@ -100,27 +114,17 @@ public class OkPoster implements Poster {
         }
 
         @Override
-        public OkPost addAnimations(List<File> animations) throws URISyntaxException, IOException,
-                TelegramApiException, ApiException {
-            if (animations == null || animations.isEmpty()) {
-                return this;
-            }
-            return addVideos(animations);
-        }
-
-        @Override
         public OkPost addDocuments(List<File> documents) {
-            return this;
+            throw new UnsupportedOperationException();
         }
 
         @Override
-        public void post(String accessToken) throws URISyntaxException, IOException, ApiException {
+        public void post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
             try {
                 okClient.postMediaTopic(accessToken, groupId, attachment);
             } catch (OkApiException e) {
                 throw new ApiException(e);
             }
         }
-
     }
 }

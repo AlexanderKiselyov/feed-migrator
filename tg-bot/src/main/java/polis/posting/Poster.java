@@ -10,34 +10,25 @@ import java.util.List;
 
 public interface Poster {
 
-    Post newPost(long groupId, String accessToken);
+    List<String> uploadPhotos(List<File> photos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
 
-    abstract class Post {
-        final long groupId;
-        final String accessToken;
+    List<String> uploadVideos(List<File> videos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
 
-        Post(long groupId, String accessToken) {
-            this.groupId = groupId;
-            this.accessToken = accessToken;
-        }
+    Post newPost();
 
-        public abstract Post addPhotos(List<File> photos) throws URISyntaxException, IOException, TelegramApiException, ApiException;
+    interface Post {
 
-        public abstract Post addVideos(List<File> videos) throws URISyntaxException, IOException, TelegramApiException, ApiException;
+        Post addPhotos(List<String> photoIds);
 
-        public abstract Post addText(String text);
+        Post addVideos(List<String> videoIds);
 
-        public abstract Post addPoll(Poll poll);
+        Post addText(String text);
 
-        public abstract Post addAnimations(List<File> animations) throws URISyntaxException, IOException, TelegramApiException, ApiException;
+        Post addPoll(Poll poll);
 
-        public abstract Post addDocuments(List<File> documents);
+        Post addDocuments(List<File> documents);
 
-        public abstract void post(String accessToken) throws URISyntaxException, IOException, ApiException;
-
-        public void post() throws URISyntaxException, IOException, ApiException {
-            post(accessToken);
-        }
+        void post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
 
     }
 }
