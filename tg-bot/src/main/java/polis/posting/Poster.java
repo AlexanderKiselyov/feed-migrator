@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
-public interface PostingHelper {
+public interface Poster {
 
     Post newPost(long groupId, String accessToken);
 

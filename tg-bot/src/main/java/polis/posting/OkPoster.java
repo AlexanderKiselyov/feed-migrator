@@ -13,10 +13,10 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OkPostingHelper implements PostingHelper {
+public class OkPoster implements Poster {
     private final OKClient okClient;
 
-    public OkPostingHelper(OKClient okClient) {
+    public OkPoster(OKClient okClient) {
         this.okClient = okClient;
     }
 
@@ -25,7 +25,7 @@ public class OkPostingHelper implements PostingHelper {
         return new OkPost(groupId, accessToken);
     }
 
-    public class OkPost extends PostingHelper.Post {
+    public class OkPost extends Poster.Post {
         private final Attachment attachment = new Attachment();
 
         private OkPost(long groupId, String accessToken) {

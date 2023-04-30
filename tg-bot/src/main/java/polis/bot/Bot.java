@@ -54,7 +54,7 @@ import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.ok.api.OkClientImpl;
 import polis.posting.ApiException;
-import polis.posting.OkPostingHelper;
+import polis.posting.OkPoster;
 import polis.util.IState;
 import polis.util.State;
 import polis.util.Substate;
@@ -107,7 +107,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
     );
     private final String botName;
     private final String botToken;
-    private final OkPostingHelper helper;
+    private final OkPoster okPoster;
     private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
     private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
     private static final String GROUP_CALLBACK_TEXT = "group";
@@ -181,7 +181,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
         super();
         this.botName = botName;
         this.botToken = botToken;
-        this.helper = new OkPostingHelper(new OkClientImpl());
+        this.okPoster = new OkPoster(new OkClientImpl());
     }
 
     @Override
@@ -634,7 +634,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
             ChannelGroup smg,
             String accessToken
     ) throws URISyntaxException, IOException, TelegramApiException, ApiException {
-        OkPostingHelper.OkPost post = helper
+        OkPoster.OkPost post = okPoster
                 .newPost(smg.getGroupId(), accessToken)
                 .addPoll(poll)
                 .addText(text);
