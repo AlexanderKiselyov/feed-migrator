@@ -390,7 +390,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
                                     sendAnswer(chatId, """
                                             Тип 'Документ' не поддерживается в социальной сети Одноклассники""");
                                 }
-                                postToOk(videos, photos, text, poll, smg, accessToken);
+                                postToOk(videos, photos, animations, text, poll, smg.getGroupId(), accessToken);
                                 sendAnswer(chatId, "Успешно опубликовал пост в ok.ru/group/" + smg.getGroupId());
                             } catch (URISyntaxException | IOException ignored) {
                                 //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а
@@ -629,27 +629,38 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
     private void postToOk(
             List<Video> videos,
             List<PhotoSize> photos,
+            List<Animation> animations,
             String text,
             Poll poll,
-            ChannelGroup smg,
+            long groupId,
             String accessToken
     ) throws URISyntaxException, IOException, TelegramApiException, ApiException {
-        OkPoster.OkPost post = okPoster
-                .newPost(smg.getGroupId(), accessToken)
-                .addPoll(poll)
-                .addText(text);
-        List<File> files = new ArrayList<>(Math.max(videos.size(), photos.size()));
+
+        int maxListSize = Math.max(photos.size(), animations.size() + videos.size());
+        List<File> files = new ArrayList<>(maxListSize);
         for (Video video : videos) {
             File file = tgContentManager.download(video);
             files.add(file);
         }
-        post.addVideos(files);
+        for (Video animation : TgContentManager.toVideos(animations)) {
+            File file = tgContentManager.download(animation);
+            files.add(file);
+        }
+        List<String> videoIds = okPoster.uploadVideos(files, accessToken, groupId);
         files.clear();
+
         for (PhotoSize photo : photos) {
             File file = tgContentManager.download(photo);
             files.add(file);
         }
-        post.addPhotos(files);
+        List<String> photoIds = okPoster.uploadPhotos(files, accessToken, groupId);
+
+        okPoster.newPost()
+                .addVideos(videoIds)
+                .addPhotos(photoIds)
+                .addPoll(poll)
+                .addText(text)
+                .post(accessToken, groupId);
     }
 
     @Override
