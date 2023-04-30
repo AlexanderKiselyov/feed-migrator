@@ -240,8 +240,8 @@ public class Bot extends TelegramLongPollingCommandBot {
             return false;
         }
         if (LOGGER.isDebugEnabled()) {
-            String debugInfo = new ReflectionToStringBuilder(message).toString();
-            LOGGER.debug("Update from " + message.getChatId() + "\n" + debugInfo);
+            String s = messageDebugInfo(message);
+            LOGGER.debug(s);
         }
         State currentState = State.findState(message.getText().replace("/", ""));
         if (currentState != null) {
@@ -336,7 +336,6 @@ public class Bot extends TelegramLongPollingCommandBot {
                 .collect(Collectors.groupingBy(Message::getChatId))
                 .values()
                 .forEach(this::processPostsInChannel);
-        //То, что сейчас делает forEach, потом следует сабмитить в executor
     }
 
     private void processPostsInChannel(List<Message> channelPosts) {
@@ -428,7 +427,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                                         .post(accessToken, smg.getGroupId());
                                 checkAndSendNotification(chatId, ownerChatId,
                                         "Успешно опубликовал пост в ok.ru/group/" + smg.getGroupId());
-                            } catch (URISyntaxException | IOException ignored) {
+                            } catch (URISyntaxException | IOException | TelegramApiException ignored) {
                                 //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а
                                 checkAndSendNotification(chatId, ownerChatId, ERROR_POST_MSG + smg.getGroupId());
                             }
@@ -442,8 +441,9 @@ public class Bot extends TelegramLongPollingCommandBot {
                     }
                 }
             }
-        } catch (Exception e) {
-            sendAnswer(ownerChatId, "Произошла непредвиденная ошибка  " + e);
+        } catch (RuntimeException e) {
+            LOGGER.error("Error when handling post from " + chatId, e);
+            sendAnswer(ownerChatId, "Произошла непредвиденная ошибка при обработке поста " + e);
         }
     }
 
@@ -661,7 +661,7 @@ public class Bot extends TelegramLongPollingCommandBot {
                 currentGroupRepository.deleteCurrentGroup(chatId);
                 currentAccountRepository.deleteCurrentAccount(chatId);
                 List<UserChannels> userChannels = userChannelsRepository.getUserChannels(chatId);
-                for (UserChannels userChannel: userChannels) {
+                for (UserChannels userChannel : userChannels) {
                     channelGroupsRepository.deleteChannelGroup(userChannel.getChannelId(),
                             account.getSocialMedia().getName());
                 }
@@ -704,5 +704,10 @@ public class Bot extends TelegramLongPollingCommandBot {
         lastMessage.setChatId(chatId);
         lastMessage.setMessageId(msg.getMessageId());
         execute(lastMessage);
+    }
+
+    private static String messageDebugInfo(Message message) {
+        String debugInfo = new ReflectionToStringBuilder(message).toString();
+        return "Update from " + message.getChatId() + "\n" + debugInfo;
     }
 }
