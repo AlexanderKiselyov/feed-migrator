@@ -27,7 +27,6 @@ public class TgSyncGroups extends Command {
             Список синхронизированных групп.""";
     private static final String TG_SYNC_GROUPS_INLINE = """
             Для выбора определенной группы нажмите на нужную группу.
-            Для астройки автопостинга из группы нажмите 'Автопостинг' справа от группы.
             Для удаления группы нажмите 'Удалить' справа от группы.""";
     private static final String NO_SYNC_GROUPS = """
             Список синхронизированных групп пуст.
@@ -109,44 +108,31 @@ public class TgSyncGroups extends Command {
                         channelGroups.size(),
                         commandsForKeyboard,
                         getTgChannelGroupsArray(channelGroups, groupName));
-            } else {
-                sendAnswer(
-                        absSender,
-                        chat.getId(),
-                        this.getCommandIdentifier(),
-                        user.getUserName(),
-                        String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
-                        1,
-                        List.of(State.TgChannelDescription.getDescription()),
-                        null,
-                        GO_BACK_BUTTON_TEXT);
+                return;
             }
-        } else {
-            sendAnswer(
-                    absSender,
-                    chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
-                    String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
-                    1,
-                    List.of(State.TgChannelDescription.getDescription()),
-                    null,
-                    GO_BACK_BUTTON_TEXT);
         }
+        sendAnswer(
+                absSender,
+                chat.getId(),
+                this.getCommandIdentifier(),
+                user.getUserName(),
+                String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
+                1,
+                List.of(State.TgChannelDescription.getDescription()),
+                null,
+                GO_BACK_BUTTON_TEXT);
     }
 
     private String[] getTgChannelGroupsArray(List<ChannelGroup> groups, String groupName) {
-        String[] buttons = new String[groups.size() * 6];
+        String[] buttons = new String[groups.size() * 4];
         for (int i = 0; i < groups.size(); i++) {
-            int tmpIndex = i * 6;
+            int tmpIndex = i * 4;
 
             buttons[tmpIndex] = String.format("%s (%s)", groupName,
                     groups.get(i).getSocialMedia().getName());
             buttons[tmpIndex + 1] = String.format("group %s %d", groups.get(i).getGroupId(), 0);
-            buttons[tmpIndex + 2] = "\uD83D\uDD04 Автопостинг";
-            buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getGroupId(), 2);
-            buttons[tmpIndex + 4] = "\uD83D\uDDD1 Удалить";
-            buttons[tmpIndex + 5] = String.format("group %s %d", groups.get(i).getGroupId(), 1);
+            buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
+            buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getGroupId(), 1);
         }
 
         return buttons;
