@@ -10,9 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import polis.vk.api.exceptions.VkApiException;
 
-import static polis.vk.api.LoggingUtils.getGroupId;
-import static polis.vk.api.LoggingUtils.getIsGroupAdmin;
-import static polis.vk.api.LoggingUtils.getUsername;
+import static polis.vk.api.LoggingUtils.*;
 
 public class VKApiMethods {
     TransportClient transportClient = HttpTransportClient.getInstance();
@@ -36,6 +34,17 @@ public class VKApiMethods {
                 .fields();
 
         return getGroupId(request, logger);
+    }
+
+    public String getVkGroupName(VkAuthorizator.TokenWithId tokenWithId, String groupLink) throws VkApiException {
+        String[] groupLinkParts = groupLink.split("/");
+
+        GroupsGetByIdQueryWithLegacy request = vk.groups()
+                .getByIdLegacy(new UserActor(tokenWithId.userId(), tokenWithId.accessToken()))
+                .groupIds(groupLinkParts[groupLinkParts.length - 1])
+                .fields();
+
+        return getGroupName(request, logger);
     }
 
     public Boolean getIsVkGroupAdmin(VkAuthorizator.TokenWithId tokenWithId, String groupLink) throws VkApiException {

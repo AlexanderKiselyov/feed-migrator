@@ -14,7 +14,9 @@ import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.util.State;
+import polis.vk.api.VkAuthorizator;
 
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +46,9 @@ public class TgSyncGroups extends Command {
     @Autowired
     private OkDataCheck okDataCheck;
 
+    @Autowired
+    private VkDataCheck vkDataCheck;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(TgSyncGroups.class);
 
     public TgSyncGroups() {
@@ -68,6 +73,19 @@ public class TgSyncGroups extends Command {
                                 if (Objects.equals(socialMediaAccount.getAccountId(), group.getAccountId())) {
                                     groupName = okDataCheck.getOKGroupName(group.getGroupId(),
                                             socialMediaAccount.getAccessToken());
+                                    break;
+                                }
+                            }
+                        }
+                        case VK -> {
+                            for (Account socialMediaAccount : accounts) {
+                                if (Objects.equals(socialMediaAccount.getAccountId(), group.getAccountId())) {
+                                    groupName = vkDataCheck.getVkGroupName(new VkAuthorizator.TokenWithId(
+                                                    socialMediaAccount.getAccessToken(),
+                                                    (int) socialMediaAccount.getAccountId()
+                                            ),
+                                            String.valueOf(group.getGroupId())
+                                    );
                                     break;
                                 }
                             }

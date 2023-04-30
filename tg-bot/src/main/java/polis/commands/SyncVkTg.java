@@ -1,6 +1,7 @@
 package polis.commands;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -19,6 +20,7 @@ import java.util.Objects;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
+@Component
 public class SyncVkTg extends Command {
     private static final String SYNC_VK_TG = """
             Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";

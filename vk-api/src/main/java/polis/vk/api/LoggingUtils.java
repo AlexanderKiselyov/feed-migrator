@@ -92,6 +92,26 @@ public class LoggingUtils {
         }
     }
 
+    static String getGroupName(GroupsGetByIdQueryWithLegacy request, Logger logger) throws VkApiException {
+        try {
+            List<GetByIdLegacyResponse> response = request.execute();
+            return response.get(0).getName();
+        } catch (ApiException e) {
+            logger.error(String.format("Received error from VK: %s", e.getMessage()));
+
+            if (Objects.equals(e.getCode(), PARAM_SESSION_EXPIRED_ERROR_CODE)) {
+                throw new TokenExpiredException();
+            }
+
+            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+        } catch (ClientException e) {
+            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
+
+            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
+                    e.getMessage()));
+        }
+    }
+
     static Boolean getIsGroupAdmin(GroupsGetByIdQueryWithLegacy request, Logger logger) throws VkApiException {
         try {
             List<GetByIdLegacyResponse> response = request.execute();

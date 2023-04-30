@@ -101,6 +101,15 @@ public class VkDataCheck {
         }
     }
 
+    public String getVkGroupName(VkAuthorizator.TokenWithId tokenWithId, String groupId) {
+        try {
+            return vkApiMethods.getVkGroupName(tokenWithId, groupId);
+        } catch (VkApiException e) {
+            LOGGER.error(String.format("Unknown error: %s", e.getMessage()));
+            return null;
+        }
+    }
+
     public Boolean getIsVkGroupAdmin(VkAuthorizator.TokenWithId tokenWithId, String groupId) {
         try {
             return vkApiMethods.getIsVkGroupAdmin(tokenWithId, groupId);

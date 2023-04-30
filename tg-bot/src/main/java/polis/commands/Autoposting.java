@@ -14,7 +14,9 @@ import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.util.State;
+import polis.vk.api.VkAuthorizator;
 
 import java.util.Objects;
 
@@ -43,6 +45,9 @@ public class Autoposting extends Command {
     @Autowired
     private OkDataCheck okDataCheck;
 
+    @Autowired
+    private VkDataCheck vkDataCheck;
+
     private static final int rowsCount = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(Autoposting.class);
 
@@ -57,7 +62,17 @@ public class Autoposting extends Command {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
 
         if (currentChannel != null && currentAccount != null && currentGroup != null) {
-            String groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+            String groupName;
+            switch (currentGroup.getSocialMedia()) {
+                case OK -> groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(),
+                        currentAccount.getAccessToken());
+                case VK -> groupName = vkDataCheck.getVkGroupName(new VkAuthorizator.TokenWithId(
+                                currentGroup.getAccessToken(), (int) currentAccount.getAccountId()
+                        ),
+                        String.valueOf(currentGroup.getGroupId())
+                );
+                default -> groupName = "";
+            }
 
             if (Objects.equals(groupName, "")) {
                 sendAnswer(
@@ -85,7 +100,7 @@ public class Autoposting extends Command {
                     GO_BACK_BUTTON_TEXT);
             String autopostingEnable = "";
             switch (currentGroup.getSocialMedia()) {
-                case OK -> autopostingEnable = String.format(AUTOPOSTING_INLINE,
+                case OK, VK -> autopostingEnable = String.format(AUTOPOSTING_INLINE,
                         currentChannel.getChannelUsername(),
                         groupName,
                         currentGroup.getSocialMedia().getName());

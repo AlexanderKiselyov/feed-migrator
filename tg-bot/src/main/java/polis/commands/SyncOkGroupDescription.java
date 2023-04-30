@@ -12,8 +12,10 @@ import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
+import polis.vk.api.VkAuthorizator;
 
 import java.util.List;
 import java.util.Objects;
@@ -41,6 +43,9 @@ public class SyncOkGroupDescription extends Command {
     @Autowired
     private OkDataCheck okDataCheck;
 
+    @Autowired
+    private VkDataCheck vkDataCheck;
+
     private final TelegramDataCheck telegramDataCheck;
     private final int rowsCount = 1;
     private final List<String> commandsForKeyboard = List.of(
@@ -59,7 +64,18 @@ public class SyncOkGroupDescription extends Command {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
 
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
-            String groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+            String groupName;
+            switch (currentGroup.getSocialMedia()) {
+                case OK -> groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(),
+                        currentAccount.getAccessToken());
+                case VK -> groupName = vkDataCheck.getVkGroupName(new VkAuthorizator.TokenWithId(
+                                currentGroup.getAccessToken(), (int) currentAccount.getAccountId()
+                        ),
+                        String.valueOf(currentGroup.getGroupId())
+                );
+                default -> groupName = "";
+            }
+
 
             if (Objects.equals(groupName, "")) {
                 sendAnswer(
