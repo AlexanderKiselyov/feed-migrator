@@ -30,9 +30,9 @@ public class Notifications extends Command {
     private static final String NO_CURRENT_TG_CHANNEL = """
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
-
     private static final String WRONG_SOCIAL_MEDIA_MSG = """
             Социальная сеть неверная.""";
+
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
 
@@ -99,7 +99,7 @@ public class Notifications extends Command {
                     notificationsEnable,
                     rowsCount,
                     commandsForKeyboard,
-                    getNotificationsButtons(currentChannel.getChannelId()));
+                    getButtonsForNotificationsOptions(currentChannel.getChannelId()));
         } else {
             sendAnswer(
                     absSender,
@@ -114,7 +114,7 @@ public class Notifications extends Command {
         }
     }
 
-    private String[] getNotificationsButtons(Long id) {
+    private String[] getButtonsForNotificationsOptions(Long id) {
         return new String[]{
                 "Да",
                 String.format("notifications %s 0", id),

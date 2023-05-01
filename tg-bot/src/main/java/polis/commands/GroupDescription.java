@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static polis.commands.CommandsUtils.getGroupName;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
@@ -67,22 +68,11 @@ public class GroupDescription extends Command {
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        String groupName = "";
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
 
         if (currentGroup != null) {
             CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
-            switch (currentGroup.getSocialMedia()) {
-                case OK -> groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(),
-                        currentAccount.getAccessToken());
-                case VK -> groupName = vkDataCheck.getVkGroupName(new VkAuthorizator.TokenWithId(
-                                currentGroup.getAccessToken(), (int) currentAccount.getAccountId()
-                        ),
-                        String.valueOf(currentGroup.getGroupId())
-                );
-                default -> LOGGER.error(String.format("Social media not found: %s",
-                        currentGroup.getSocialMedia()));
-            }
+            String groupName = getGroupName(currentAccount, currentGroup, okDataCheck, vkDataCheck);
 
             if (Objects.equals(groupName, "")) {
                 sendAnswer(
@@ -95,6 +85,7 @@ public class GroupDescription extends Command {
                         commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
+                LOGGER.error(String.format("Error detecting groupName of group: %s", currentGroup.getSocialMedia()));
                 return;
             }
             long channelId = currentChannelRepository.getCurrentChannel(chat.getId()).getChannelId();

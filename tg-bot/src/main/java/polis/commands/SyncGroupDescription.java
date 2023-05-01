@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -47,6 +49,7 @@ public class SyncGroupDescription extends Command {
     private VkDataCheck vkDataCheck;
 
     private final TelegramDataCheck telegramDataCheck;
+    private final Logger LOGGER = LoggerFactory.getLogger(SyncGroupDescription.class);
     private final int rowsCount = 1;
     private final List<String> commandsForKeyboard = List.of(
             State.Autoposting.getDescription()
@@ -77,6 +80,7 @@ public class SyncGroupDescription extends Command {
                         super.commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
+                LOGGER.error(String.format("Error detecting groupName of group: %s", currentGroup.getSocialMedia()));
                 return;
             }
 

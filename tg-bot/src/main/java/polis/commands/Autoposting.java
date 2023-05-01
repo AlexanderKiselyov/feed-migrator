@@ -32,6 +32,8 @@ public class Autoposting extends Command {
     private static final String NO_CURRENT_TG_CHANNEL = """
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
+    private static final String WRONG_SOCIAL_MEDIA_MSG = """
+            Социальная сеть неверная.""";
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -75,6 +77,7 @@ public class Autoposting extends Command {
                         commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
+                LOGGER.error(String.format("Error detecting groupName of group: %s", currentGroup.getSocialMedia()));
                 return;
             }
 
@@ -88,13 +91,16 @@ public class Autoposting extends Command {
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
-            String autopostingEnable = "";
+            String autopostingEnable;
             switch (currentGroup.getSocialMedia()) {
                 case OK, VK -> autopostingEnable = String.format(AUTOPOSTING_INLINE,
                         currentChannel.getChannelUsername(),
                         groupName,
                         currentGroup.getSocialMedia().getName());
-                default -> LOGGER.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
+                default -> {
+                    autopostingEnable = WRONG_SOCIAL_MEDIA_MSG;
+                    LOGGER.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
+                }
             }
             sendAnswer(
                     absSender,
@@ -104,7 +110,7 @@ public class Autoposting extends Command {
                     autopostingEnable,
                     rowsCount,
                     commandsForKeyboard,
-                    getIfAddAutoposting(chat.getId(), currentChannel.getChannelId()));
+                    getButtonsForAutopostingOptions(chat.getId(), currentChannel.getChannelId()));
         } else {
             sendAnswer(
                     absSender,
@@ -119,7 +125,7 @@ public class Autoposting extends Command {
         }
     }
 
-    private String[] getIfAddAutoposting(long chatId, long channelId) {
+    private String[] getButtonsForAutopostingOptions(long chatId, long channelId) {
         return new String[]{
                 "Да",
                 String.format("autoposting %d %d 1", chatId, channelId),
