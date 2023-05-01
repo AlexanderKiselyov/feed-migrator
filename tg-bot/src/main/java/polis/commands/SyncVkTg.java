@@ -18,6 +18,7 @@ import polis.vk.api.VkAuthorizator;
 
 import java.util.Objects;
 
+import static polis.commands.CommandsUtils.getButtonsForSyncOptions;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
@@ -112,14 +113,5 @@ public class SyncVkTg extends Command {
                     null,
                     GO_BACK_BUTTON_TEXT);
         }
-    }
-
-    private String[] getButtonsForSyncOptions() {
-        return new String[] {
-                "Да",
-                "yesNo 0",
-                "Нет",
-                "yesNo 1"
-        };
     }
 }

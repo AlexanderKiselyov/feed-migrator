@@ -15,11 +15,11 @@ import polis.datacheck.OkDataCheck;
 import polis.datacheck.VkDataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
-import polis.vk.api.VkAuthorizator;
 
 import java.util.List;
 import java.util.Objects;
 
+import static polis.commands.CommandsUtils.getGroupName;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
@@ -64,18 +64,7 @@ public class SyncGroupDescription extends Command {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
 
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
-            String groupName;
-            switch (currentGroup.getSocialMedia()) {
-                case OK -> groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(),
-                        currentAccount.getAccessToken());
-                case VK -> groupName = vkDataCheck.getVkGroupName(new VkAuthorizator.TokenWithId(
-                                currentGroup.getAccessToken(), (int) currentAccount.getAccountId()
-                        ),
-                        String.valueOf(currentGroup.getGroupId())
-                );
-                default -> groupName = "";
-            }
-
+            String groupName = getGroupName(currentAccount, currentGroup, okDataCheck, vkDataCheck);
 
             if (Objects.equals(groupName, "")) {
                 sendAnswer(
