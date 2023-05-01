@@ -49,8 +49,8 @@ public class AccountsList extends Command {
             for (Account account : accounts) {
                 if (Objects.equals(okDataCheck.getOKUsername(account.getAccessToken()), "")
                         && Objects.equals(vkDataCheck.getVkUsername(
-                                new VkAuthorizator.TokenWithId(account.getAccessToken(),
-                                        (int) account.getAccountId())), null)) {
+                        new VkAuthorizator.TokenWithId(account.getAccessToken(),
+                                (int) account.getAccountId())), null)) {
                     sendAnswer(
                             absSender,
                             chat.getId(),
@@ -104,16 +104,12 @@ public class AccountsList extends Command {
             int tmpIndex = i * 4;
             Account account = socialMediaAccounts.get(i);
             long accountId = account.getAccountId();
-            if (account.getSocialMedia() == SocialMedia.OK) {
-                buttons[tmpIndex] = String.format("%s (%s)",
-                        okDataCheck.getOKUsername(account.getAccessToken()),
-                        account.getSocialMedia());
-            } else {
-                buttons[tmpIndex] = String.format("%s (%s)",
-                        vkDataCheck.getVkUsername(new VkAuthorizator.TokenWithId(account.getAccessToken(),
-                                (int) accountId)),
-                        account.getSocialMedia());
-            }
+            SocialMedia socialMedia = account.getSocialMedia();
+            String username = socialMedia == SocialMedia.OK
+                    ? okDataCheck.getOKUsername(account.getAccessToken())
+                    : vkDataCheck.getVkUsername(new VkAuthorizator.TokenWithId(account.getAccessToken(),
+                    (int) accountId));
+            buttons[tmpIndex] = String.format("%s (%s)", username, socialMedia);
             buttons[tmpIndex + 1] = String.format("account %d 0", accountId);
             buttons[tmpIndex + 2] = trashEmoji + " Удалить";
             buttons[tmpIndex + 3] = String.format("account %d 1", accountId);

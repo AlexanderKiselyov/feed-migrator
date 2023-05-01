@@ -125,7 +125,7 @@ public class TgSyncGroups extends Command {
                         TG_SYNC_GROUPS_INLINE,
                         channelGroups.size(),
                         commandsForKeyboard,
-                        getTgChannelGroupsArray(channelGroups, groupName));
+                        getButtonsForTgChannelGroups(channelGroups, groupName));
                 return;
             }
         }
@@ -141,7 +141,7 @@ public class TgSyncGroups extends Command {
                 GO_BACK_BUTTON_TEXT);
     }
 
-    private String[] getTgChannelGroupsArray(List<ChannelGroup> groups, String groupName) {
+    private String[] getButtonsForTgChannelGroups(List<ChannelGroup> groups, String groupName) {
         String[] buttons = new String[groups.size() * 4];
         for (int i = 0; i < groups.size(); i++) {
             int tmpIndex = i * 4;

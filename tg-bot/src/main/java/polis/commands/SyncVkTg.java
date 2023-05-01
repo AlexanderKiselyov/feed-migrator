@@ -96,7 +96,7 @@ public class SyncVkTg extends Command {
                     SYNC_VK_TG_INLINE,
                     rowsCount,
                     commandsForKeyboard,
-                    yesNoList());
+                    getButtonsForSyncOptions());
         } else {
             sendAnswer(
                     absSender,
@@ -114,7 +114,7 @@ public class SyncVkTg extends Command {
         }
     }
 
-    private String[] yesNoList() {
+    private String[] getButtonsForSyncOptions() {
         return new String[] {
                 "Да",
                 "yesNo 0",
