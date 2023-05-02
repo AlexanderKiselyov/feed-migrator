@@ -1,4 +1,4 @@
-package polis.posting;
+package polis.posting.ok;
 
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
@@ -11,6 +11,8 @@ import polis.ok.api.domain.TextMedia;
 import polis.ok.api.domain.Video;
 import polis.ok.api.domain.VideoMedia;
 import polis.ok.api.exceptions.OkApiException;
+import polis.posting.ApiException;
+import polis.posting.Poster;
 
 import java.io.File;
 import java.io.IOException;

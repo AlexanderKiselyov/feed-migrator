@@ -25,7 +25,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-final class TgContentManager {
+public final class TgContentManager {
     private static final String TELEGRAM_API_URL = "https://api.telegram.org";
     private static final Logger logger = LoggerFactory.getLogger(TgContentManager.class);
 
@@ -33,18 +33,36 @@ final class TgContentManager {
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    TgContentManager(TgFileLoader fileLoader) {
+    public TgContentManager(TgFileLoader fileLoader) {
         this.fileLoader = fileLoader;
     }
 
-    File download(Video video) throws URISyntaxException, IOException, TelegramApiException {
+    public File download(Video video) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = video.getFileId();
         return fileLoader.downloadFileById(fileId);
     }
 
-    File download(PhotoSize tgPhoto) throws URISyntaxException, IOException, TelegramApiException {
+    public File download(PhotoSize tgPhoto) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = tgPhoto.getFileId();
         return fileLoader.downloadFileById(fileId);
+    }
+
+    public static List<Video> toVideos(List<Animation> animations) {
+        List<Video> videos = new ArrayList<>(1);
+        for (Animation animation : animations) {
+            Video video = new Video();
+            video.setDuration(animation.getDuration());
+            video.setFileId(animation.getFileId());
+            video.setFileName(animation.getFileName());
+            video.setHeight(animation.getHeight());
+            video.setThumb(animation.getThumb());
+            video.setFileSize(animation.getFileSize());
+            video.setFileUniqueId(animation.getFileUniqueId());
+            video.setMimeType(animation.getMimetype());
+            video.setWidth(animation.getWidth());
+            videos.add(video);
+        }
+        return videos;
     }
 
     GetFilePathResponse retrieveFilePath(String botToken, String fileId) throws URISyntaxException, IOException {
@@ -75,24 +93,6 @@ final class TgContentManager {
             throw new RuntimeException(e);
         }
         return path.toFile();
-    }
-
-    static List<Video> toVideos(List<Animation> animations) {
-        List<Video> videos = new ArrayList<>(1);
-        for (Animation animation : animations) {
-            Video video = new Video();
-            video.setDuration(animation.getDuration());
-            video.setFileId(animation.getFileId());
-            video.setFileName(animation.getFileName());
-            video.setHeight(animation.getHeight());
-            video.setThumb(animation.getThumb());
-            video.setFileSize(animation.getFileSize());
-            video.setFileUniqueId(animation.getFileUniqueId());
-            video.setMimeType(animation.getMimetype());
-            video.setWidth(animation.getWidth());
-            videos.add(video);
-        }
-        return videos;
     }
 
     private static String getFileUrl(String botToken) {

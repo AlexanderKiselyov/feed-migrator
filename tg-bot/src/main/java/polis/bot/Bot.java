@@ -55,8 +55,8 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.ok.api.OkClientImpl;
-import polis.posting.ApiException;
-import polis.posting.OkPoster;
+import polis.posting.ok.OkPostProcessor;
+import polis.posting.ok.OkPoster;
 import polis.util.IState;
 import polis.util.State;
 import polis.util.Substate;
@@ -85,7 +85,7 @@ import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
 
 @Configuration
 @Component
-public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
+public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, TgNotificator {
     private static final List<String> EMPTY_LIST = List.of();
     private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в "
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
@@ -115,7 +115,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
     );
     private final String botName;
     private final String botToken;
-    private final OkPoster okPoster;
     private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
     private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
     private static final String GROUP_CALLBACK_TEXT = "group";
@@ -189,6 +188,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
     private Autoposting autoposting;
 
     private final TgContentManager tgContentManager = new TgContentManager(this);
+    private final OkPostProcessor okPostProcessor = new OkPostProcessor(this, tgContentManager, new OkPoster(new OkClientImpl()));
 
     @Autowired
     private Notifications notifications;
@@ -197,7 +197,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
         super();
         this.botName = botName;
         this.botToken = botToken;
-        this.okPoster = new OkPoster(new OkClientImpl());
     }
 
     @Override
@@ -350,10 +349,10 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
     }
 
     private void processPostItems(List<Message> postItems) {
-        long chatId = postItems.get(0).getChatId();
-        long ownerChatId = userChannelsRepository.getUserChatId(chatId);
+        long channelId = postItems.get(0).getChatId();
+        long ownerChatId = userChannelsRepository.getUserChatId(channelId);
         try {
-            if (!userChannelsRepository.isSetAutoposting(ownerChatId, chatId)) {
+            if (!userChannelsRepository.isSetAutoposting(ownerChatId, channelId)) {
                 return;
             }
             List<PhotoSize> photos = new ArrayList<>(1);
@@ -364,8 +363,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
             List<Document> documents = new ArrayList<>(1);
             for (Message postItem : postItems) {
                 Chat forwardFromChat = postItem.getForwardFromChat();
-                if (forwardFromChat != null && forwardFromChat.getId() != chatId) {
-                    checkAndSendNotification(chatId, ownerChatId, AUTHOR_RIGHTS_MSG);
+                if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
+                    checkAndSendNotification(channelId, ownerChatId, AUTHOR_RIGHTS_MSG);
                     return;
                 }
                 if (postItem.hasPhoto()) {
@@ -392,10 +391,10 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
                     documents.add(postItem.getDocument());
                 }
             }
-            long userChatId = userChannelsRepository.getUserChatId(chatId);
+            long userChatId = userChannelsRepository.getUserChatId(channelId);
             List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(userChatId);
             for (UserChannels tgChannel : tgChannels) {
-                if (!Objects.equals(tgChannel.getChannelId(), chatId)) {
+                if (!Objects.equals(tgChannel.getChannelId(), channelId)) {
                     return;
                 }
                 if (!tgChannel.isAutoposting()) {
@@ -409,25 +408,12 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
                             break;
                         }
                     }
-                    switch (smg.getSocialMedia()) { //Здесь бы смапить группы на подходящие PostingHelper'ы
-                        // и с помощью каждого запостить пост
-                        case OK -> {
-                            try {
-                                if (!documents.isEmpty() && animations.isEmpty()) {
-                                    sendAnswer(chatId, """
-                                            Тип 'Документ' не поддерживается в социальной сети Одноклассники""");
-                                }
-                                postToOk(videos, photos, animations, text, poll, smg.getGroupId(), accessToken);
-                                checkAndSendNotification(chatId, ownerChatId,
-                                        "Успешно опубликовал пост в ok.ru/group/" + smg.getGroupId());
-                            } catch (URISyntaxException | IOException | ApiException e) {
-                                checkAndSendNotification(chatId, ownerChatId, ERROR_POST_MSG + smg.getGroupId());
-                            }
-                        }
+                    switch (smg.getSocialMedia()) {
+                        case OK -> okPostProcessor.processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, smg.getGroupId(), channelId, accessToken);
                         default -> {
                             LOGGER.error(String.format("Social media not found: %s",
                                     smg.getSocialMedia()));
-                            checkAndSendNotification(chatId, ownerChatId, ERROR_POST_MSG + smg.getGroupId());
+                            checkAndSendNotification(channelId, ownerChatId, ERROR_POST_MSG + smg.getGroupId());
                         }
 
                     }
@@ -697,48 +683,16 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
         execute(lastMessage);
     }
 
-    private void postToOk(
-            List<Video> videos,
-            List<PhotoSize> photos,
-            List<Animation> animations,
-            String text,
-            Poll poll,
-            long groupId,
-            String accessToken
-    ) throws URISyntaxException, IOException, TelegramApiException, ApiException {
-
-        int maxListSize = Math.max(photos.size(), animations.size() + videos.size());
-        List<File> files = new ArrayList<>(maxListSize);
-        for (Video video : videos) {
-            File file = tgContentManager.download(video);
-            files.add(file);
-        }
-        for (Video animation : TgContentManager.toVideos(animations)) {
-            File file = tgContentManager.download(animation);
-            files.add(file);
-        }
-        List<String> videoIds = okPoster.uploadVideos(files, accessToken, groupId);
-        files.clear();
-
-        for (PhotoSize photo : photos) {
-            File file = tgContentManager.download(photo);
-            files.add(file);
-        }
-        List<String> photoIds = okPoster.uploadPhotos(files, accessToken, groupId);
-
-        okPoster.newPost()
-                .addVideos(videoIds)
-                .addPhotos(photoIds)
-                .addPoll(poll)
-                .addText(text)
-                .post(accessToken, groupId);
-    }
-
     @Override
     public File downloadFileById(String fileId) throws URISyntaxException, IOException, TelegramApiException {
         TgContentManager.GetFilePathResponse pathResponse = tgContentManager.retrieveFilePath(botToken, fileId);
         String tgApiFilePath = pathResponse.getFilePath();
         File file = downloadFile(tgApiFilePath);
         return TgContentManager.fileWithOrigExtension(tgApiFilePath, file);
+    }
+
+    @Override
+    public void sendMessage(long ownerChatId, long channelId, String message) {
+        checkAndSendNotification(ownerChatId, channelId, message);
     }
 }
