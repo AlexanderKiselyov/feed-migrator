@@ -48,8 +48,8 @@ public class AccountsList extends Command {
                             this.getCommandIdentifier(),
                             user.getUserName(),
                             USERNAME_NOT_FOUND,
-                            1,
-                            List.of(State.AddGroup.getDescription()),
+                            rowsCount,
+                            commandsForKeyboard,
                             null,
                             GO_BACK_BUTTON_TEXT);
                     return;
@@ -84,8 +84,7 @@ public class AccountsList extends Command {
                     String.format(NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST, State.AddGroup.getIdentifier()),
                     1,
                     List.of(State.AddGroup.getDescription()),
-                    null,
-                    GO_BACK_BUTTON_TEXT);
+                    null);
         }
     }
 
