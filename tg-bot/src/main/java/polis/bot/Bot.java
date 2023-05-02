@@ -12,15 +12,9 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.Video;
-import org.telegram.telegrambots.meta.api.objects.games.Animation;
-import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.AccountsList;
 import polis.commands.AddGroup;
@@ -64,9 +58,7 @@ import polis.util.Substate;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -126,8 +118,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
     private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n"
             + "Не удалось опубликовать пост в ok.ru/group/";
-    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
-            + "соответствии с Законом об авторском праве.";
     private static final String SINGLE_ITEM_POSTS = "";
 
     @Autowired
@@ -355,42 +345,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             if (!userChannelsRepository.isSetAutoposting(ownerChatId, channelId)) {
                 return;
             }
-            List<PhotoSize> photos = new ArrayList<>(1);
-            List<Video> videos = new ArrayList<>(1);
-            String text = null;
-            Poll poll = null;
-            List<Animation> animations = new ArrayList<>(1);
-            List<Document> documents = new ArrayList<>(1);
-            for (Message postItem : postItems) {
-                Chat forwardFromChat = postItem.getForwardFromChat();
-                if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
-                    checkAndSendNotification(channelId, ownerChatId, AUTHOR_RIGHTS_MSG);
-                    return;
-                }
-                if (postItem.hasPhoto()) {
-                    postItem.getPhoto().stream()
-                            .max(Comparator.comparingInt(PhotoSize::getFileSize))
-                            .ifPresent(photos::add);
-                }
-                if (postItem.hasVideo()) {
-                    videos.add(postItem.getVideo());
-                }
-                if (postItem.getCaption() != null && !postItem.getCaption().isEmpty()) {
-                    text = postItem.getCaption();
-                }
-                if (postItem.hasText() && !postItem.getText().isEmpty()) {
-                    text = postItem.getText();
-                }
-                if (postItem.hasPoll()) {
-                    poll = postItem.getPoll();
-                }
-                if (postItem.hasAnimation()) {
-                    animations.add(postItem.getAnimation());
-                }
-                if (postItem.hasDocument()) {
-                    documents.add(postItem.getDocument());
-                }
-            }
             long userChatId = userChannelsRepository.getUserChatId(channelId);
             List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(userChatId);
             for (UserChannels tgChannel : tgChannels) {
@@ -409,7 +363,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                         }
                     }
                     switch (smg.getSocialMedia()) {
-                        case OK -> okPostProcessor.processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, smg.getGroupId(), channelId, accessToken);
+                        case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, smg.getGroupId(), channelId, accessToken);
                         default -> {
                             LOGGER.error(String.format("Social media not found: %s",
                                     smg.getSocialMedia()));
