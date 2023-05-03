@@ -184,16 +184,17 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     @Autowired
     private Notifications notifications;
 
+    @Lazy
     @Autowired
     private OkPostProcessor okPostProcessor;
 
+    @Lazy
     @Autowired
     private TgContentManager tgContentManager;
 
     public Bot(
             @Value("${bot.name}") String botName,
-            @Value("${bot.token}") String botToken,
-            @Autowired OKClient okClient
+            @Value("${bot.token}") String botToken
     ) {
         super();
         this.botName = botName;
