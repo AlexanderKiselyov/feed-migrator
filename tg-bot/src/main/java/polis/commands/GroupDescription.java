@@ -9,10 +9,14 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
+import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
+import polis.data.repositories.UserChannelsRepository;
 import polis.datacheck.DataCheck;
 import polis.util.State;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
@@ -20,10 +24,18 @@ import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 @Component
 public class GroupDescription extends Command {
     private static final String GROUP_DESCRIPTION = """
-            Выбрана группа <b>%s</b> из социальной сети %s.""";
+            Выбрана группа <b>%s</b> из социальной сети %s.
+            Вы можете выбрать команду /autoposting для настройки автопостинга.""";
+    private static final String GROUP_DESCRIPTION_EXTENDED = """
+            Выбрана группа <b>%s</b> из социальной сети %s.
+            Вы можете выбрать команду /autoposting для настройки автопостинга.
+            Настроить уведомления об автоматически опубликованных постах можно с помощью команды  /notifications.""";
     private static final String NO_VALID_GROUP = """
             Ошибка выбора группы.
             Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и выберите нужную группу.""";
+
+    private int rowsCount = 1;
+    private final List<String> commandsForKeyboard = new ArrayList<>();
 
     @Autowired
     private CurrentGroupRepository currentGroupRepository;
@@ -32,12 +44,19 @@ public class GroupDescription extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private UserChannelsRepository userChannelsRepository;
+
+    @Autowired
     private DataCheck dataCheck;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupDescription.class);
 
     public GroupDescription() {
         super(State.GroupDescription.getIdentifier(), State.GroupDescription.getDescription());
+        this.commandsForKeyboard.add(State.Autoposting.getDescription());
     }
 
     @Override
@@ -66,13 +85,23 @@ public class GroupDescription extends Command {
                         GO_BACK_BUTTON_TEXT);
                 return;
             }
+            long channelId = currentChannelRepository.getCurrentChannel(chat.getId()).getChannelId();
+            boolean isAutopostingEnable = userChannelsRepository.isSetAutoposting(chat.getId(), channelId);
+            String msgToSend = isAutopostingEnable ? GROUP_DESCRIPTION_EXTENDED : GROUP_DESCRIPTION;
+            if (isAutopostingEnable && !commandsForKeyboard.contains(State.Notifications.getDescription())) {
+                commandsForKeyboard.add(State.Notifications.getDescription());
+                rowsCount++;
+            } else if (!isAutopostingEnable && commandsForKeyboard.contains(State.Notifications.getDescription())) {
+                commandsForKeyboard.remove(State.Notifications.getDescription());
+                rowsCount--;
+            }
 
             sendAnswer(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    String.format(GROUP_DESCRIPTION, groupName,
+                    String.format(msgToSend, groupName,
                             currentGroup.getSocialMedia().getName()),
                     rowsCount,
                     commandsForKeyboard,
@@ -85,8 +114,8 @@ public class GroupDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NO_VALID_GROUP, State.TgChannelDescription.getIdentifier()),
-                    rowsCount,
-                    commandsForKeyboard,
+                    super.rowsCount,
+                    super.commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
         }

@@ -59,13 +59,9 @@ public class DataCheck {
     @Autowired
     private CurrentStateRepository currentStateRepository;
 
-    @Autowired
-    private OkAuthorizator okAuthorizator;
-
-    @Autowired
-    private HttpClient client;
-
+    private final HttpClient client = HttpClient.newHttpClient();
     private static final Logger LOGGER = LoggerFactory.getLogger(DataCheck.class);
+    private final OkAuthorizator okAuthorizator = new OkAuthorizator();
 
     public NonCommand.AnswerPair getOKAuthCode(String text, Long chatId) {
         OkAuthorizator.TokenPair pair;
