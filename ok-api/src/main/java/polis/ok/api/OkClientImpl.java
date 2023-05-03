@@ -2,14 +2,12 @@ package polis.ok.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
@@ -40,29 +38,25 @@ import static polis.ok.api.LoggingUtils.sendRequest;
 import static polis.ok.api.LoggingUtils.wrapAndLog;
 
 public class OkClientImpl implements OKClient {
-    private static final Integer CLIENT_RESPONSE_TIMEOUT = 5;
     private static final String OK_METHODS_URI = "https://api.ok.ru/fb.do";
     private static final String POST_MEDIA_TOPIC = "mediatopic.post";
     private static final String UPLOAD_PHOTO = "photosV2.getUploadUrl";
     private static final String UPLOAD_VIDEO = "video.getUploadUrl";
     private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
-    private final HttpClient client = HttpClient.newHttpClient();
-    private final CloseableHttpClient advancedClient;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final HttpClient httpClient;
+    private final CloseableHttpClient apacheHttpClient;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public OkClientImpl() {
-        RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(CLIENT_RESPONSE_TIMEOUT * 1000)
-                .setConnectionRequestTimeout(CLIENT_RESPONSE_TIMEOUT * 1000)
-                .setSocketTimeout(CLIENT_RESPONSE_TIMEOUT * 1000).build();
-        advancedClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+    public OkClientImpl(CloseableHttpClient apacheHttpClient, HttpClient httpClient) {
+        this.httpClient = httpClient;
+        this.apacheHttpClient = apacheHttpClient;
     }
 
     public void postMediaTopic(String accessToken, long groupId, Attachment attachment)
             throws URISyntaxException, IOException, OkApiException {
         List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair("application_key", OkAppProperties.APPLICATION_KEY));
-        parameters.add(new BasicNameValuePair("attachment", mapper.writeValueAsString(attachment)));
+        parameters.add(new BasicNameValuePair("attachment", objectMapper.writeValueAsString(attachment)));
         parameters.add(new BasicNameValuePair("format", "json"));
         parameters.add(new BasicNameValuePair("gid", String.valueOf(groupId)));
         parameters.add(new BasicNameValuePair("method", POST_MEDIA_TOPIC));
@@ -74,7 +68,7 @@ public class OkClientImpl implements OKClient {
         request.addHeader("Content-Type", "application/x-www-form-urlencoded");
         request.setEntity(new UrlEncodedFormEntity(parameters, StandardCharsets.UTF_8));
 
-        org.apache.http.HttpResponse response = sendRequest(advancedClient, request, logger);
+        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, request, logger);
 
         String statusLine = response.getStatusLine().toString();
         String body = apacheResponseBody(response);
@@ -102,7 +96,7 @@ public class OkClientImpl implements OKClient {
         }
         httpPost.setEntity(multipartEntityBuilder.build());
 
-        org.apache.http.HttpResponse response = sendRequest(advancedClient, httpPost, logger);
+        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, httpPost, logger);
         JSONObject responseJson = parseResponse(response, logger);
 
         EntityUtils.consume(response.getEntity());
@@ -133,7 +127,7 @@ public class OkClientImpl implements OKClient {
         multipartEntityBuilder.addPart("video", new FileBody(video));
         httpPost.setEntity(multipartEntityBuilder.build());
 
-        org.apache.http.HttpResponse response = sendRequest(advancedClient, httpPost, logger);
+        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, httpPost, logger);
 
         EntityUtils.consume(response.getEntity());
 
@@ -154,7 +148,7 @@ public class OkClientImpl implements OKClient {
         HttpRequest getUploadUrlRequest = HttpRequest.newBuilder().GET()
                 .uri(uri)
                 .build();
-        HttpResponse<String> uploadUrlResponse = sendRequest(client, getUploadUrlRequest, logger);
+        HttpResponse<String> uploadUrlResponse = sendRequest(httpClient, getUploadUrlRequest, logger);
         JSONObject responseBodyJson = parseResponse(uploadUrlResponse, logger);
 
         try {
@@ -186,7 +180,7 @@ public class OkClientImpl implements OKClient {
         HttpRequest getUploadUrlRequest = HttpRequest.newBuilder().GET()
                 .uri(uri)
                 .build();
-        HttpResponse<String> uploadUrlResponse = sendRequest(client, getUploadUrlRequest, logger);
+        HttpResponse<String> uploadUrlResponse = sendRequest(httpClient, getUploadUrlRequest, logger);
         JSONObject object = parseResponse(uploadUrlResponse, logger);
 
         try {

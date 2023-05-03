@@ -28,6 +28,10 @@ public class SyncOkGroupDescription extends Command {
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP_DESCRIPTION = """
             Невозможно показать информацию по связанным Телеграм-каналу и группе.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
+    private static final int ROWS_COUNT = 1;
+    private static final List<String> commandsForKeyboard = List.of(
+            State.Autoposting.getDescription()
+    );
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -41,15 +45,11 @@ public class SyncOkGroupDescription extends Command {
     @Autowired
     private DataCheck dataCheck;
 
-    private final TelegramDataCheck telegramDataCheck;
-    private final int rowsCount = 1;
-    private final List<String> commandsForKeyboard = List.of(
-            State.Autoposting.getDescription()
-    );
+    @Autowired
+    private TelegramDataCheck telegramDataCheck;
 
     public SyncOkGroupDescription() {
         super(State.SyncOkGroupDescription.getIdentifier(), State.SyncOkGroupDescription.getDescription());
-        telegramDataCheck = new TelegramDataCheck();
     }
 
     @Override
@@ -87,7 +87,7 @@ public class SyncOkGroupDescription extends Command {
                             currentGroup.getSocialMedia().getName(),
                             State.Autoposting.getIdentifier()
                     ),
-                    rowsCount,
+                    ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);

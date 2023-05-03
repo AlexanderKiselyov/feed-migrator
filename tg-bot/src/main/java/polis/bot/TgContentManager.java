@@ -7,6 +7,9 @@ import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
@@ -25,7 +28,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class TgContentManager {
+@Component
+public class TgContentManager {
     private static final String TELEGRAM_API_URL = "https://api.telegram.org";
     private static final Logger logger = LoggerFactory.getLogger(TgContentManager.class);
 
@@ -33,7 +37,8 @@ public final class TgContentManager {
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public TgContentManager(TgFileLoader fileLoader) {
+    @Autowired
+    public TgContentManager(@Qualifier("Bot") TgFileLoader fileLoader) {
         this.fileLoader = fileLoader;
     }
 
