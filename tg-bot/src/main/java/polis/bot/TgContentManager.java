@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public final class TgContentManager {
+public class TgContentManager {
     private static final String TELEGRAM_API_URL = "https://api.telegram.org";
     private static final Logger logger = LoggerFactory.getLogger(TgContentManager.class);
 
