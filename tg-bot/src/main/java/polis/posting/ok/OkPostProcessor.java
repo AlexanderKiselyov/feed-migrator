@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OkPostProcessor extends PostProcessor {
+    public static final String DOCUMENTS_ARENT_SUPPORTED =
+            "Тип файла 'Документ' не поддерживается в социальной сети Одноклассники";
+
     private final OkPoster okPoster;
 
     public OkPostProcessor(TgNotificator tgNotificator, TgContentManager tgContentManager, OkPoster okPoster) {
@@ -41,8 +44,7 @@ public class OkPostProcessor extends PostProcessor {
         //Здесь можно будет сделать маленькие трайи, чтобы пользователю писать более конкретную ошибку
         try {
             if (!documents.isEmpty() && animations.isEmpty()) {
-                tgNotificator.sendMessage(ownerChatId, channelId, """
-                                       Тип 'Документ' не поддерживается в социальной сети Одноклассники""");
+                tgNotificator.sendNotification(ownerChatId, channelId, DOCUMENTS_ARENT_SUPPORTED);
             }
 
             int maxListSize = Math.max(photos.size(), animations.size() + videos.size());
@@ -72,7 +74,7 @@ public class OkPostProcessor extends PostProcessor {
                     .post(accessToken, groupId);
             sendSuccess(channelId, ownerChatId, "ok.ru/group/" + groupId);
         } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {
-            tgNotificator.sendMessage(ownerChatId, channelId, ERROR_POST_MSG + groupId);
+            tgNotificator.sendNotification(ownerChatId, channelId, ERROR_POST_MSG + groupId);
         }
     }
 }

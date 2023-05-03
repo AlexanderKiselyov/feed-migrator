@@ -646,7 +646,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     }
 
     @Override
-    public void sendMessage(long ownerChatId, long channelId, String message) {
-        checkAndSendNotification(ownerChatId, channelId, message);
+    public void sendNotification(long userChatId, long channelId, String message) {
+        checkAndSendNotification(userChatId, channelId, message);
     }
 }

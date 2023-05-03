@@ -42,7 +42,7 @@ public abstract class PostProcessor {
     );
 
     protected void sendSuccess(long channelId, long ownerChatId, String groupLink) {
-        tgNotificator.sendMessage(channelId, ownerChatId,
+        tgNotificator.sendNotification(channelId, ownerChatId,
                 "Успешно опубликовал пост в " + groupLink);
     }
 
@@ -56,7 +56,7 @@ public abstract class PostProcessor {
         for (Message postItem : postItems) {
             Chat forwardFromChat = postItem.getForwardFromChat();
             if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
-                tgNotificator.sendMessage(channelId, ownerChatId, AUTHOR_RIGHTS_MSG);
+                tgNotificator.sendNotification(channelId, ownerChatId, AUTHOR_RIGHTS_MSG);
                 return;
             }
             if (postItem.hasPhoto()) {
