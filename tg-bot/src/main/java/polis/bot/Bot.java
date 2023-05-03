@@ -12,15 +12,9 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.Video;
-import org.telegram.telegrambots.meta.api.objects.games.Animation;
-import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.AccountsList;
 import polis.commands.AddGroup;
@@ -55,15 +49,16 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.ok.api.OkClientImpl;
+import polis.posting.ok.OkPostProcessor;
+import polis.posting.ok.OkPoster;
 import polis.util.IState;
 import polis.util.State;
 import polis.util.Substate;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -82,7 +77,7 @@ import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
 
 @Configuration
 @Component
-public class Bot extends TelegramLongPollingCommandBot {
+public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, TgNotificator {
     private static final List<String> EMPTY_LIST = List.of();
     private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в "
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
@@ -112,7 +107,6 @@ public class Bot extends TelegramLongPollingCommandBot {
     );
     private final String botName;
     private final String botToken;
-    private final OkPostingHelper helper;
     private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
     private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
     private static final String GROUP_CALLBACK_TEXT = "group";
@@ -124,8 +118,6 @@ public class Bot extends TelegramLongPollingCommandBot {
     private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
     private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n"
             + "Не удалось опубликовать пост в ok.ru/group/";
-    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
-            + "соответствии с Законом об авторском праве.";
     private static final String SINGLE_ITEM_POSTS = "";
 
     @Autowired
@@ -185,6 +177,9 @@ public class Bot extends TelegramLongPollingCommandBot {
     @Autowired
     private Autoposting autoposting;
 
+    private final TgContentManager tgContentManager = new TgContentManager(this);
+    private final OkPostProcessor okPostProcessor = new OkPostProcessor(this, tgContentManager, new OkPoster(new OkClientImpl()));
+
     @Autowired
     private Notifications notifications;
 
@@ -192,7 +187,6 @@ public class Bot extends TelegramLongPollingCommandBot {
         super();
         this.botName = botName;
         this.botToken = botToken;
-        this.helper = new OkPostingHelper(this, botToken, new TgApiHelper(), new OkClientImpl());
     }
 
     @Override
@@ -345,52 +339,16 @@ public class Bot extends TelegramLongPollingCommandBot {
     }
 
     private void processPostItems(List<Message> postItems) {
-        long chatId = postItems.get(0).getChatId();
-        long ownerChatId = userChannelsRepository.getUserChatId(chatId);
+        long channelId = postItems.get(0).getChatId();
+        long ownerChatId = userChannelsRepository.getUserChatId(channelId);
         try {
-            if (!userChannelsRepository.isSetAutoposting(ownerChatId, chatId)) {
+            if (!userChannelsRepository.isSetAutoposting(ownerChatId, channelId)) {
                 return;
             }
-            List<PhotoSize> photos = new ArrayList<>(1);
-            List<Video> videos = new ArrayList<>(1);
-            String text = null;
-            Poll poll = null;
-            List<Animation> animations = new ArrayList<>(1);
-            List<Document> documents = new ArrayList<>(1);
-            for (Message postItem : postItems) {
-                Chat forwardFromChat = postItem.getForwardFromChat();
-                if (forwardFromChat != null && forwardFromChat.getId() != chatId) {
-                    checkAndSendNotification(chatId, ownerChatId, AUTHOR_RIGHTS_MSG);
-                    return;
-                }
-                if (postItem.hasPhoto()) {
-                    postItem.getPhoto().stream()
-                            .max(Comparator.comparingInt(PhotoSize::getFileSize))
-                            .ifPresent(photos::add);
-                }
-                if (postItem.hasVideo()) {
-                    videos.add(postItem.getVideo());
-                }
-                if (postItem.getCaption() != null && !postItem.getCaption().isEmpty()) {
-                    text = postItem.getCaption();
-                }
-                if (postItem.hasText() && !postItem.getText().isEmpty()) {
-                    text = postItem.getText();
-                }
-                if (postItem.hasPoll()) {
-                    poll = postItem.getPoll();
-                }
-                if (postItem.hasAnimation()) {
-                    animations.add(postItem.getAnimation());
-                }
-                if (postItem.hasDocument()) {
-                    documents.add(postItem.getDocument());
-                }
-            }
-            long userChatId = userChannelsRepository.getUserChatId(chatId);
+            long userChatId = userChannelsRepository.getUserChatId(channelId);
             List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(userChatId);
             for (UserChannels tgChannel : tgChannels) {
-                if (!Objects.equals(tgChannel.getChannelId(), chatId)) {
+                if (!Objects.equals(tgChannel.getChannelId(), channelId)) {
                     return;
                 }
                 if (!tgChannel.isAutoposting()) {
@@ -404,32 +362,12 @@ public class Bot extends TelegramLongPollingCommandBot {
                             break;
                         }
                     }
-                    switch (smg.getSocialMedia()) { //Здесь бы смапить группы на подходящие PostingHelper'ы
-                        // и с помощью каждого запостить пост
-                        case OK -> {
-                            try {
-                                if (!documents.isEmpty() && animations.isEmpty()) {
-                                    sendAnswer(chatId, """
-                                            Тип 'Документ' не поддерживается в социальной сети Одноклассники""");
-                                }
-                                helper.newPost(chatId, smg.getGroupId(), accessToken)
-                                        .addPhotos(photos)
-                                        .addVideos(videos)
-                                        .addText(text)
-                                        .addPoll(poll)
-                                        .addAnimations(animations)
-                                        .post(accessToken, smg.getGroupId());
-                                checkAndSendNotification(chatId, ownerChatId,
-                                        "Успешно опубликовал пост в ok.ru/group/" + smg.getGroupId());
-                            } catch (URISyntaxException | IOException ignored) {
-                                //Наверное, стоит в принципе не кидать эти исключения из PostingHelper'а
-                                checkAndSendNotification(chatId, ownerChatId, ERROR_POST_MSG + smg.getGroupId());
-                            }
-                        }
+                    switch (smg.getSocialMedia()) {
+                        case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, smg.getGroupId(), channelId, accessToken);
                         default -> {
                             LOGGER.error(String.format("Social media not found: %s",
                                     smg.getSocialMedia()));
-                            checkAndSendNotification(chatId, ownerChatId, ERROR_POST_MSG + smg.getGroupId());
+                            checkAndSendNotification(channelId, ownerChatId, ERROR_POST_MSG + smg.getGroupId());
                         }
 
                     }
@@ -697,5 +635,18 @@ public class Bot extends TelegramLongPollingCommandBot {
         lastMessage.setChatId(chatId);
         lastMessage.setMessageId(msg.getMessageId());
         execute(lastMessage);
+    }
+
+    @Override
+    public File downloadFileById(String fileId) throws URISyntaxException, IOException, TelegramApiException {
+        TgContentManager.GetFilePathResponse pathResponse = tgContentManager.retrieveFilePath(botToken, fileId);
+        String tgApiFilePath = pathResponse.getFilePath();
+        File file = downloadFile(tgApiFilePath);
+        return TgContentManager.fileWithOrigExtension(tgApiFilePath, file);
+    }
+
+    @Override
+    public void sendNotification(long userChatId, long channelId, String message) {
+        checkAndSendNotification(userChatId, channelId, message);
     }
 }
