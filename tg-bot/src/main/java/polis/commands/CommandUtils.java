@@ -10,10 +10,10 @@ import polis.datacheck.OkDataCheck;
 import polis.datacheck.VkDataCheck;
 import polis.vk.api.VkAuthorizator;
 
-
 @Component
 public class CommandUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandUtils.class);
+
     @Autowired
     private OkDataCheck okDataCheck;
 

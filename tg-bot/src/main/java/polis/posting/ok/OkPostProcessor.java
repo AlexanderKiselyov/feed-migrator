@@ -28,7 +28,8 @@ public class OkPostProcessor extends PostProcessor {
     private final OkPoster okPoster;
 
     @Autowired
-    public OkPostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager, OkPoster okPoster) {
+    public OkPostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager,
+                           OkPoster okPoster) {
         super(tgNotificator, tgContentManager);
         this.okPoster = okPoster;
     }

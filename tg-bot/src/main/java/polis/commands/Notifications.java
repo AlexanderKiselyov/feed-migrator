@@ -51,7 +51,7 @@ public class Notifications extends Command {
     private VkDataCheck vkDataCheck;
 
     private static final int rowsCount = 1;
-    private final Logger LOGGER = LoggerFactory.getLogger(Autoposting.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Notifications.class);
 
     public Notifications() {
         super(State.Notifications.getIdentifier(), State.Notifications.getDescription());

@@ -80,7 +80,6 @@ public class NonCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NonCommand.class);
 
-
     public AnswerPair nonCommandExecute(String text, Long chatId, IState state) {
         if (state == null) {
             LOGGER.error("Null state");
