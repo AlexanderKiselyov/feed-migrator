@@ -124,7 +124,7 @@ public class TgSyncGroups extends Command {
                         this.getCommandIdentifier(),
                         user.getUserName(),
                         TG_SYNC_GROUPS,
-                        rowsCount,
+                        ROWS_COUNT,
                         commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);

@@ -16,7 +16,6 @@ import polis.data.repositories.CurrentGroupRepository;
 import polis.datacheck.OkDataCheck;
 import polis.datacheck.VkDataCheck;
 import polis.util.State;
-import polis.vk.api.VkAuthorizator;
 
 import java.util.Objects;
 
@@ -51,7 +50,7 @@ public class Autoposting extends Command {
     @Autowired
     private CommandUtils commandUtils;
 
-    private static final int rowsCount = 1;
+    private static final int ROWS_COUNT = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(Autoposting.class);
 
     public Autoposting() {
@@ -74,7 +73,7 @@ public class Autoposting extends Command {
                         this.getCommandIdentifier(),
                         user.getUserName(),
                         GROUP_NAME_NOT_FOUND,
-                        super.rowsCount,
+                        super.ROWS_COUNT,
                         commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
@@ -88,7 +87,7 @@ public class Autoposting extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     AUTOPOSTING,
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
@@ -99,7 +98,7 @@ public class Autoposting extends Command {
                     user.getUserName(),
                     String.format(AUTOPOSTING_INLINE, currentChannel.getChannelUsername(), groupName,
                             currentGroup.getSocialMedia().getName()),
-                    rowsCount,
+                    ROWS_COUNT,
                     commandsForKeyboard,
                     getButtonsForAutopostingOptions(chat.getId(), currentChannel.getChannelId()));
         } else {
@@ -109,7 +108,7 @@ public class Autoposting extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NO_CURRENT_TG_CHANNEL, State.MainMenu.getIdentifier()),
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);

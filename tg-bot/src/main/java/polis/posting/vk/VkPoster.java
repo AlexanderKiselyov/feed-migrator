@@ -1,5 +1,6 @@
 package polis.posting.vk;
 
+import org.springframework.stereotype.Component;
 import polis.posting.ApiException;
 import polis.posting.Poster;
 
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
+@Component
 public class VkPoster implements Poster {
     @Override
     public List<String> uploadPhotos(List<File> photos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {

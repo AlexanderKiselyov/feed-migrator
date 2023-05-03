@@ -71,7 +71,7 @@ public class SyncOkTg extends Command {
                         this.getCommandIdentifier(),
                         user.getUserName(),
                         GROUP_NAME_NOT_FOUND,
-                        super.rowsCount,
+                        super.ROWS_COUNT,
                         commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
@@ -90,7 +90,7 @@ public class SyncOkTg extends Command {
                             groupName,
                             currentGroup.getSocialMedia().getName()
                     ),
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
@@ -113,7 +113,7 @@ public class SyncOkTg extends Command {
                             NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP,
                             State.MainMenu.getIdentifier()
                     ),
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);

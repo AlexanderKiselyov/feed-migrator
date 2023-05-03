@@ -32,7 +32,7 @@ public class OkAccountDescription extends Command {
     @Autowired
     private OkDataCheck okDataCheck;
 
-    private static final int rowsCount = 2;
+    private static final int ROWS_COUNT = 2;
     private static final List<String> commandsForKeyboard = List.of(
             State.AddOkGroup.getDescription()
     );
@@ -54,7 +54,7 @@ public class OkAccountDescription extends Command {
                         this.getCommandIdentifier(),
                         user.getUserName(),
                         USERNAME_NOT_FOUND,
-                        rowsCount,
+                        ROWS_COUNT,
                         commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
@@ -67,7 +67,7 @@ public class OkAccountDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(ACCOUNT_DESCRIPTION, username),
-                    rowsCount,
+                    ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
@@ -77,7 +77,7 @@ public class OkAccountDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NOT_VALID_ACCOUNT, State.AddGroup.getIdentifier()),
-                    rowsCount,
+                    ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);

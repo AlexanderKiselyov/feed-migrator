@@ -46,7 +46,7 @@ public class AddOkGroup extends Command {
                             this.getCommandIdentifier(),
                             user.getUserName(),
                             String.format(SAME_SOCIAL_MEDIA, SocialMedia.OK.getName()),
-                            rowsCount,
+                            ROWS_COUNT,
                             commandsForKeyboard,
                             null,
                             GO_BACK_BUTTON_TEXT);
@@ -59,7 +59,7 @@ public class AddOkGroup extends Command {
                 this.getCommandIdentifier(),
                 user.getUserName(),
                 ADD_OK_GROUP,
-                rowsCount,
+                ROWS_COUNT,
                 commandsForKeyboard,
                 null,
                 GO_BACK_BUTTON_TEXT);

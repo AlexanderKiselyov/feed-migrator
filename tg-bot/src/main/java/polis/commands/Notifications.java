@@ -16,7 +16,6 @@ import polis.data.repositories.CurrentGroupRepository;
 import polis.datacheck.OkDataCheck;
 import polis.datacheck.VkDataCheck;
 import polis.util.State;
-import polis.vk.api.VkAuthorizator;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
@@ -52,7 +51,7 @@ public class Notifications extends Command {
     @Autowired
     private CommandUtils commandUtils;
 
-    private static final int rowsCount = 1;
+    private static final int ROWS_COUNT = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(Notifications.class);
 
     public Notifications() {
@@ -72,7 +71,7 @@ public class Notifications extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     NOTIFICATIONS_MSG,
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
@@ -96,7 +95,7 @@ public class Notifications extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     notificationsEnable,
-                    rowsCount,
+                    ROWS_COUNT,
                     commandsForKeyboard,
                     getButtonsForNotificationsOptions(currentChannel.getChannelId()));
         } else {
@@ -106,7 +105,7 @@ public class Notifications extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NO_CURRENT_TG_CHANNEL, State.MainMenu.getIdentifier()),
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);

@@ -16,7 +16,6 @@ import polis.data.repositories.UserChannelsRepository;
 import polis.datacheck.OkDataCheck;
 import polis.datacheck.VkDataCheck;
 import polis.util.State;
-import polis.vk.api.VkAuthorizator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,7 +118,7 @@ public class GroupDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NO_VALID_GROUP, State.TgChannelDescription.getIdentifier()),
-                    super.rowsCount,
+                    ROWS_COUNT,
                     super.commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);

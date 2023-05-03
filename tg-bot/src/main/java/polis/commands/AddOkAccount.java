@@ -33,7 +33,7 @@ public class AddOkAccount extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     messageText,
-                    rowsCount,
+                    ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);

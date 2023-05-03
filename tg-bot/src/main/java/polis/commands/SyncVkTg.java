@@ -33,7 +33,7 @@ public class SyncVkTg extends Command {
             Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private static final Logger LOGGER = LoggerFactory.getLogger(SyncVkTg.class);
-    private static final int rowsCount = 1;
+    private static final int ROWS_COUNT = 1;
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -70,7 +70,7 @@ public class SyncVkTg extends Command {
                         this.getCommandIdentifier(),
                         user.getUserName(),
                         GROUP_NAME_NOT_FOUND,
-                        super.rowsCount,
+                        super.ROWS_COUNT,
                         commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
@@ -89,7 +89,7 @@ public class SyncVkTg extends Command {
                             groupName,
                             currentGroup.getSocialMedia().getName()
                     ),
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
@@ -99,7 +99,7 @@ public class SyncVkTg extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     SYNC_VK_TG_INLINE,
-                    rowsCount,
+                    ROWS_COUNT,
                     commandsForKeyboard,
                     getButtonsForSyncOptions());
         } else {
@@ -112,7 +112,7 @@ public class SyncVkTg extends Command {
                             NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP,
                             State.MainMenu.getIdentifier()
                     ),
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
