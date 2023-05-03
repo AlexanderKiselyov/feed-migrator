@@ -22,21 +22,22 @@ public class TgChannelDescription extends Command {
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""",
             State.MainMenu.getIdentifier());
-
-    @Autowired
-    private CurrentChannelRepository currentChannelRepository;
-
-    private final TelegramDataCheck telegramDataCheck;
-    private static final int rowsCount = 3;
+    private static final int ROWS_COUNT = 3;
     private static final List<String> commandsForKeyboard = List.of(
             State.TgSyncGroups.getDescription(),
             State.AddGroup.getDescription(),
             State.MainMenu.getDescription()
     );
 
+    @Autowired
+    private CurrentChannelRepository currentChannelRepository;
+
+    @Autowired
+    private TelegramDataCheck telegramDataCheck;
+
+
     public TgChannelDescription() {
         super(State.TgChannelDescription.getIdentifier(), State.TgChannelDescription.getDescription());
-        telegramDataCheck = new TelegramDataCheck();
     }
 
     @Override
@@ -53,7 +54,7 @@ public class TgChannelDescription extends Command {
                             State.TgSyncGroups.getIdentifier(),
                             State.AddGroup.getIdentifier()
                     ),
-                    rowsCount,
+                    ROWS_COUNT,
                     commandsForKeyboard,
                     null);
         } else {
@@ -63,7 +64,7 @@ public class TgChannelDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     NOT_VALID_CHANNEL,
-                    rowsCount,
+                    ROWS_COUNT,
                     commandsForKeyboard,
                     null);
         }
