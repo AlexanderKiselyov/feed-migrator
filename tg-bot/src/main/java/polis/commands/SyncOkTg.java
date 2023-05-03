@@ -19,6 +19,7 @@ import polis.util.State;
 
 import java.util.Objects;
 
+import static polis.commands.CommandUtils.getButtonsForSyncOptions;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
@@ -117,14 +118,5 @@ public class SyncOkTg extends Command {
                     null,
                     GO_BACK_BUTTON_TEXT);
         }
-    }
-
-    private String[] getButtonsForSyncOptions() {
-        return new String[]{
-                "Да",
-                "yesNo 0",
-                "Нет",
-                "yesNo 1"
-        };
     }
 }

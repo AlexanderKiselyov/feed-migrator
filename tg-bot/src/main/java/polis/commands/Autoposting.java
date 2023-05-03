@@ -32,6 +32,7 @@ public class Autoposting extends Command {
     private static final String NO_CURRENT_TG_CHANNEL = """
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
+    private final CommandUtils commandUtils;
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -53,6 +54,7 @@ public class Autoposting extends Command {
 
     public Autoposting() {
         super(State.Autoposting.getIdentifier(), State.Autoposting.getDescription());
+        commandUtils = new CommandUtils();
     }
 
     @Override
@@ -62,19 +64,7 @@ public class Autoposting extends Command {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
 
         if (currentChannel != null && currentAccount != null && currentGroup != null) {
-            String groupName = null;
-            switch (currentGroup.getSocialMedia()) {
-                case OK -> groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(),
-                        currentAccount.getAccessToken());
-                case VK -> groupName = vkDataCheck.getVkGroupName(
-                        new VkAuthorizator.TokenWithId(
-                                currentAccount.getAccessToken(),
-                                (int) currentAccount.getAccountId()
-                        ),
-                        currentGroup.getGroupId()
-                );
-                default -> LOGGER.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
-            }
+            String groupName = commandUtils.getGroupName(currentAccount, currentGroup);
 
             if (Objects.equals(groupName, null)) {
                 sendAnswer(

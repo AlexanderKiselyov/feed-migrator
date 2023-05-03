@@ -13,7 +13,6 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.OkDataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
 
@@ -23,7 +22,7 @@ import java.util.Objects;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
-public class SyncOkGroupDescription extends Command {
+public class SyncGroupDescription extends Command {
     private static final String SYNC_OK_TG_DESCRIPTION = """
             Телеграм-канал <b>%s</b> и группа <b>%s (%s)</b> были успешно синхронизированы.
             Настроить функцию автопостинга можно по команде /%s.""";
@@ -34,7 +33,8 @@ public class SyncOkGroupDescription extends Command {
     private static final List<String> commandsForKeyboard = List.of(
             State.Autoposting.getDescription()
     );
-    private static final Logger LOGGER = LoggerFactory.getLogger(SyncOkGroupDescription.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SyncGroupDescription.class);
+    private final CommandUtils commandUtils;
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -46,13 +46,11 @@ public class SyncOkGroupDescription extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private OkDataCheck okDataCheck;
-
-    @Autowired
     private TelegramDataCheck telegramDataCheck;
 
-    public SyncOkGroupDescription() {
-        super(State.SyncOkGroupDescription.getIdentifier(), State.SyncOkGroupDescription.getDescription());
+    public SyncGroupDescription() {
+        super(State.SyncGroupDescription.getIdentifier(), State.SyncGroupDescription.getDescription());
+        commandUtils = new CommandUtils();
     }
 
     @Override
@@ -62,7 +60,7 @@ public class SyncOkGroupDescription extends Command {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
 
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
-            String groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+            String groupName = commandUtils.getGroupName(currentAccount, currentGroup);
 
             if (Objects.equals(groupName, null)) {
                 sendAnswer(

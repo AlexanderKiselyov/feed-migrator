@@ -31,7 +31,7 @@ import polis.commands.NonCommand;
 import polis.commands.Notifications;
 import polis.commands.OkAccountDescription;
 import polis.commands.StartCommand;
-import polis.commands.SyncOkGroupDescription;
+import polis.commands.SyncGroupDescription;
 import polis.commands.SyncOkTg;
 import polis.commands.SyncVkTg;
 import polis.commands.TgChannelDescription;
@@ -55,6 +55,7 @@ import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.posting.ok.OkPostProcessor;
 import polis.util.IState;
+import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
 
@@ -172,7 +173,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private AddOkGroup addOkGroup;
 
     @Autowired
-    private SyncOkGroupDescription syncOkGroupDescription;
+    private SyncGroupDescription syncGroupDescription;
 
     @Autowired
     private SyncOkTg syncOkTg;
@@ -234,7 +235,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         register(okAccountDescription);
         register(accountsList);
         register(addOkGroup);
-        register(syncOkGroupDescription);
+        register(syncGroupDescription);
         register(syncOkTg);
         register(autoposting);
         register(notifications);
@@ -378,21 +379,21 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 if (!tgChannel.isAutoposting()) {
                     return;
                 }
-                for (ChannelGroup smg : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
+                for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
                     String accessToken = "";
                     for (Account account : accountsRepository.getAccountsForUser(userChatId)) {
-                        if (Objects.equals(account.getAccountId(), smg.getAccountId())) {
+                        if (Objects.equals(account.getAccountId(), group.getAccountId())) {
                             accessToken = account.getAccessToken();
                             break;
                         }
                     }
-                    switch (smg.getSocialMedia()) {
-                        case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, smg.getGroupId(),
+                    switch (group.getSocialMedia()) {
+                        case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
                                 channelId, accessToken);
                         default -> {
                             LOGGER.error(String.format("Social media not found: %s",
-                                    smg.getSocialMedia()));
-                            checkAndSendNotification(channelId, ownerChatId, ERROR_POST_MSG + smg.getGroupId());
+                                    group.getSocialMedia()));
+                            checkAndSendNotification(channelId, ownerChatId, ERROR_POST_MSG + group.getGroupId());
                         }
 
                     }
@@ -488,25 +489,11 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 if (Objects.equals(dataParts[2], "0")) {
                     changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.GroupDescription);
                 } else if (Objects.equals(dataParts[2], "1")) {
-                    boolean isFound = false;
-                    List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(chatId);
-                    for (UserChannels tgChannel : tgChannels) {
-                        if (Objects.equals(tgChannel.getChannelId(),
-                                currentChannelRepository.getCurrentChannel(chatId).getChannelId())) {
-                            for (ChannelGroup smg : channelGroupsRepository
-                                    .getGroupsForChannel(tgChannel.getChannelId())) {
-                                if (Objects.equals(String.valueOf(smg.getAccountId()), dataParts[1])) {
-                                    channelGroupsRepository.deleteChannelGroup(smg.getAccountId(),
-                                            smg.getSocialMedia().getName(), smg.getGroupId());
-                                    isFound = true;
-                                    break;
-                                }
-                            }
-                            if (isFound) {
-                                break;
-                            }
-                        }
-                    }
+                    CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chatId);
+                    CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chatId);
+                    channelGroupsRepository.deleteChannelGroup(currentChannel.getChannelId(),
+                            currentAccount.getSocialMedia());
+                    currentGroupRepository.deleteCurrentGroup(chatId);
                     deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.TgSyncGroups.getIdentifier()).processMessage(this, msg, null);
                 } else {
@@ -519,7 +506,10 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     return;
                 }
                 boolean shouldDelete = dataParts[2].equals("1");
-                State state = shouldDelete ? State.AddGroup : State.OkAccountDescription;
+                String currentAccountSocialMedia = currentAccountRepository.getCurrentAccount(chatId).getSocialMedia();
+                State state = shouldDelete ? State.AddGroup :
+                        (currentAccountSocialMedia.equals(SocialMedia.OK.getName()) ? State.OkAccountDescription
+                                : State.VkAccountDescription);
                 processAccountCallback(msg, chatId, dataParts, state, shouldDelete);
                 currentStateRepository.insertCurrentState(new CurrentState(
                         chatId,
@@ -557,7 +547,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                         }
                     }
                     deleteLastMessage(msg, chatId);
-                    getRegisteredCommand(State.SyncOkGroupDescription.getIdentifier())
+                    getRegisteredCommand(State.SyncGroupDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 } else {
                     currentGroupRepository.deleteCurrentGroup(chatId);

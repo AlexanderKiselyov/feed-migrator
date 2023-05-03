@@ -33,6 +33,8 @@ public class Notifications extends Command {
 
     private static final String WRONG_SOCIAL_MEDIA_MSG = """
             Социальная сеть неверная.""";
+    private final CommandUtils commandUtils;
+
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
 
@@ -49,10 +51,11 @@ public class Notifications extends Command {
     private VkDataCheck vkDataCheck;
 
     private static final int rowsCount = 1;
-    private final Logger logger = LoggerFactory.getLogger(Autoposting.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(Autoposting.class);
 
     public Notifications() {
         super(State.Notifications.getIdentifier(), State.Notifications.getDescription());
+        commandUtils = new CommandUtils();
     }
 
     @Override
@@ -73,27 +76,16 @@ public class Notifications extends Command {
                     null,
                     GO_BACK_BUTTON_TEXT);
             String notificationsEnable;
+            String groupName = commandUtils.getGroupName(currentAccount, currentGroup);
             switch (currentGroup.getSocialMedia()) {
-                case OK -> notificationsEnable = String.format(
+                case OK, VK -> notificationsEnable = String.format(
                         NOTIFICATIONS_MSG_INLINE,
                         currentChannel.getChannelUsername(),
-                        okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken()),
-                        currentGroup.getGroupName()
-                );
-                case VK -> notificationsEnable = String.format(
-                        NOTIFICATIONS_MSG_INLINE,
-                        currentChannel.getChannelUsername(),
-                        vkDataCheck.getVkGroupName(
-                                new VkAuthorizator.TokenWithId(
-                                        currentAccount.getAccessToken(),
-                                        (int) currentAccount.getAccountId()
-                                ),
-                                currentGroup.getGroupId()
-                        ),
+                        groupName,
                         currentGroup.getGroupName()
                 );
                 default -> {
-                    logger.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
+                    LOGGER.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
                     notificationsEnable = WRONG_SOCIAL_MEDIA_MSG;
                 }
             }

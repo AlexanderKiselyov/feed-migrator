@@ -8,7 +8,6 @@ import polis.util.State;
 import java.util.List;
 
 public class StartCommand extends Command {
-    // TODO Расширить список с соцсетями
     private static final String startAnswer = String.format("""
             Давайте начнём! С помощью бота Вы можете синхронизировать Ваши Telegram-каналы
             с группами в Одноклассники или группами в ВКонтакте.

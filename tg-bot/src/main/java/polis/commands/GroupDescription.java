@@ -39,6 +39,7 @@ public class GroupDescription extends Command {
 
     private int rowsCount = 1;
     private final List<String> commandsForKeyboard = new ArrayList<>();
+    private final CommandUtils commandUtils;
 
     @Autowired
     private CurrentGroupRepository currentGroupRepository;
@@ -63,28 +64,16 @@ public class GroupDescription extends Command {
     public GroupDescription() {
         super(State.GroupDescription.getIdentifier(), State.GroupDescription.getDescription());
         this.commandsForKeyboard.add(State.Autoposting.getDescription());
+        commandUtils = new CommandUtils();
     }
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        String groupName = null;
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
 
         if (currentGroup != null && currentAccount != null) {
-            switch (currentGroup.getSocialMedia()) {
-                case OK -> groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(),
-                        currentAccountRepository.getCurrentAccount(chat.getId()).getAccessToken());
-                case VK -> groupName = vkDataCheck.getVkGroupName(
-                        new VkAuthorizator.TokenWithId(
-                                currentAccount.getAccessToken(),
-                                (int) currentAccount.getAccountId()
-                        ),
-                        currentGroup.getGroupId()
-                );
-                default -> LOGGER.error(String.format("Social media not found: %s",
-                        currentGroup.getSocialMedia()));
-            }
+            String groupName = commandUtils.getGroupName(currentAccount, currentGroup);
 
             if (Objects.equals(groupName, null)) {
                 sendAnswer(
