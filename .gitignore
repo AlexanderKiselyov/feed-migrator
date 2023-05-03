@@ -1,5 +1,6 @@
 .idea
 tg-bot/build
 ok-api/build
+vk-api/build
 .gradle
 application.properties

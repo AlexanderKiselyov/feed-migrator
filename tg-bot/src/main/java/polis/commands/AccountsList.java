@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -7,8 +9,11 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.Account;
 import polis.data.repositories.AccountsRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
+import polis.util.SocialMedia;
 import polis.util.State;
+import polis.vk.api.VkAuthorizator;
 
 import java.util.List;
 import java.util.Objects;
@@ -24,12 +29,15 @@ public class AccountsList extends Command {
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
     private static final String trashEmoji = "\uD83D\uDDD1";
+    private static final Logger LOGGER = LoggerFactory.getLogger(AccountsList.class);
 
     @Autowired
     private AccountsRepository accountsRepository;
 
+    private OkDataCheck okDataCheck;
+
     @Autowired
-    private DataCheck dataCheck;
+    private VkDataCheck vkApiMethods;
 
     public AccountsList() {
         super(State.AccountsList.getIdentifier(), State.AccountsList.getDescription());
@@ -41,7 +49,10 @@ public class AccountsList extends Command {
 
         if (accounts != null && !accounts.isEmpty()) {
             for (Account account : accounts) {
-                if (Objects.equals(dataCheck.getOKUsername(account.getAccessToken()), "")) {
+                if (Objects.equals(okDataCheck.getOKUsername(account.getAccessToken()), null)
+                        && Objects.equals(vkApiMethods.getVkUsername(
+                        new VkAuthorizator.TokenWithId(account.getAccessToken(),
+                                (int) account.getAccountId())), null)) {
                     sendAnswer(
                             absSender,
                             chat.getId(),
@@ -94,10 +105,27 @@ public class AccountsList extends Command {
         for (int i = 0; i < socialMediaAccounts.size(); i++) {
             int tmpIndex = i * 4;
             Account tmpAccount = socialMediaAccounts.get(i);
-            String accountUsername = dataCheck.getOKUsername(tmpAccount.getAccessToken());
+            SocialMedia tmpAccountSocialMedia = tmpAccount.getSocialMedia();
+            String accountUsername = null;
+            switch (tmpAccountSocialMedia) {
+                case OK -> accountUsername = okDataCheck.getOKUsername(tmpAccount.getAccessToken());
+                case VK -> accountUsername = vkApiMethods.getVkUsername(
+                        new VkAuthorizator.TokenWithId(
+                                tmpAccount.getAccessToken(),
+                                (int) tmpAccount.getAccountId()
+                        )
+                );
+                default -> LOGGER.error(String.format("Unknown state: %s", tmpAccountSocialMedia.getName()));
+            }
+
+            if (accountUsername == null) {
+                LOGGER.error(String.format("Error detecting account username of account: %s",
+                        tmpAccount.getAccountId()));
+            }
+
             long tmpAccountId = tmpAccount.getAccountId();
 
-            buttons[tmpIndex] = String.format("%s (%s)", accountUsername, tmpAccount.getSocialMedia());
+            buttons[tmpIndex] = String.format("%s (%s)", accountUsername, tmpAccountSocialMedia.getName());
             buttons[tmpIndex + 1] = String.format("account %d 0", tmpAccountId);
             buttons[tmpIndex + 2] = trashEmoji + " Удалить";
             buttons[tmpIndex + 3] = String.format("account %d 1", tmpAccountId);

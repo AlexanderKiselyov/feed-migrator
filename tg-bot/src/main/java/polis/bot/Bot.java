@@ -21,6 +21,8 @@ import polis.commands.AddGroup;
 import polis.commands.AddOkAccount;
 import polis.commands.AddOkGroup;
 import polis.commands.AddTgChannel;
+import polis.commands.AddVkAccount;
+import polis.commands.AddVkGroup;
 import polis.commands.Autoposting;
 import polis.commands.GroupDescription;
 import polis.commands.MainMenu;
@@ -30,9 +32,11 @@ import polis.commands.OkAccountDescription;
 import polis.commands.StartCommand;
 import polis.commands.SyncOkGroupDescription;
 import polis.commands.SyncOkTg;
+import polis.commands.SyncVkTg;
 import polis.commands.TgChannelDescription;
 import polis.commands.TgChannelsList;
 import polis.commands.TgSyncGroups;
+import polis.commands.VkAccountDescription;
 import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentAccount;
@@ -64,12 +68,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static polis.datacheck.DataCheck.OK_AUTH_STATE_ANSWER;
-import static polis.datacheck.DataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
-import static polis.datacheck.DataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
-import static polis.datacheck.DataCheck.OK_GROUP_ADDED;
-import static polis.datacheck.DataCheck.USER_HAS_NO_RIGHTS;
-import static polis.datacheck.DataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_GROUP_ADDED;
+import static polis.datacheck.OkDataCheck.USER_HAS_NO_RIGHTS;
+import static polis.datacheck.OkDataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
 import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
@@ -177,11 +181,21 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     @Autowired
     private Autoposting autoposting;
 
-    private final TgContentManager tgContentManager = new TgContentManager(this);
-    private final OkPostProcessor okPostProcessor = new OkPostProcessor(this, tgContentManager, new OkPoster(new OkClientImpl()));
-
     @Autowired
     private Notifications notifications;
+
+    @Autowired
+    private VkAccountDescription vkAccountDescription;
+
+    @Autowired
+    private AddVkGroup addVkGroup;
+
+    @Autowired
+    private SyncVkTg syncVkTg;
+
+    private final TgContentManager tgContentManager = new TgContentManager(this);
+    private final OkPostProcessor okPostProcessor = new OkPostProcessor(this, tgContentManager,
+            new OkPoster(new OkClientImpl()));
 
     public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
         super();
@@ -218,6 +232,10 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         register(syncOkTg);
         register(autoposting);
         register(notifications);
+        register(new AddVkAccount());
+        register(vkAccountDescription);
+        register(addVkGroup);
+        register(syncVkTg);
     }
 
     /**
@@ -363,7 +381,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                         }
                     }
                     switch (smg.getSocialMedia()) {
-                        case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, smg.getGroupId(), channelId, accessToken);
+                        case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, smg.getGroupId(),
+                                channelId, accessToken);
                         default -> {
                             LOGGER.error(String.format("Social media not found: %s",
                                     smg.getSocialMedia()));

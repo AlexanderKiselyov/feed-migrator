@@ -9,12 +9,16 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
+import polis.data.domain.CurrentAccount;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.ChannelGroupsRepository;
+import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.util.State;
+import polis.vk.api.VkAuthorizator;
 
 import java.util.List;
 import java.util.Objects;
@@ -36,13 +40,19 @@ public class TgSyncGroups extends Command {
     private CurrentChannelRepository currentChannelRepository;
 
     @Autowired
+    private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
     private AccountsRepository accountsRepository;
 
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
+
+    @Autowired
+    private VkDataCheck vkDataCheck;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TgSyncGroups.class);
 
@@ -54,20 +64,38 @@ public class TgSyncGroups extends Command {
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
         List<Account> accounts = accountsRepository.getAccountsForUser(chat.getId());
+        CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
+
         if (currentChannel != null && accounts != null && !accounts.isEmpty()) {
             List<ChannelGroup> channelGroups =
                     channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId());
 
-            if (channelGroups != null) {
-                String groupName = "";
+            if (channelGroups != null && !channelGroups.isEmpty()) {
+                String groupName = null;
+                Long groupId = null;
 
                 for (ChannelGroup group : channelGroups) {
+                    groupId = group.getGroupId();
                     switch (group.getSocialMedia()) {
                         case OK -> {
                             for (Account socialMediaAccount : accounts) {
                                 if (Objects.equals(socialMediaAccount.getAccountId(), group.getAccountId())) {
-                                    groupName = dataCheck.getOKGroupName(group.getGroupId(),
+                                    groupName = okDataCheck.getOKGroupName(group.getGroupId(),
                                             socialMediaAccount.getAccessToken());
+                                    break;
+                                }
+                            }
+                        }
+                        case VK -> {
+                            for (Account socialMediaAccount : accounts) {
+                                if (Objects.equals(socialMediaAccount.getAccountId(), group.getAccountId())) {
+                                    groupName = vkDataCheck.getVkGroupName(
+                                            new VkAuthorizator.TokenWithId(
+                                                    currentAccount.getAccessToken(),
+                                                    (int) currentAccount.getAccountId()
+                                            ),
+                                            group.getGroupId()
+                                    );
                                     break;
                                 }
                             }
@@ -76,7 +104,7 @@ public class TgSyncGroups extends Command {
                     }
                 }
 
-                if (Objects.equals(groupName, "")) {
+                if (Objects.equals(groupName, null)) {
                     sendAnswer(
                             absSender,
                             chat.getId(),
@@ -87,6 +115,7 @@ public class TgSyncGroups extends Command {
                             List.of(State.TgChannelDescription.getDescription()),
                             null,
                             GO_BACK_BUTTON_TEXT);
+                    LOGGER.error(String.format("Error detecting group name of group: %d", groupId));
                     return;
                 }
 
@@ -107,7 +136,7 @@ public class TgSyncGroups extends Command {
                         TG_SYNC_GROUPS_INLINE,
                         channelGroups.size(),
                         commandsForKeyboard,
-                        getTgChannelGroupsArray(channelGroups, groupName));
+                        getButtonsForTgChannelGroups(channelGroups, groupName));
                 return;
             }
         }
@@ -123,7 +152,7 @@ public class TgSyncGroups extends Command {
                 GO_BACK_BUTTON_TEXT);
     }
 
-    private String[] getTgChannelGroupsArray(List<ChannelGroup> groups, String groupName) {
+    private String[] getButtonsForTgChannelGroups(List<ChannelGroup> groups, String groupName) {
         String[] buttons = new String[groups.size() * 4];
         for (int i = 0; i < groups.size(); i++) {
             int tmpIndex = i * 4;

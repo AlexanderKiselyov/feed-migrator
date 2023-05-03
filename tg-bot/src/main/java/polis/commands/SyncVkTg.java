@@ -13,27 +13,25 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
+import polis.vk.api.VkAuthorizator;
 
 import java.util.Objects;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
-public class SyncOkTg extends Command {
-    private static final String SYNC_OK_TG = """
+public class SyncVkTg extends Command {
+    private static final String SYNC_VK_TG = """
             Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";
-    private static final String SYNC_OK_TG_INLINE = """
-            Хотите ли Вы синхронизировать их?
-                        
-            *При размещении контента на Вашем канале очень важно уважать права других авторов, в связи с чем мы не
-            осуществляем автопостинг для пересланных сообщений 🙂""";
+    private static final String SYNC_VK_TG_INLINE = """
+            Хотите ли Вы синхронизировать их?""";
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
             Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
-    private static final Logger LOGGER = LoggerFactory.getLogger(SyncOkTg.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SyncVkTg.class);
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -45,13 +43,13 @@ public class SyncOkTg extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private OkDataCheck okDataCheck;
+    private VkDataCheck vkDataCheck;
 
     private final TelegramDataCheck telegramDataCheck;
     private static final int rowsCount = 1;
 
-    public SyncOkTg() {
-        super(State.SyncOkTg.getIdentifier(), State.SyncOkTg.getDescription());
+    public SyncVkTg() {
+        super(State.SyncVkTg.getIdentifier(), State.SyncVkTg.getDescription());
         telegramDataCheck = new TelegramDataCheck();
     }
 
@@ -61,7 +59,8 @@ public class SyncOkTg extends Command {
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
-            String groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+            String groupName = vkDataCheck.getVkUsername(new VkAuthorizator.TokenWithId(currentGroup.getAccessToken(),
+                    (int) currentGroup.getAccountId()));
 
             if (Objects.equals(groupName, null)) {
                 sendAnswer(
@@ -84,7 +83,7 @@ public class SyncOkTg extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(
-                            SYNC_OK_TG,
+                            SYNC_VK_TG,
                             telegramDataCheck.getChatParameter(currentChannel.getChannelUsername(), "title"),
                             groupName,
                             currentGroup.getSocialMedia().getName()
@@ -98,7 +97,7 @@ public class SyncOkTg extends Command {
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    SYNC_OK_TG_INLINE,
+                    SYNC_VK_TG_INLINE,
                     rowsCount,
                     commandsForKeyboard,
                     getButtonsForSyncOptions());
@@ -120,7 +119,7 @@ public class SyncOkTg extends Command {
     }
 
     private String[] getButtonsForSyncOptions() {
-        return new String[]{
+        return new String[] {
                 "Да",
                 "yesNo 0",
                 "Нет",

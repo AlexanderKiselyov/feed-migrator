@@ -29,8 +29,9 @@ public class OkPoster implements Poster {
     }
 
     @Override
-    public List<String> uploadPhotos(List<File> photos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
-        if(photos == null || photos.isEmpty()){
+    public List<String> uploadPhotos(List<File> photos, String accessToken, long groupId)
+            throws URISyntaxException, IOException, ApiException {
+        if (photos == null || photos.isEmpty()) {
             return Collections.emptyList();
         }
         try {
@@ -41,8 +42,9 @@ public class OkPoster implements Poster {
     }
 
     @Override
-    public List<String> uploadVideos(List<File> videos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
-        if(videos == null || videos.isEmpty()){
+    public List<String> uploadVideos(List<File> videos, String accessToken, long groupId)
+            throws URISyntaxException, IOException, ApiException {
+        if (videos == null || videos.isEmpty()) {
             return Collections.emptyList();
         }
         List<String> videoIds = new ArrayList<>(videos.size());

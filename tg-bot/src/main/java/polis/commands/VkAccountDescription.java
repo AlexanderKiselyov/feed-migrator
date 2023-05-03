@@ -9,8 +9,9 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.CurrentAccount;
 import polis.data.repositories.CurrentAccountRepository;
-import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.util.State;
+import polis.vk.api.VkAuthorizator;
 
 import java.util.List;
 import java.util.Objects;
@@ -18,27 +19,27 @@ import java.util.Objects;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
-public class OkAccountDescription extends Command {
+public class VkAccountDescription extends Command {
     private static final String ACCOUNT_DESCRIPTION = """
-            Выбран аккаунт в социальной сети Одноклассники с названием <b>%s</b>.""";
+            Выбран аккаунт в социальной сети ВКонтакте с названием <b>%s</b>.""";
     private static final String NOT_VALID_ACCOUNT = """
             Невозможно получить информацию по текущему аккаунту.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
-    private static final Logger LOGGER = LoggerFactory.getLogger(OkAccountDescription.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(VkAccountDescription.class);
 
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private OkDataCheck okDataCheck;
+    private VkDataCheck vkDataCheck;
 
-    private static final int rowsCount = 2;
+    private static final int rowsCount = 1;
     private static final List<String> commandsForKeyboard = List.of(
-            State.AddOkGroup.getDescription()
+            State.AddVkGroup.getDescription()
     );
 
-    public OkAccountDescription() {
-        super(State.OkAccountDescription.getIdentifier(), State.OkAccountDescription.getDescription());
+    public VkAccountDescription() {
+        super(State.VkAccountDescription.getIdentifier(), State.VkAccountDescription.getDescription());
     }
 
     @Override
@@ -46,7 +47,8 @@ public class OkAccountDescription extends Command {
         CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
 
         if (currentAccount != null) {
-            String username = okDataCheck.getOKUsername(currentAccount.getAccessToken());
+            String username = vkDataCheck.getVkUsername(new VkAuthorizator.TokenWithId(currentAccount.getAccessToken(),
+                    (int) currentAccount.getAccountId()));
 
             if (Objects.equals(username, null)) {
                 sendAnswer(absSender,

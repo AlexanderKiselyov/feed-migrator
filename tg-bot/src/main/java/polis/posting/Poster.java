@@ -10,9 +10,11 @@ import java.util.List;
 
 public interface Poster {
 
-    List<String> uploadPhotos(List<File> photos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
+    List<String> uploadPhotos(List<File> photos, String accessToken, long groupId)
+            throws URISyntaxException, IOException, ApiException;
 
-    List<String> uploadVideos(List<File> videos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
+    List<String> uploadVideos(List<File> videos, String accessToken, long groupId)
+            throws URISyntaxException, IOException, ApiException;
 
     Post newPost();
 

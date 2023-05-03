@@ -13,8 +13,10 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.util.State;
+import polis.vk.api.VkAuthorizator;
 
 import java.util.Objects;
 
@@ -41,7 +43,10 @@ public class Autoposting extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
+
+    @Autowired
+    private VkDataCheck vkDataCheck;
 
     private static final int rowsCount = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(Autoposting.class);
@@ -57,9 +62,21 @@ public class Autoposting extends Command {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
 
         if (currentChannel != null && currentAccount != null && currentGroup != null) {
-            String groupName = dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+            String groupName = null;
+            switch (currentGroup.getSocialMedia()) {
+                case OK -> groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(),
+                        currentAccount.getAccessToken());
+                case VK -> groupName = vkDataCheck.getVkGroupName(
+                        new VkAuthorizator.TokenWithId(
+                                currentAccount.getAccessToken(),
+                                (int) currentAccount.getAccountId()
+                        ),
+                        currentGroup.getGroupId()
+                );
+                default -> LOGGER.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
+            }
 
-            if (Objects.equals(groupName, "")) {
+            if (Objects.equals(groupName, null)) {
                 sendAnswer(
                         absSender,
                         chat.getId(),
@@ -70,6 +87,7 @@ public class Autoposting extends Command {
                         commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
+                LOGGER.error(String.format("Error detecting groupName of group: %d", currentGroup.getGroupId()));
                 return;
             }
 
@@ -83,23 +101,16 @@ public class Autoposting extends Command {
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
-            String autopostingEnable = "";
-            switch (currentGroup.getSocialMedia()) {
-                case OK -> autopostingEnable = String.format(AUTOPOSTING_INLINE,
-                        currentChannel.getChannelUsername(),
-                        groupName,
-                        currentGroup.getSocialMedia().getName());
-                default -> LOGGER.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
-            }
             sendAnswer(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    autopostingEnable,
+                    String.format(AUTOPOSTING_INLINE, currentChannel.getChannelUsername(), groupName,
+                            currentGroup.getSocialMedia().getName()),
                     rowsCount,
                     commandsForKeyboard,
-                    getIfAddAutoposting(chat.getId(), currentChannel.getChannelId()));
+                    getButtonsForAutopostingOptions(chat.getId(), currentChannel.getChannelId()));
         } else {
             sendAnswer(
                     absSender,
@@ -114,7 +125,7 @@ public class Autoposting extends Command {
         }
     }
 
-    private String[] getIfAddAutoposting(long chatId, long channelId) {
+    private String[] getButtonsForAutopostingOptions(long chatId, long channelId) {
         return new String[]{
                 "Да",
                 String.format("autoposting %d %d 1", chatId, channelId),

@@ -46,7 +46,8 @@ public abstract class PostProcessor {
                 "Успешно опубликовал пост в " + groupLink);
     }
 
-    public void processPostInChannel(List<Message> postItems, long ownerChatId, long groupId, long channelId, String accessToken) {
+    public void processPostInChannel(List<Message> postItems, long ownerChatId, long groupId, long channelId,
+                                     String accessToken) {
         List<PhotoSize> photos = new ArrayList<>(1);
         List<Video> videos = new ArrayList<>(1);
         String text = null;
@@ -83,6 +84,7 @@ public abstract class PostProcessor {
                 documents.add(postItem.getDocument());
             }
         }
-        processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, channelId, groupId, accessToken);
+        processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, channelId, groupId,
+                accessToken);
     }
 }

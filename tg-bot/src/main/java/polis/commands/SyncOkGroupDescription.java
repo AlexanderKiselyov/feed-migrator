@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -11,7 +13,7 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
 
@@ -28,6 +30,7 @@ public class SyncOkGroupDescription extends Command {
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP_DESCRIPTION = """
             Невозможно показать информацию по связанным Телеграм-каналу и группе.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
+    private static final Logger LOGGER = LoggerFactory.getLogger(SyncOkGroupDescription.class);
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -39,7 +42,7 @@ public class SyncOkGroupDescription extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
 
     private final TelegramDataCheck telegramDataCheck;
     private final int rowsCount = 1;
@@ -59,9 +62,9 @@ public class SyncOkGroupDescription extends Command {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
 
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
-            String groupName = dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+            String groupName = okDataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
 
-            if (Objects.equals(groupName, "")) {
+            if (Objects.equals(groupName, null)) {
                 sendAnswer(
                         absSender,
                         chat.getId(),
@@ -72,6 +75,7 @@ public class SyncOkGroupDescription extends Command {
                         super.commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
+                LOGGER.error(String.format("Error detecting group name of group: %d", currentGroup.getGroupId()));
                 return;
             }
 

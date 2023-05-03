@@ -16,12 +16,14 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
+import polis.vk.api.VkAuthorizator;
 
 import java.util.Objects;
 
@@ -33,11 +35,17 @@ public class NonCommand {
     private static final String START_STATE_ANSWER = "Не могу распознать команду. Попробуйте еще раз.";
     private static final String BOT_WRONG_STATE_ANSWER = "Неверная команда бота. Попробуйте еще раз.";
     private static final String GROUP_NOT_FOUND = "Не удалось получить id группы. Попробуйте еще раз.";
+    private static final String USER_NOT_GROUP_ADMIN = """
+            Пользователь не является администратором, модератором или редактором канала.
+            Попробуйте еще раз.""";
+    public static final String VK_GROUP_ADDED = """
+            Группа была успешно добавлена.
+            Синхронизируйте группу с Телеграм-каналом по команде /%s.""";
     private static final String WRONG_LINK_TELEGRAM = """
              Ссылка неверная.
              Пожалуйста, проверьте, что ссылка на канал является верной и введите ссылку еще раз.""";
-    private static final String WRONG_OK_ACCOUNT = """
-            Неверный аккаунт Одноклассников.
+    private static final String WRONG_ACCOUNT = """
+            Неверный аккаунт %s.
             Пожалуйста, вернитесь в главное меню (%s) и следуйте дальнейшим инструкциям.""";
 
     @Autowired
@@ -62,7 +70,10 @@ public class NonCommand {
     private AccountsRepository accountsRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
+
+    @Autowired
+    private VkDataCheck vkDataCheck;
 
     private final TelegramDataCheck telegramDataCheck;
     private static final Logger LOGGER = LoggerFactory.getLogger(NonCommand.class);
@@ -99,11 +110,12 @@ public class NonCommand {
             }
             return answer;
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
-            return dataCheck.getOKAuthCode(text, chatId);
+            return okDataCheck.getOKAuthCode(text, chatId);
         } else if (state.equals(Substate.AddOkGroup_AddGroup)) {
             CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chatId);
             if (currentAccount == null) {
-                return new AnswerPair(String.format(WRONG_OK_ACCOUNT, State.MainMenu.getIdentifier()),
+                return new AnswerPair(String.format(WRONG_ACCOUNT, SocialMedia.OK.getName(),
+                        State.MainMenu.getIdentifier()),
                         true);
             }
 
@@ -116,17 +128,17 @@ public class NonCommand {
 
             String accessToken = currentAccount.getAccessToken();
 
-            Long groupId = dataCheck.getOKGroupId(text, accessToken);
+            Long groupId = okDataCheck.getOKGroupId(text, accessToken);
 
-            if (groupId == -1) {
+            if (groupId == null) {
                 return new AnswerPair(GROUP_NOT_FOUND, true);
             }
 
-            AnswerPair answer = dataCheck.checkOKGroupAdminRights(accessToken, groupId);
+            AnswerPair answer = okDataCheck.checkOKGroupAdminRights(accessToken, groupId);
 
-            String groupName = dataCheck.getOKGroupName(groupId, currentAccount.getAccessToken());
+            String groupName = okDataCheck.getOKGroupName(groupId, currentAccount.getAccessToken());
 
-            if (Objects.equals(groupName, "")) {
+            if (Objects.equals(groupName, null)) {
                 return new AnswerPair(GROUP_NAME_NOT_FOUND, true);
             }
 
@@ -138,6 +150,52 @@ public class NonCommand {
             }
 
             return answer;
+        } else if (state.equals(Substate.AddVkAccount_AuthCode)) {
+        return vkDataCheck.getVkAuthCode(text, chatId);
+        } else if (state.equals(Substate.AddVkGroup_AddGroup)) {
+            CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chatId);
+            if (currentAccount == null) {
+                return new AnswerPair(String.format(WRONG_ACCOUNT, SocialMedia.VK.getName(),
+                        State.MainMenu.getIdentifier()),
+                        true);
+            }
+
+            for (ChannelGroup smg : channelGroupsRepository
+                    .getGroupsForChannel(currentChannelRepository.getCurrentChannel(chatId).getChannelId())) {
+                if (smg.getSocialMedia() == SocialMedia.VK) {
+                    return new AnswerPair(String.format(SAME_SOCIAL_MEDIA, SocialMedia.VK.getName()), true);
+                }
+            }
+
+            String accessToken = currentAccount.getAccessToken();
+
+            Integer groupId = vkDataCheck.getVkGroupId(new VkAuthorizator.TokenWithId(accessToken,
+                    (int) currentAccount.getAccountId()), text);
+
+            if (groupId == null) {
+                return new AnswerPair(GROUP_NOT_FOUND, true);
+            }
+
+            Boolean isAdmin = vkDataCheck.getIsVkGroupAdmin(new VkAuthorizator.TokenWithId(accessToken,
+                    (int) currentAccount.getAccountId()), text);
+
+            if (!isAdmin) {
+                return new AnswerPair(USER_NOT_GROUP_ADMIN, true);
+            }
+
+            String groupName = vkDataCheck.getVkUsername(new VkAuthorizator.TokenWithId(currentAccount.getAccessToken(),
+                    (int) currentAccount.getAccountId()));
+
+            if (Objects.equals(groupName, null)) {
+                return new AnswerPair(GROUP_NAME_NOT_FOUND, true);
+            }
+
+            CurrentGroup newGroup = new CurrentGroup(chatId, SocialMedia.VK.getName(), groupId,
+                    groupName,
+                    currentAccount.getAccountId(), currentAccount.getAccessToken());
+            currentGroupRepository.insertCurrentGroup(newGroup);
+
+            return new AnswerPair(String.format(VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()), false);
         }
         return new AnswerPair(BOT_WRONG_STATE_ANSWER, true);
     }

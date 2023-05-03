@@ -22,7 +22,11 @@ public enum State implements IState {
             "\uD83D\uDCD1 Описание синрхронизованной с Телеграм-каналом группы Одноклассников"),
     SyncOkTg("sync_ok_tg", "\uD83D\uDD04 Синхронизация группы Одноклассников с Телеграм-каналом"),
     Autoposting("autoposting", "\uD83D\uDD04 Настройка функции автопостинга"),
-    Notifications("notifications", "\uD83D\uDD14 Настройка уведомлений о публикации");
+    Notifications("notifications", "\uD83D\uDD14 Настройка уведомлений о публикации"),
+    AddVkAccount("add_vk_account", "\uD83C\uDF10 Добавление аккаунта ВКонтакте"),
+    VkAccountDescription("vk_account_description", "\uD83D\uDCD1 Информация по аккаунту ВКонтакте"),
+    AddVkGroup("add_vk_group", "➕ Добавление группы ВКонтакте"),
+    SyncVkTg("sync_vk_tg", "\uD83D\uDD04 Синхронизация группы ВКонтакте с Телеграм-каналом");
 
     private final String identifier;
     private final String description;
@@ -41,7 +45,12 @@ public enum State implements IState {
             Map.entry(SyncOkGroupDescription, OkAccountDescription),
             Map.entry(Autoposting, GroupDescription),
             Map.entry(AddTgChannel, MainMenu),
-            Map.entry(Notifications, GroupDescription)
+            Map.entry(Notifications, GroupDescription),
+            Map.entry(AddVkAccount, AddGroup),
+            Map.entry(Substate.AddVkAccount_AuthCode, AddGroup),
+            Map.entry(VkAccountDescription, AddGroup),
+            Map.entry(AddVkGroup, VkAccountDescription),
+            Map.entry(Substate.AddVkGroup_AddGroup, AddVkGroup)
     );
 
     State(String identifier, String description) {
