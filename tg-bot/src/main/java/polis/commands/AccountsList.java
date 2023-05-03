@@ -34,10 +34,11 @@ public class AccountsList extends Command {
     @Autowired
     private AccountsRepository accountsRepository;
 
+    @Autowired
     private OkDataCheck okDataCheck;
 
     @Autowired
-    private VkDataCheck vkApiMethods;
+    private VkDataCheck vkDataCheck;
 
     public AccountsList() {
         super(State.AccountsList.getIdentifier(), State.AccountsList.getDescription());
@@ -50,7 +51,7 @@ public class AccountsList extends Command {
         if (accounts != null && !accounts.isEmpty()) {
             for (Account account : accounts) {
                 if (Objects.equals(okDataCheck.getOKUsername(account.getAccessToken()), null)
-                        && Objects.equals(vkApiMethods.getVkUsername(
+                        && Objects.equals(vkDataCheck.getVkUsername(
                         new VkAuthorizator.TokenWithId(account.getAccessToken(),
                                 (int) account.getAccountId())), null)) {
                     sendAnswer(
@@ -109,7 +110,7 @@ public class AccountsList extends Command {
             String accountUsername = null;
             switch (tmpAccountSocialMedia) {
                 case OK -> accountUsername = okDataCheck.getOKUsername(tmpAccount.getAccessToken());
-                case VK -> accountUsername = vkApiMethods.getVkUsername(
+                case VK -> accountUsername = vkDataCheck.getVkUsername(
                         new VkAuthorizator.TokenWithId(
                                 tmpAccount.getAccessToken(),
                                 (int) tmpAccount.getAccountId()

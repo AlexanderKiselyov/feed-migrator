@@ -32,7 +32,6 @@ public class Autoposting extends Command {
     private static final String NO_CURRENT_TG_CHANNEL = """
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
-    private final CommandUtils commandUtils;
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -49,12 +48,14 @@ public class Autoposting extends Command {
     @Autowired
     private VkDataCheck vkDataCheck;
 
+    @Autowired
+    private CommandUtils commandUtils;
+
     private static final int rowsCount = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(Autoposting.class);
 
     public Autoposting() {
         super(State.Autoposting.getIdentifier(), State.Autoposting.getDescription());
-        commandUtils = new CommandUtils();
     }
 
     @Override

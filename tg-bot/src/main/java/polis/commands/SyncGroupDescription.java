@@ -34,7 +34,6 @@ public class SyncGroupDescription extends Command {
             State.Autoposting.getDescription()
     );
     private static final Logger LOGGER = LoggerFactory.getLogger(SyncGroupDescription.class);
-    private final CommandUtils commandUtils;
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -48,9 +47,11 @@ public class SyncGroupDescription extends Command {
     @Autowired
     private TelegramDataCheck telegramDataCheck;
 
+    @Autowired
+    private CommandUtils commandUtils;
+
     public SyncGroupDescription() {
         super(State.SyncGroupDescription.getIdentifier(), State.SyncGroupDescription.getDescription());
-        commandUtils = new CommandUtils();
     }
 
     @Override

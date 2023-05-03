@@ -39,7 +39,6 @@ public class GroupDescription extends Command {
 
     private int rowsCount = 1;
     private final List<String> commandsForKeyboard = new ArrayList<>();
-    private final CommandUtils commandUtils;
 
     @Autowired
     private CurrentGroupRepository currentGroupRepository;
@@ -59,12 +58,14 @@ public class GroupDescription extends Command {
     @Autowired
     private VkDataCheck vkDataCheck;
 
+    @Autowired
+    private CommandUtils commandUtils;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupDescription.class);
 
     public GroupDescription() {
         super(State.GroupDescription.getIdentifier(), State.GroupDescription.getDescription());
         this.commandsForKeyboard.add(State.Autoposting.getDescription());
-        commandUtils = new CommandUtils();
     }
 
     @Override

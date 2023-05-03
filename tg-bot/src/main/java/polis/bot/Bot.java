@@ -54,6 +54,7 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.posting.ok.OkPostProcessor;
+import polis.posting.vk.VkPostProcessor;
 import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
@@ -196,6 +197,10 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     @Lazy
     @Autowired
     private OkPostProcessor okPostProcessor;
+
+    @Lazy
+    @Autowired
+    private VkPostProcessor vkPostProcessor;
 
     @Lazy
     @Autowired
@@ -389,6 +394,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     }
                     switch (group.getSocialMedia()) {
                         case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
+                                channelId, accessToken);
+                        case VK -> vkPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
                                 channelId, accessToken);
                         default -> {
                             LOGGER.error(String.format("Social media not found: %s",

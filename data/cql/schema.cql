@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS feed_migrator.current_account (
     user_full_name varchar,
     access_token   varchar,
     refresh_token  varchar,
-    PRIMARY KEY ((chat_id), social_media, account_id)
+    PRIMARY KEY ((chat_id))
 );
 
 CREATE TABLE IF NOT EXISTS feed_migrator.current_channel (
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS feed_migrator.current_group (
     group_name   varchar,
     account_id   bigint,
     access_token varchar,
-    PRIMARY KEY ((chat_id), social_media, group_id)
+    PRIMARY KEY ((chat_id))
 );
 
 CREATE TABLE IF NOT EXISTS feed_migrator.current_state (

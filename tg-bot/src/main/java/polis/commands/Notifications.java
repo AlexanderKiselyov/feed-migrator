@@ -33,7 +33,6 @@ public class Notifications extends Command {
 
     private static final String WRONG_SOCIAL_MEDIA_MSG = """
             Социальная сеть неверная.""";
-    private final CommandUtils commandUtils;
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -50,12 +49,14 @@ public class Notifications extends Command {
     @Autowired
     private VkDataCheck vkDataCheck;
 
+    @Autowired
+    private CommandUtils commandUtils;
+
     private static final int rowsCount = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(Notifications.class);
 
     public Notifications() {
         super(State.Notifications.getIdentifier(), State.Notifications.getDescription());
-        commandUtils = new CommandUtils();
     }
 
     @Override

@@ -33,6 +33,7 @@ public class SyncVkTg extends Command {
             Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private static final Logger LOGGER = LoggerFactory.getLogger(SyncVkTg.class);
+    private static final int rowsCount = 1;
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -46,12 +47,11 @@ public class SyncVkTg extends Command {
     @Autowired
     private VkDataCheck vkDataCheck;
 
-    private final TelegramDataCheck telegramDataCheck;
-    private static final int rowsCount = 1;
+    @Autowired
+    private TelegramDataCheck telegramDataCheck;
 
     public SyncVkTg() {
         super(State.SyncVkTg.getIdentifier(), State.SyncVkTg.getDescription());
-        telegramDataCheck = new TelegramDataCheck();
     }
 
     @Override
