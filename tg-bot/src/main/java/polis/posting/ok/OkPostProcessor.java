@@ -1,5 +1,7 @@
 package polis.posting.ok;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
@@ -25,7 +27,8 @@ public class OkPostProcessor extends PostProcessor {
 
     private final OkPoster okPoster;
 
-    public OkPostProcessor(TgNotificator tgNotificator, TgContentManager tgContentManager, OkPoster okPoster) {
+    @Autowired
+    public OkPostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager, OkPoster okPoster) {
         super(tgNotificator, tgContentManager);
         this.okPoster = okPoster;
     }

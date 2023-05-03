@@ -1,4 +1,5 @@
 package polis.posting.ok;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
@@ -26,6 +27,7 @@ public class OkPoster implements Poster {
 
     private final OKClient okClient;
 
+    @Autowired
     public OkPoster(OKClient okClient) {
         this.okClient = okClient;
     }
