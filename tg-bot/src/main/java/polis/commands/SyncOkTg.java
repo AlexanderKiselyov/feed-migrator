@@ -33,6 +33,7 @@ public class SyncOkTg extends Command {
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
             Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
+    private static final int ROWS_COUNT = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(SyncOkTg.class);
 
     @Autowired
@@ -47,12 +48,11 @@ public class SyncOkTg extends Command {
     @Autowired
     private OkDataCheck okDataCheck;
 
-    private final TelegramDataCheck telegramDataCheck;
-    private static final int rowsCount = 1;
+    @Autowired
+    private TelegramDataCheck telegramDataCheck;
 
     public SyncOkTg() {
         super(State.SyncOkTg.getIdentifier(), State.SyncOkTg.getDescription());
-        telegramDataCheck = new TelegramDataCheck();
     }
 
     @Override
@@ -99,7 +99,7 @@ public class SyncOkTg extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     SYNC_OK_TG_INLINE,
-                    rowsCount,
+                    ROWS_COUNT,
                     commandsForKeyboard,
                     getButtonsForSyncOptions());
         } else {

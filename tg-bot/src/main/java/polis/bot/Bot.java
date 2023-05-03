@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
@@ -52,9 +53,7 @@ import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
-import polis.ok.api.OkClientImpl;
 import polis.posting.ok.OkPostProcessor;
-import polis.posting.ok.OkPoster;
 import polis.util.IState;
 import polis.util.State;
 import polis.util.Substate;
@@ -80,7 +79,7 @@ import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
 import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
 
 @Configuration
-@Component
+@Component("Bot")
 public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, TgNotificator {
     private static final List<String> EMPTY_LIST = List.of();
     private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в "
@@ -193,11 +192,18 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     @Autowired
     private SyncVkTg syncVkTg;
 
-    private final TgContentManager tgContentManager = new TgContentManager(this);
-    private final OkPostProcessor okPostProcessor = new OkPostProcessor(this, tgContentManager,
-            new OkPoster(new OkClientImpl()));
+    @Lazy
+    @Autowired
+    private OkPostProcessor okPostProcessor;
 
-    public Bot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
+    @Lazy
+    @Autowired
+    private TgContentManager tgContentManager;
+
+    public Bot(
+            @Value("${bot.name}") String botName,
+            @Value("${bot.token}") String botToken
+    ) {
         super();
         this.botName = botName;
         this.botToken = botToken;

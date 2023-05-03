@@ -25,7 +25,11 @@ public final class OkAuthorizator {
             "VALUABLE_ACCESS;LONG_ACCESS_TOKEN;PHOTO_CONTENT;GROUP_CONTENT;VIDEO_CONTENT";
 
     private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
-    private final HttpClient client = HttpClient.newHttpClient();
+    private final HttpClient httpClient;
+
+    public OkAuthorizator(HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     public TokenPair getToken(String code) throws IOException, URISyntaxException, OkApiException {
         URI uri = new URIBuilder(GET_TOKEN_URI)
@@ -38,7 +42,7 @@ public final class OkAuthorizator {
         HttpRequest request = HttpRequest.newBuilder().POST(HttpRequest.BodyPublishers.ofByteArray(new byte[]{}))
                 .uri(uri)
                 .build();
-        HttpResponse<String> response = sendRequest(client, request, logger);
+        HttpResponse<String> response = sendRequest(httpClient, request, logger);
         JSONObject responseJson = parseResponse(response, logger);
 
         try {

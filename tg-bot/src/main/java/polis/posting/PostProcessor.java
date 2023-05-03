@@ -1,5 +1,7 @@
 package polis.posting;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -23,7 +25,8 @@ public abstract class PostProcessor {
     protected final TgNotificator tgNotificator;
     protected final TgContentManager tgContentManager;
 
-    public PostProcessor(TgNotificator tgNotificator, TgContentManager tgContentManager) {
+    @Autowired
+    public PostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager) {
         this.tgNotificator = tgNotificator;
         this.tgContentManager = tgContentManager;
     }
