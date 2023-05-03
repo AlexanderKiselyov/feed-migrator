@@ -1,5 +1,6 @@
 package polis.posting.ok;
 
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
@@ -17,6 +18,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class OkPostProcessor extends PostProcessor {
     public static final String DOCUMENTS_ARENT_SUPPORTED =
             "Тип файла 'Документ' не поддерживается в социальной сети Одноклассники";
