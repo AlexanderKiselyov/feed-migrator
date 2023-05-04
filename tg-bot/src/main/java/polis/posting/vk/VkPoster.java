@@ -116,13 +116,13 @@ public class VkPoster implements IVkPoster {
         }
 
         @Override
-        public VkPost addDocuments(List<String> documentIds) {
+        public VkPost addDocuments(List<String> documentIds, long groupId) {
             if (documentIds == null || documentIds.isEmpty()) {
                 return this;
             }
 
             for (String documentId : documentIds) {
-                attachments.add(String.format("doc%d_%s", ownerId, documentId));
+                attachments.add(String.format("doc-%d_%s", groupId, documentId));
             }
             return this;
         }

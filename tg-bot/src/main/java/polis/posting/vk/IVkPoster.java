@@ -27,7 +27,7 @@ public interface IVkPoster {
 
         IVkPost addPoll(Poll poll, String pollId);
 
-        IVkPost addDocuments(List<String> documentIds);
+        IVkPost addDocuments(List<String> documentIds, long groupId);
 
         void post(Integer userId, String accessToken, long groupId)
                 throws URISyntaxException, IOException, ApiException;

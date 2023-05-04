@@ -16,7 +16,7 @@ import static polis.vk.api.LoggingUtils.getAccessToken;
 
 public class VkAuthorizator {
     private static final String AUTH_URL = "https://oauth.vk.com/authorize";
-    private static final String APP_SCOPE = "401428"; // photos + video + wall + docs + groups
+    private static final String APP_SCOPE = "466964"; // photos + video + wall + docs + groups + offline
     private static final Logger logger = LoggerFactory.getLogger(VkAuthorizator.class);
     TransportClient transportClient = HttpTransportClient.getInstance();
     VkApiClient vk = new VkApiClient(transportClient);

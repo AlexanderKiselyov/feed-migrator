@@ -99,7 +99,7 @@ public class VkPostProcessor extends PostProcessor {
                     .addVideos(videoIds, groupId)
                     .addText(text)
                     .addPoll(poll, pollId)
-                    .addDocuments(documentIds)
+                    .addDocuments(documentIds, groupId)
                     .post((int) userId, accessToken, groupId);
             tgNotificator.sendNotification(ownerChatId, channelId, successfulPostToGroupMsg(groupLink(groupId)));
         } catch (VkApiException | ApiException | URISyntaxException | IOException | TelegramApiException e) {
