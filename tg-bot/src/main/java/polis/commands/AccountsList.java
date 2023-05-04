@@ -108,6 +108,7 @@ public class AccountsList extends Command {
             Account tmpAccount = socialMediaAccounts.get(i);
             SocialMedia tmpAccountSocialMedia = tmpAccount.getSocialMedia();
             String accountUsername = null;
+            String socialMediaName = tmpAccountSocialMedia.getName();
             switch (tmpAccountSocialMedia) {
                 case OK -> accountUsername = okDataCheck.getOKUsername(tmpAccount.getAccessToken());
                 case VK -> accountUsername = vkDataCheck.getVkUsername(
@@ -116,20 +117,22 @@ public class AccountsList extends Command {
                                 (int) tmpAccount.getAccountId()
                         )
                 );
-                default -> LOGGER.error(String.format("Unknown state: %s", tmpAccountSocialMedia.getName()));
+                default -> LOGGER.error(String.format("Unknown state: %s", socialMediaName));
             }
 
             if (accountUsername == null) {
                 LOGGER.error(String.format("Error detecting account username of account: %s",
                         tmpAccount.getAccountId()));
+                // TODO здесь бы сделать continue и уменьшить размер массива кнопок и accounts.size() (который
+                //  отправляем для inline-клавиатуры)
             }
 
             long tmpAccountId = tmpAccount.getAccountId();
 
-            buttons[tmpIndex] = String.format("%s (%s)", accountUsername, tmpAccountSocialMedia.getName());
-            buttons[tmpIndex + 1] = String.format("account %d 0", tmpAccountId);
+            buttons[tmpIndex] = String.format("%s (%s)", accountUsername, socialMediaName);
+            buttons[tmpIndex + 1] = String.format("account %d 0 %s", tmpAccountId, socialMediaName);
             buttons[tmpIndex + 2] = trashEmoji + " Удалить";
-            buttons[tmpIndex + 3] = String.format("account %d 1", tmpAccountId);
+            buttons[tmpIndex + 3] = String.format("account %d 1 %s", tmpAccountId, socialMediaName);
         }
 
         return buttons;
