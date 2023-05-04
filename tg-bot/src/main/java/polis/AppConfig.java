@@ -5,13 +5,17 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import polis.ok.api.OKClient;
 import polis.ok.api.OkAuthorizator;
 import polis.ok.api.OkClientImpl;
+import polis.ratelim.GuavaRateLimiter;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 @Configuration
 public class AppConfig {
@@ -47,5 +51,16 @@ public class AppConfig {
             @Autowired HttpClient httpClient
     ) {
         return new OkClientImpl(apacheHttpClient, httpClient);
+    }
+
+    @Bean
+    public GuavaRateLimiter rateLimiter(
+            @Value("${api.ratelimiter.permits-per-second}") double permitsPerSeconds,
+            @Value("${api.ratelimiter.records-maxsize}") int recordsMaxSize,
+            @Value("${api.ratelimiter.records-ttl-minutes}") int recordsTtlMinutes
+    ){
+        return new GuavaRateLimiter(permitsPerSeconds, recordsMaxSize,
+                Duration.of(recordsTtlMinutes, ChronoUnit.MINUTES)
+        );
     }
 }

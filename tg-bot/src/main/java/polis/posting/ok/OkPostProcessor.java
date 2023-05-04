@@ -13,6 +13,7 @@ import polis.bot.TgContentManager;
 import polis.bot.TgNotificator;
 import polis.posting.ApiException;
 import polis.posting.PostProcessor;
+import polis.ratelim.RateLimiter;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,8 +29,13 @@ public class OkPostProcessor extends PostProcessor {
     private final OkPoster okPoster;
 
     @Autowired
-    public OkPostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager, OkPoster okPoster) {
-        super(tgNotificator, tgContentManager);
+    public OkPostProcessor(
+            @Qualifier("Bot") TgNotificator tgNotificator,
+            TgContentManager tgContentManager,
+            OkPoster okPoster,
+            RateLimiter postingRateLimiter
+    ) {
+        super(tgNotificator, tgContentManager, postingRateLimiter);
         this.okPoster = okPoster;
     }
 

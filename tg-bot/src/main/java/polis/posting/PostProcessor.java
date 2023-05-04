@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import polis.bot.TgContentManager;
 import polis.bot.TgNotificator;
+import polis.ratelim.RateLimiter;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -24,11 +25,13 @@ public abstract class PostProcessor {
 
     protected final TgNotificator tgNotificator;
     protected final TgContentManager tgContentManager;
+    private final RateLimiter postingRateLimiter;
 
     @Autowired
-    public PostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager) {
+    public PostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager, RateLimiter postingRateLimiter) {
         this.tgNotificator = tgNotificator;
         this.tgContentManager = tgContentManager;
+        this.postingRateLimiter = postingRateLimiter;
     }
 
     protected abstract void processPostInChannel(
@@ -50,6 +53,7 @@ public abstract class PostProcessor {
     }
 
     public void processPostInChannel(List<Message> postItems, long ownerChatId, long groupId, long channelId, String accessToken) {
+
         List<PhotoSize> photos = new ArrayList<>(1);
         List<Video> videos = new ArrayList<>(1);
         String text = null;
