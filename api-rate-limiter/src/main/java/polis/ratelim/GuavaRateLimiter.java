@@ -7,6 +7,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
+@SuppressWarnings("BetaApi")
 public class GuavaRateLimiter implements polis.ratelim.RateLimiter {
 
     private final double permitsPerSecond;
@@ -23,8 +24,13 @@ public class GuavaRateLimiter implements polis.ratelim.RateLimiter {
     }
 
     @Override
-    public boolean allowRequest(long userId) throws ExecutionException {
-        RateLimiter rateLimiter = rateLimiters.get(userId, this::createLimiter);
+    public boolean allowRequest(long userId) {
+        RateLimiter rateLimiter;
+        try {
+            rateLimiter = rateLimiters.get(userId, this::createLimiter);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
         return rateLimiter.tryAcquire();
     }
 
