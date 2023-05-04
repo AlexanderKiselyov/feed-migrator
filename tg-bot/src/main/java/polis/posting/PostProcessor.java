@@ -23,7 +23,7 @@ public abstract class PostProcessor {
             "Не удалось опубликовать пост в ";
     private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
             + "соответствии с Законом об авторском праве.";
-    private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в еденицу времени";
+    private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
 
     protected final TgNotificator tgNotificator;
     protected final TgContentManager tgContentManager;
@@ -49,14 +49,10 @@ public abstract class PostProcessor {
             String accessToken
     );
 
-    protected void sendSuccess(long channelId, long ownerChatId, String groupLink) {
-        tgNotificator.sendNotification(channelId, ownerChatId,
-                SUCCESS_POST_MSG + groupLink);
-    }
-
     public void processPostInChannel(List<Message> postItems, long userChatId, long groupId, long channelId, String accessToken) {
         if(!postingRateLimiter.allowRequest(userChatId)){
             tgNotificator.sendNotification(userChatId, channelId, TOO_MANY_API_REQUESTS_MSG);
+            return;
         }
         List<PhotoSize> photos = new ArrayList<>(1);
         List<Video> videos = new ArrayList<>(1);
@@ -67,7 +63,7 @@ public abstract class PostProcessor {
         for (Message postItem : postItems) {
             Chat forwardFromChat = postItem.getForwardFromChat();
             if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
-                tgNotificator.sendNotification(channelId, userChatId, AUTHOR_RIGHTS_MSG);
+                tgNotificator.sendNotification(userChatId, channelId, AUTHOR_RIGHTS_MSG);
                 return;
             }
             if (postItem.hasPhoto()) {
