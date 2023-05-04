@@ -1,5 +1,6 @@
 package polis.bot;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -254,22 +255,29 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
      * Устанавливает бота в определенное состояние в зависимости от введенной пользователем команды.
      *
      * @param message отправленное пользователем сообщение
-     * @return false, так как боту необходимо всегда обработать входящее сообщение
      */
-    @Override
-    public boolean filter(Message message) {
-        if (message != null) {
-            State currentState = State.findState(message.getText().replace("/", ""));
-            if (currentState != null) {
-                currentStateRepository.insertCurrentState(new CurrentState(message.getChatId(),
-                        currentState.getIdentifier()));
-            }
+    public void setStateForMessage(Message message) {
+        if (message == null) {
+            LOGGER.warn("Received null message");
+            return;
         }
-        return false;
+        if (LOGGER.isDebugEnabled()) {
+            String s = messageDebugInfo(message);
+            LOGGER.debug(s);
+        }
+        if (message.getText() == null) {
+            return;
+        }
+        State currentState = State.findState(message.getText().replace("/", ""));
+        if (currentState != null) {
+            currentStateRepository.insertCurrentState(new CurrentState(message.getChatId(),
+                    currentState.getIdentifier()));
+        }
     }
 
     @Override
     public void processNonCommandUpdate(Update update) {
+        setStateForMessage(update.getMessage());
         Message msg;
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
@@ -346,14 +354,12 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 .collect(Collectors.partitioningBy(Update::hasChannelPost));
         boolean channelPosts = true;
 
-        updates.get(!channelPosts).forEach(update -> filter(update.getMessage()));
         updates.get(!channelPosts).forEach(this::processNonCommandUpdate);
         updates.get(channelPosts).stream()
                 .map(Update::getChannelPost)
                 .collect(Collectors.groupingBy(Message::getChatId))
                 .values()
                 .forEach(this::processPostsInChannel);
-        //То, что сейчас делает forEach, потом следует сабмитить в executor
     }
 
     private void processPostsInChannel(List<Message> channelPosts) {
@@ -408,20 +414,21 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                         default -> {
                             LOGGER.error(String.format("Social media not found: %s",
                                     group.getSocialMedia()));
-                            checkAndSendNotification(channelId, ownerChatId, ERROR_POST_MSG + group.getGroupId());
+                            checkAndSendNotification(ownerChatId, channelId, ERROR_POST_MSG + group.getGroupId());
                         }
 
                     }
                 }
             }
-        } catch (Exception e) {
-            sendAnswer(ownerChatId, "Произошла непредвиденная ошибка  " + e);
+        } catch (RuntimeException e) {
+            LOGGER.error("Error when handling post in " + channelId, e);
+            sendAnswer(ownerChatId, "Произошла непредвиденная ошибка при обработке поста " + e);
         }
     }
 
-    private void checkAndSendNotification(long chatId, Long ownerChatId, String smg) {
-        if (userChannelsRepository.isSetNotification(ownerChatId, chatId)) {
-            sendAnswer(ownerChatId, smg);
+    private void checkAndSendNotification(long userChatId, long channelId, String message) {
+        if (userChannelsRepository.isSetNotification(userChatId, channelId)) {
+            sendAnswer(userChatId, message);
         }
     }
 
@@ -622,7 +629,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 currentGroupRepository.deleteCurrentGroup(chatId);
                 currentAccountRepository.deleteCurrentAccount(chatId);
                 List<UserChannels> userChannels = userChannelsRepository.getUserChannels(chatId);
-                for (UserChannels userChannel: userChannels) {
+                for (UserChannels userChannel : userChannels) {
                     channelGroupsRepository.deleteChannelGroup(userChannel.getChannelId(),
                             account.getSocialMedia().getName());
                 }
@@ -678,5 +685,10 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     @Override
     public void sendNotification(long userChatId, long channelId, String message) {
         checkAndSendNotification(userChatId, channelId, message);
+    }
+
+    private static String messageDebugInfo(Message message) {
+        String debugInfo = new ReflectionToStringBuilder(message).toString();
+        return "Update from " + message.getChatId() + "\n" + debugInfo;
     }
 }
