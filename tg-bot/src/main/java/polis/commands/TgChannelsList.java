@@ -21,20 +21,20 @@ public class TgChannelsList extends Command {
     private static final String NO_TG_CHANNELS = """
             Список добавленных Телеграм-каналов пуст.
             Пожалуйста, добавьте хотя бы один канал.""";
-
-    @Autowired
-    private UserChannelsRepository userChannelsRepository;
-
-    private final TelegramDataCheck telegramDataCheck;
     private static final int rowsCount = 2;
     private static final List<String> commandsForKeyboard = List.of(
             State.AddTgChannel.getDescription(),
             State.MainMenu.getDescription()
     );
 
+    @Autowired
+    private UserChannelsRepository userChannelsRepository;
+
+    @Autowired
+    private TelegramDataCheck telegramDataCheck;
+
     public TgChannelsList() {
         super(State.TgChannelsList.getIdentifier(), State.TgChannelsList.getDescription());
-        telegramDataCheck = new TelegramDataCheck();
     }
 
     @Override
