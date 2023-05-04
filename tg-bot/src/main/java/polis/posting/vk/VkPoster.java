@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import polis.posting.ApiException;
-import polis.posting.Poster;
 import polis.vk.api.VkClient;
 import polis.vk.api.exceptions.VkApiException;
 
@@ -15,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class VkPoster implements Poster {
+public class VkPoster implements IVkPoster {
     private final VkClient vkClient;
 
     @Autowired
@@ -65,7 +64,7 @@ public class VkPoster implements Poster {
         return vkClient.saveDocuments(documents, userId, accessToken, groupId);
     }
 
-    public class VkPost implements Poster.Post {
+    public class VkPost implements IVkPost {
         private final List<String> attachments = new ArrayList<>();
         private String message = null;
         private final long ownerId;
@@ -75,31 +74,31 @@ public class VkPoster implements Poster {
         }
 
         @Override
-        public Post addPhotos(List<String> photoIds) {
+        public VkPost addPhotos(List<String> photoIds) {
             if (photoIds == null || photoIds.isEmpty()) {
                 return this;
             }
 
             for (String photoId : photoIds) {
-                attachments.add(String.format("photo-%d_%s", ownerId, photoId));
+                attachments.add(String.format("photo%d_%s", ownerId, photoId));
             }
             return this;
         }
 
         @Override
-        public Post addVideos(List<String> videoIds) {
+        public VkPost addVideos(List<String> videoIds, long groupId) {
             if (videoIds == null || videoIds.isEmpty()) {
                 return this;
             }
 
             for (String videoId : videoIds) {
-                attachments.add(String.format("video-%d_%s", ownerId, videoId));
+                attachments.add(String.format("video-%d_%s", groupId, videoId));
             }
             return this;
         }
 
         @Override
-        public Post addText(String text) {
+        public VkPost addText(String text) {
             if (text != null && !text.isEmpty()) {
                 message = text;
             }
@@ -107,23 +106,23 @@ public class VkPoster implements Poster {
         }
 
         @Override
-        public Post addPoll(Poll poll, String pollId) {
+        public VkPost addPoll(Poll poll, String pollId) {
             if (poll == null) {
                 return this;
             }
 
-            attachments.add(String.format("poll-%d_%s", ownerId, pollId));
+            attachments.add(String.format("poll%d_%s", ownerId, pollId));
             return this;
         }
 
         @Override
-        public Post addDocuments(List<String> documentIds) {
+        public VkPost addDocuments(List<String> documentIds) {
             if (documentIds == null || documentIds.isEmpty()) {
                 return this;
             }
 
             for (String documentId : documentIds) {
-                attachments.add(String.format("doc-%d_%s", ownerId, documentId));
+                attachments.add(String.format("doc%d_%s", ownerId, documentId));
             }
             return this;
         }

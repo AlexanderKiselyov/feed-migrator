@@ -83,7 +83,8 @@ public class VkApiMethods {
         return getGroupName(request, logger);
     }
 
-    public URI getVkVideoUploadLink(Integer userId, String accessToken, long groupId) throws VkApiException {
+    public URI getVkVideoUploadLink(Integer userId, String accessToken, long groupId)
+            throws VkApiException {
         VideoSaveQuery request = vk.videos()
                 .save(new UserActor(userId, accessToken))
                 .groupId((int) groupId);
@@ -113,12 +114,13 @@ public class VkApiMethods {
         return uploadPhoto(request, logger);
     }
 
-    public Integer getVkPhotoId(Integer userId, String accessToken, LoggingUtils.ServerPhoto serverPhoto)
-            throws VkApiException {
+    public Integer getVkPhotoId(Integer userId, long groupId, String accessToken,
+                                                LoggingUtils.ServerPhoto serverPhoto) throws VkApiException {
         PhotosSaveWallPhotoQuery request = vk.photos()
                 .saveWallPhoto(new UserActor(userId, accessToken), serverPhoto.photo())
                 .server(serverPhoto.server())
-                .hash(serverPhoto.hash());
+                .hash(serverPhoto.hash())
+                .groupId((int) groupId);
 
         return getPhotoId(request, logger);
     }
@@ -131,7 +133,7 @@ public class VkApiMethods {
                 .isAnonymous(isAnonymous)
                 .isMultiple(isMultiple)
                 .disableUnvote(isClosed)
-                .addAnswers("[".concat(String.join(",", answers)).concat("]"));
+                .addAnswers("[\"".concat(String.join("\",\"", answers)).concat("\"]"));
 
         return getPollId(request, logger);
     }
@@ -162,9 +164,15 @@ public class VkApiMethods {
             throws VkApiException {
         WallPostQuery request = vk.wall()
                 .post(new UserActor(userId, accessToken))
-                .ownerId((int) groupId)
-                .message(message)
-                .attachments(attachments);
+                .ownerId((int) -groupId);
+
+        if (message != null) {
+            request = request.message(message);
+        }
+
+        if (attachments != null && !attachments.isEmpty()) {
+            request = request.attachments(attachments);
+        }
 
         postMediaTopic(request, logger);
     }

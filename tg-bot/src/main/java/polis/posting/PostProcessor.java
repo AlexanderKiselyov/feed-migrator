@@ -89,7 +89,7 @@ public abstract class PostProcessor {
             if (postItem.hasAnimation()) {
                 animations.add(postItem.getAnimation());
             }
-            if (postItem.hasDocument()) {
+            if (postItem.hasDocument() && !postItem.hasAnimation()) {
                 documents.add(postItem.getDocument());
             }
         }

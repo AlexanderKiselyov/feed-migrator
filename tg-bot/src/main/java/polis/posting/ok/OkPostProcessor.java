@@ -79,12 +79,12 @@ public class OkPostProcessor extends PostProcessor {
             }
             List<String> photoIds = okPoster.uploadPhotos(files, (int) userId, accessToken, groupId);
 
-            okPoster.newPost(null)
+            okPoster.newPost()
                     .addVideos(videoIds)
                     .addPhotos(photoIds)
-                    .addPoll(poll, accessToken)
+                    .addPoll(poll)
                     .addText(text)
-                    .post((int) userId, accessToken, groupId);
+                    .post(accessToken, groupId);
             tgNotificator.sendNotification(ownerChatId, channelId, successfulPostToGroupMsg(groupLink(groupId)));
         } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {
             tgNotificator.sendNotification(ownerChatId, channelId, failPostToGroupMsg(groupLink(groupId)));

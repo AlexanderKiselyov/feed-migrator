@@ -14,6 +14,7 @@ import polis.bot.TgNotificator;
 import polis.posting.ApiException;
 import polis.posting.PostProcessor;
 import polis.ratelim.RateLimiter;
+import polis.vk.api.LoggingUtils;
 import polis.vk.api.exceptions.VkApiException;
 
 import java.io.File;
@@ -93,9 +94,9 @@ public class VkPostProcessor extends PostProcessor {
                 );
             }
 
-            vkPoster.newPost(groupId)
+            vkPoster.newPost(userId)
                     .addPhotos(photoIds)
-                    .addVideos(videoIds)
+                    .addVideos(videoIds, groupId)
                     .addText(text)
                     .addPoll(poll, pollId)
                     .addDocuments(documentIds)

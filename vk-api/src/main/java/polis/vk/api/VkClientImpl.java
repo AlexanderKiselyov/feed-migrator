@@ -31,6 +31,7 @@ public class VkClientImpl implements VkClient {
         for (File photo : photos) {
             photoIds.add(String.valueOf(vkApiMethods.getVkPhotoId(
                     userId,
+                    groupId,
                     accessToken,
                     vkApiMethods.uploadVkPhotos(
                             vkApiMethods.getVkPhotoUploadLink(userId, accessToken, groupId).toString(),

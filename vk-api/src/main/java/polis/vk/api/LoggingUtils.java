@@ -279,7 +279,7 @@ public class LoggingUtils {
 
     static void postMediaTopic(WallPostQuery request, Logger logger) throws VkApiException {
         try {
-            PostResponse response = request.execute();
+            request.execute();
         } catch (ApiException e) {
             logger.error(String.format("Received error from VK: %s", e.getMessage()));
 
