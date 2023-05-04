@@ -28,6 +28,8 @@ public class AccountsList extends Command {
     private static final String NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST = """
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
+    private static final String ACCOUNT_USERNAME_ERROR_MSG = "Произошла ошибка при попытке найти Ваш аккаунт, " +
+            "пожалуйста, вернитесь назад и попробуйте снова/";
     private static final String trashEmoji = "\uD83D\uDDD1";
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountsList.class);
 
@@ -78,15 +80,28 @@ public class AccountsList extends Command {
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
-            sendAnswer(
-                    absSender,
-                    chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
-                    ACCOUNTS_LIST_INLINE,
-                    accounts.size(),
-                    commandsForKeyboard,
-                    getButtonsForAccounts(accounts));
+            try {
+                String[] buttonsForAccounts = getButtonsForAccounts(accounts);
+                sendAnswer(
+                        absSender,
+                        chat.getId(),
+                        this.getCommandIdentifier(),
+                        user.getUserName(),
+                        ACCOUNTS_LIST_INLINE,
+                        accounts.size(),
+                        commandsForKeyboard,
+                        buttonsForAccounts);
+            } catch (IllegalArgumentException e) {
+                sendAnswer(
+                        absSender,
+                        chat.getId(),
+                        this.getCommandIdentifier(),
+                        user.getUserName(),
+                        ACCOUNT_USERNAME_ERROR_MSG,
+                        ROWS_COUNT,
+                        commandsForKeyboard,
+                        null);
+            }
         } else {
             sendAnswer(
                     absSender,
@@ -104,17 +119,17 @@ public class AccountsList extends Command {
     private String[] getButtonsForAccounts(List<Account> socialMediaAccounts) {
         String[] buttons = new String[socialMediaAccounts.size() * 4];
         for (int i = 0; i < socialMediaAccounts.size(); i++) {
-            int tmpIndex = i * 4;
-            Account tmpAccount = socialMediaAccounts.get(i);
-            SocialMedia tmpAccountSocialMedia = tmpAccount.getSocialMedia();
+            int j = i * 4;
+            Account account = socialMediaAccounts.get(i);
+            SocialMedia socialMedia = account.getSocialMedia();
             String accountUsername = null;
-            String socialMediaName = tmpAccountSocialMedia.getName();
-            switch (tmpAccountSocialMedia) {
-                case OK -> accountUsername = okDataCheck.getOKUsername(tmpAccount.getAccessToken());
+            String socialMediaName = socialMedia.getName();
+            switch (socialMedia) {
+                case OK -> accountUsername = okDataCheck.getOKUsername(account.getAccessToken());
                 case VK -> accountUsername = vkDataCheck.getVkUsername(
                         new VkAuthorizator.TokenWithId(
-                                tmpAccount.getAccessToken(),
-                                (int) tmpAccount.getAccountId()
+                                account.getAccessToken(),
+                                (int) account.getAccountId()
                         )
                 );
                 default -> LOGGER.error(String.format("Unknown state: %s", socialMediaName));
@@ -122,17 +137,16 @@ public class AccountsList extends Command {
 
             if (accountUsername == null) {
                 LOGGER.error(String.format("Error detecting account username of account: %s",
-                        tmpAccount.getAccountId()));
-                // TODO здесь бы сделать continue и уменьшить размер массива кнопок и accounts.size() (который
-                //  отправляем для inline-клавиатуры)
+                        account.getAccountId()));
+                throw new IllegalArgumentException();
             }
 
-            long tmpAccountId = tmpAccount.getAccountId();
+            long accountId = account.getAccountId();
 
-            buttons[tmpIndex] = String.format("%s (%s)", accountUsername, socialMediaName);
-            buttons[tmpIndex + 1] = String.format("account %d 0 %s", tmpAccountId, socialMediaName);
-            buttons[tmpIndex + 2] = trashEmoji + " Удалить";
-            buttons[tmpIndex + 3] = String.format("account %d 1 %s", tmpAccountId, socialMediaName);
+            buttons[j] = String.format("%s (%s)", accountUsername, socialMediaName);
+            buttons[j + 1] = String.format("account %d 0 %s", accountId, socialMediaName);
+            buttons[j + 2] = trashEmoji + " Удалить";
+            buttons[j + 3] = String.format("account %d 1 %s", accountId, socialMediaName);
         }
 
         return buttons;

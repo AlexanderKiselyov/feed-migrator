@@ -470,7 +470,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         String[] dataParts = data.split(" ");
         switch (dataParts[0]) {
             case TG_CHANNEL_CALLBACK_TEXT -> {
-                if (Objects.equals(dataParts[2], "0")) {
+                if (isJustCkick(dataParts)) {
                     UserChannels currentTelegramChannel = null;
                     List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(chatId);
                     for (UserChannels ch : tgChannels) {
@@ -488,7 +488,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     } else {
                         LOGGER.error(String.format("Cannot find such a telegram channel id: %s", dataParts[1]));
                     }
-                } else if (Objects.equals(dataParts[2], "1")) {
+                } else if (isDeletionRequested(dataParts)) {
                     List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(chatId);
                     for (UserChannels ch : tgChannels) {
                         if (Objects.equals(String.valueOf(ch.getChannelId()), dataParts[1])) {
@@ -510,9 +510,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     LOGGER.error(String.format("Wrong group-callback data: %s", data));
                     return;
                 }
-                if (Objects.equals(dataParts[2], "0")) {
+                if (isJustCkick(dataParts)) {
                     changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.GroupDescription);
-                } else if (Objects.equals(dataParts[2], "1")) {
+                } else if (isDeletionRequested(dataParts)) {
                     CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chatId);
                     String socialMediaName = dataParts[2];
                     channelGroupsRepository.deleteChannelGroup(currentChannel.getChannelId(), socialMediaName);
@@ -528,7 +528,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     LOGGER.error(String.format("Wrong account-callback data: %s", data));
                     return;
                 }
-                boolean shouldDelete = dataParts[2].equals("1");
+                boolean shouldDelete = isDeletionRequested(dataParts);
                 String socialMediaName = dataParts[3];
                 State state = shouldDelete ? State.AddGroup :
                         (socialMediaName.equals(SocialMedia.OK.getName()) ? State.OkAccountDescription
@@ -540,7 +540,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 ));
             }
             case YES_NO_CALLBACK_TEXT -> {
-                if (Objects.equals(dataParts[1], "0")) {
+                if (wasClickedYesButton(dataParts, 1)) {
                     CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chatId);
                     boolean isFound = false;
                     for (Account authData : accountsRepository.getAccountsForUser(chatId)) {
@@ -581,7 +581,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             }
             case AUTOPOSTING -> {
                 String enable = "включена";
-                if (Objects.equals(dataParts[3], "0")) {
+                if (!wasClickedYesButton(dataParts, 3)) {
                     userChannelsRepository.setAutoposting(chatId, Long.parseLong(dataParts[2]), false);
                     enable = "выключена";
                 } else {
@@ -595,7 +595,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 sendAnswer(chatId, text);
             }
             case NOTIFICATIONS -> {
-                boolean areEnable = Objects.equals(dataParts[2], "0");
+                boolean areEnable = wasClickedYesButton(dataParts, 2);
                 userChannelsRepository.setNotification(chatId, Long.parseLong(dataParts[1]), areEnable);
                 sendAnswer(chatId, String.format("Уведомления %s.", (areEnable ? "включены" : "выключены")));
                 deleteLastMessage(msg, chatId);
@@ -608,6 +608,18 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             case NO_CALLBACK_TEXT -> deleteLastMessage(msg, chatId);
             default -> LOGGER.error(String.format("Unknown inline keyboard data: %s", data));
         }
+    }
+
+    private static boolean isDeletionRequested(String[] dataParts) {
+        return Objects.equals(dataParts[2], "1");
+    }
+
+    private static boolean isJustCkick(String[] dataParts) {
+        return Objects.equals(dataParts[2], "0");
+    }
+
+    private static boolean wasClickedYesButton(String[] dataParts, int index) {
+        return Objects.equals(dataParts[index], "0");
     }
 
     private void processAccountCallback(Message msg, Long chatId, String[] dataParts, State state, boolean shouldDelete)
