@@ -16,6 +16,7 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.datacheck.DataCheck;
 import polis.util.State;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -85,7 +86,7 @@ public class TgSyncGroups extends Command {
                             user.getUserName(),
                             GROUP_NAME_NOT_FOUND,
                             rowsCount,
-                            commandsForKeyboard,
+                            Collections.emptyList(),
                             null,
                             GO_BACK_BUTTON_TEXT);
                     return;
@@ -97,7 +98,7 @@ public class TgSyncGroups extends Command {
                         user.getUserName(),
                         TG_SYNC_GROUPS,
                         rowsCount,
-                        commandsForKeyboard,
+                        Collections.emptyList(),
                         null,
                         GO_BACK_BUTTON_TEXT);
                 sendAnswer(
@@ -107,7 +108,7 @@ public class TgSyncGroups extends Command {
                         user.getUserName(),
                         TG_SYNC_GROUPS_INLINE,
                         channelGroups.size(),
-                        commandsForKeyboard,
+                        Collections.emptyList(),
                         getTgChannelGroupsArray(channelGroups, groupName));
                 return;
             }
