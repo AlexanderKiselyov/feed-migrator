@@ -234,22 +234,23 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
      * @param message отправленное пользователем сообщение
      * @return false, так как боту необходимо всегда обработать входящее сообщение
      */
-    @Override
-    public boolean filter(Message message) {
+    public void setStateForMessage(Message message) {
         if (message == null) {
             LOGGER.warn("Received null message");
-            return false;
+            return;
         }
         if (LOGGER.isDebugEnabled()) {
             String s = messageDebugInfo(message);
             LOGGER.debug(s);
+        }
+        if (message.getText() == null) {
+            return;
         }
         State currentState = State.findState(message.getText().replace("/", ""));
         if (currentState != null) {
             currentStateRepository.insertCurrentState(new CurrentState(message.getChatId(),
                     currentState.getIdentifier()));
         }
-        return false;
     }
 
 
@@ -331,8 +332,10 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 .collect(Collectors.partitioningBy(Update::hasChannelPost));
         boolean channelPosts = true;
 
-        updates.get(!channelPosts).forEach(update -> filter(update.getMessage()));
-        updates.get(!channelPosts).forEach(this::processNonCommandUpdate);
+        updates.get(!channelPosts).forEach(update -> {
+            setStateForMessage(update.getMessage());
+            processNonCommandUpdate(update);
+        });
         updates.get(channelPosts).stream()
                 .map(Update::getChannelPost)
                 .collect(Collectors.groupingBy(Message::getChatId))
