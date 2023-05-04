@@ -25,6 +25,7 @@ import java.util.List;
 public class OkPostProcessor extends PostProcessor {
     public static final String DOCUMENTS_ARENT_SUPPORTED =
             "Тип файла 'Документ' не поддерживается в социальной сети Одноклассники";
+    public static final String GROUPS_LINK = "ok.ru/group/";
 
     private final OkPoster okPoster;
 
@@ -83,9 +84,13 @@ public class OkPostProcessor extends PostProcessor {
                     .addPoll(poll)
                     .addText(text)
                     .post(accessToken, groupId);
-            sendSuccess(channelId, ownerChatId, "ok.ru/group/" + groupId);
+            tgNotificator.sendNotification(ownerChatId, channelId, successfulPostToGroupMsg(groupLink(groupId)));
         } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {
-            tgNotificator.sendNotification(ownerChatId, channelId, ERROR_POST_MSG + groupId);
+            tgNotificator.sendNotification(ownerChatId, channelId, failPostToGroupMsg(groupLink(groupId)));
         }
+    }
+
+    private static String groupLink(long groupId) {
+        return GROUPS_LINK + groupId;
     }
 }

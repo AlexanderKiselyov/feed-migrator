@@ -18,8 +18,9 @@ import java.util.Comparator;
 import java.util.List;
 
 public abstract class PostProcessor {
-    protected static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n"
-            + "Не удалось опубликовать пост в ok.ru/group/";
+    private static final String SUCCESS_POST_MSG = "Успешно опубликовал пост в ";
+    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n" +
+            "Не удалось опубликовать пост в ";
     private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
             + "соответствии с Законом об авторском праве.";
 
@@ -49,7 +50,7 @@ public abstract class PostProcessor {
 
     protected void sendSuccess(long channelId, long ownerChatId, String groupLink) {
         tgNotificator.sendNotification(channelId, ownerChatId,
-                "Успешно опубликовал пост в " + groupLink);
+                SUCCESS_POST_MSG + groupLink);
     }
 
     public void processPostInChannel(List<Message> postItems, long ownerChatId, long groupId, long channelId, String accessToken) {
@@ -63,7 +64,7 @@ public abstract class PostProcessor {
         for (Message postItem : postItems) {
             Chat forwardFromChat = postItem.getForwardFromChat();
             if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
-                tgNotificator.sendNotification(channelId, ownerChatId, AUTHOR_RIGHTS_MSG);
+                tgNotificator.sendNotification(channelId, userChatId, AUTHOR_RIGHTS_MSG);
                 return;
             }
             if (postItem.hasPhoto()) {
@@ -90,6 +91,14 @@ public abstract class PostProcessor {
                 documents.add(postItem.getDocument());
             }
         }
-        processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, channelId, groupId, accessToken);
+        processPostInChannel(videos, photos, animations, documents, text, poll, userChatId, channelId, groupId, accessToken);
+    }
+
+    protected static String successfulPostToGroupMsg(String where){
+        return SUCCESS_POST_MSG + where;
+    }
+
+    protected static String failPostToGroupMsg(String where){
+        return ERROR_POST_MSG + where;
     }
 }
