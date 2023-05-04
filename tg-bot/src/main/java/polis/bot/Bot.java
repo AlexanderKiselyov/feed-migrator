@@ -255,6 +255,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
 
     @Override
     public void processNonCommandUpdate(Update update) {
+        setStateForMessage(update.getMessage());
         Message msg;
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
@@ -331,10 +332,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 .collect(Collectors.partitioningBy(Update::hasChannelPost));
         boolean channelPosts = true;
 
-        updates.get(!channelPosts).forEach(update -> {
-            setStateForMessage(update.getMessage());
-            processNonCommandUpdate(update);
-        });
+        updates.get(!channelPosts).forEach(this::processNonCommandUpdate);
         updates.get(channelPosts).stream()
                 .map(Update::getChannelPost)
                 .collect(Collectors.groupingBy(Message::getChatId))
