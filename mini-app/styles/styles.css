@@ -20,7 +20,8 @@ body {
     word-wrap: break-word;
 }
 
-.main-copyButton {
+.main-copyButton,
+.main-bot_redirect-button {
     background-color: #0088cc;
     border-radius: 28px;
     border: 1px solid #00a2f3;
@@ -42,8 +43,19 @@ body {
 }
 
 .copyright {
-    font-size: 16px;
+    display:flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
     position: absolute;
     bottom: 0;
     height: 20px;
+}
+
+.copyright-start_text,
+.copyright-ref,
+.copyright-end_text {
+    font-size: 16px;
+    font-weight: normal;
+    margin-left: 3px;
 }

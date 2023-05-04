@@ -13,6 +13,19 @@ codeField.textContent = code
 
 const copyButton = document.getElementsByClassName("main-copyButton")[0];
 
+if (code === null || code.length === 0) {
+    copyButton.style.visibility = "hidden";
+    codeField.style.visibility = "hidden";
+    const main = document.getElementsByClassName("main")[0];
+
+    const element = document.createElement("a");
+    element.classList.add("main-bot_redirect");
+    element.href = "https://t.me/FeedMigratorBot";
+    element.innerHTML =
+        `<button class="main-bot_redirect-button">Feed Migrator Bot</button>`;
+    main.appendChild(element);
+}
+
 function copyToClipboard() {
     const text = codeField.innerText;
     const textarea = document.createElement("textarea");
