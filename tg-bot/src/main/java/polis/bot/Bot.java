@@ -388,7 +388,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 }
             }
         } catch (RuntimeException e) {
-            LOGGER.error("Error when handling post from " + chatId, e);
+            LOGGER.error("Error when handling post in " + channelId, e);
             sendAnswer(ownerChatId, "Произошла непредвиденная ошибка при обработке поста " + e);
         }
     }
