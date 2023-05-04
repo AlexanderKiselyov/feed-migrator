@@ -19,8 +19,8 @@ import java.util.List;
 
 public abstract class PostProcessor {
     private static final String SUCCESS_POST_MSG = "Успешно опубликовал пост в ";
-    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n" +
-            "Не удалось опубликовать пост в ";
+    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n"
+            + "Не удалось опубликовать пост в ";
     private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
             + "соответствии с Законом об авторском праве.";
     private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
@@ -53,7 +53,7 @@ public abstract class PostProcessor {
 
     public void processPostInChannel(List<Message> postItems, long ownerChatId, long groupId, long channelId,
                                      long userId, String accessToken) {
-        if(!postingRateLimiter.allowRequest(ownerChatId)){
+        if (!postingRateLimiter.allowRequest(ownerChatId)) {
             tgNotificator.sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG);
             return;
         }
@@ -93,14 +93,15 @@ public abstract class PostProcessor {
                 documents.add(postItem.getDocument());
             }
         }
-        processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, channelId, groupId, userId, accessToken);
+        processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, channelId, groupId,
+                userId, accessToken);
     }
 
-    protected static String successfulPostToGroupMsg(String where){
+    protected static String successfulPostToGroupMsg(String where) {
         return SUCCESS_POST_MSG + where;
     }
 
-    protected static String failPostToGroupMsg(String where){
+    protected static String failPostToGroupMsg(String where) {
         return ERROR_POST_MSG + where;
     }
 }

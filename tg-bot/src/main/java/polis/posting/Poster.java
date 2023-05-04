@@ -29,7 +29,8 @@ public interface Poster {
 
         Post addDocuments(List<String> documentIds);
 
-        void post(Integer userId, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
+        void post(Integer userId, String accessToken, long groupId)
+                throws URISyntaxException, IOException, ApiException;
 
     }
 }

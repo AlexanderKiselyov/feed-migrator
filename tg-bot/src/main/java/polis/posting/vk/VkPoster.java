@@ -54,8 +54,8 @@ public class VkPoster implements Poster {
         return new VkPost(ownerId);
     }
 
-    public String createPoll(Integer userId, String accessToken, String question, Boolean isAnonymous, Boolean isMultiple,
-                             Boolean isClosed, List<String> answers)
+    public String createPoll(Integer userId, String accessToken, String question, Boolean isAnonymous,
+                             Boolean isMultiple, Boolean isClosed, List<String> answers)
             throws VkApiException, URISyntaxException, IOException {
         return vkClient.createPoll(userId, accessToken, question, isAnonymous, isMultiple, isClosed, answers);
     }

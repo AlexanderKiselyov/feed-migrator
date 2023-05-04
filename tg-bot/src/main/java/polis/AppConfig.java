@@ -65,7 +65,7 @@ public class AppConfig {
             @Value("${api.ratelimiter.permits-per-second}") double permitsPerSeconds,
             @Value("${api.ratelimiter.records-maxsize}") int recordsMaxSize,
             @Value("${api.ratelimiter.records-ttl-minutes}") int recordsTtlMinutes
-    ){
+    ) {
         return new GuavaRateLimiter(permitsPerSeconds, recordsMaxSize,
                 Duration.of(recordsTtlMinutes, ChronoUnit.MINUTES)
         );
