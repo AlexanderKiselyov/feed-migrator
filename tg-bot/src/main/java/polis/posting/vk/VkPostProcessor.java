@@ -13,6 +13,7 @@ import polis.bot.TgContentManager;
 import polis.bot.TgNotificator;
 import polis.posting.ApiException;
 import polis.posting.PostProcessor;
+import polis.ratelim.RateLimiter;
 import polis.vk.api.exceptions.VkApiException;
 
 import java.io.File;
@@ -27,9 +28,13 @@ public class VkPostProcessor extends PostProcessor {
     private static final String VK_GROUP_URL = "vk.com/club";
     private final VkPoster vkPoster;
 
-    public VkPostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager,
-                           VkPoster vkPoster) {
-        super(tgNotificator, tgContentManager);
+    public VkPostProcessor(
+            @Qualifier("Bot") TgNotificator tgNotificator,
+            TgContentManager tgContentManager,
+            VkPoster vkPoster,
+            RateLimiter postingRateLimiter
+    ) {
+        super(tgNotificator, tgContentManager, postingRateLimiter);
         this.vkPoster = vkPoster;
     }
 
@@ -95,9 +100,13 @@ public class VkPostProcessor extends PostProcessor {
                     .addPoll(poll, pollId)
                     .addDocuments(documentIds)
                     .post((int) userId, accessToken, groupId);
-            sendSuccess(channelId, ownerChatId, VK_GROUP_URL + groupId);
+            tgNotificator.sendNotification(ownerChatId, channelId, successfulPostToGroupMsg(groupLink(groupId)));
         } catch (VkApiException | ApiException | URISyntaxException | IOException | TelegramApiException e) {
-            tgNotificator.sendNotification(ownerChatId, channelId, ERROR_POST_MSG + VK_GROUP_URL + groupId);
+            tgNotificator.sendNotification(ownerChatId, channelId, failPostToGroupMsg(groupLink(groupId)));
         }
+    }
+
+    private static String groupLink(long groupId) {
+        return VK_GROUP_URL + groupId;
     }
 }

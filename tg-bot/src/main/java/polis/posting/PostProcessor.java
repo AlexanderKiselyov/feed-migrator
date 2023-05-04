@@ -30,7 +30,8 @@ public abstract class PostProcessor {
     private final RateLimiter postingRateLimiter;
 
     @Autowired
-    public PostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager, RateLimiter postingRateLimiter) {
+    public PostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager,
+                         RateLimiter postingRateLimiter) {
         this.tgNotificator = tgNotificator;
         this.tgContentManager = tgContentManager;
         this.postingRateLimiter = postingRateLimiter;

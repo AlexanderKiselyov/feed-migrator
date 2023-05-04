@@ -2,5 +2,6 @@
 tg-bot/build
 ok-api/build
 vk-api/build
+api-rate-limiter/build
 .gradle
 application.properties
