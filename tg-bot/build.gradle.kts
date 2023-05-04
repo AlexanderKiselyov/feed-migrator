@@ -12,6 +12,8 @@ repositories {
 
 dependencies {
     implementation(project(":ok-api"))
+    implementation(project(":api-rate-limiter"))
+
     implementation("org.json:json:20230227")
     implementation("org.telegram:telegrambots:6.5.0")
     implementation("org.telegram:telegrambotsextensions:6.5.0")

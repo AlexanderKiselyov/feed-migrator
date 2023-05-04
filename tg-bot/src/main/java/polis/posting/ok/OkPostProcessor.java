@@ -13,6 +13,7 @@ import polis.bot.TgContentManager;
 import polis.bot.TgNotificator;
 import polis.posting.ApiException;
 import polis.posting.PostProcessor;
+import polis.ratelim.RateLimiter;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,12 +25,18 @@ import java.util.List;
 public class OkPostProcessor extends PostProcessor {
     public static final String DOCUMENTS_ARENT_SUPPORTED =
             "Тип файла 'Документ' не поддерживается в социальной сети Одноклассники";
+    public static final String GROUPS_LINK = "ok.ru/group/";
 
     private final OkPoster okPoster;
 
     @Autowired
-    public OkPostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager, OkPoster okPoster) {
-        super(tgNotificator, tgContentManager);
+    public OkPostProcessor(
+            @Qualifier("Bot") TgNotificator tgNotificator,
+            TgContentManager tgContentManager,
+            OkPoster okPoster,
+            RateLimiter postingRateLimiter
+    ) {
+        super(tgNotificator, tgContentManager, postingRateLimiter);
         this.okPoster = okPoster;
     }
 
@@ -77,9 +84,13 @@ public class OkPostProcessor extends PostProcessor {
                     .addPoll(poll)
                     .addText(text)
                     .post(accessToken, groupId);
-            sendSuccess(channelId, ownerChatId, "ok.ru/group/" + groupId);
+            tgNotificator.sendNotification(ownerChatId, channelId, successfulPostToGroupMsg(groupLink(groupId)));
         } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {
-            tgNotificator.sendNotification(ownerChatId, channelId, ERROR_POST_MSG + groupId);
+            tgNotificator.sendNotification(ownerChatId, channelId, failPostToGroupMsg(groupLink(groupId)));
         }
+    }
+
+    private static String groupLink(long groupId) {
+        return GROUPS_LINK + groupId;
     }
 }

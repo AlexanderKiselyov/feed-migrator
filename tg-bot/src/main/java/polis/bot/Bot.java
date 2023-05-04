@@ -375,7 +375,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                         default -> {
                             LOGGER.error(String.format("Social media not found: %s",
                                     smg.getSocialMedia()));
-                            checkAndSendNotification(channelId, ownerChatId, ERROR_POST_MSG + smg.getGroupId());
+                            checkAndSendNotification(ownerChatId, channelId, ERROR_POST_MSG + smg.getGroupId());
                         }
 
                     }
@@ -386,9 +386,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         }
     }
 
-    private void checkAndSendNotification(long chatId, Long ownerChatId, String smg) {
-        if (userChannelsRepository.isSetNotification(ownerChatId, chatId)) {
-            sendAnswer(ownerChatId, smg);
+    private void checkAndSendNotification(long userChatId, long channelId, String message) {
+        if (userChannelsRepository.isSetNotification(userChatId, channelId)) {
+            sendAnswer(userChatId, message);
         }
     }
 
