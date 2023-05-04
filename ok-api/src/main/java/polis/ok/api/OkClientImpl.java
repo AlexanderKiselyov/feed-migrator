@@ -111,7 +111,9 @@ public class OkClientImpl implements OKClient {
             }
             return result;
         } catch (JSONException e) {
-            throw wrapAndLog(e, "", "", logger);
+            String statusLine = response.getStatusLine().toString();
+            String body = apacheResponseBody(response);
+            throw wrapAndLog(e, statusLine, body, logger);
         } catch (IndexOutOfBoundsException e) {
             throw new OkApiException(e);
         }

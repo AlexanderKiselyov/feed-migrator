@@ -1,5 +1,6 @@
 package polis.bot;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -235,12 +236,18 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
      */
     @Override
     public boolean filter(Message message) {
-        if (message != null) {
-            State currentState = State.findState(message.getText().replace("/", ""));
-            if (currentState != null) {
-                currentStateRepository.insertCurrentState(new CurrentState(message.getChatId(),
-                        currentState.getIdentifier()));
-            }
+        if (message == null) {
+            LOGGER.warn("Received null message");
+            return false;
+        }
+        if (LOGGER.isDebugEnabled()) {
+            String s = messageDebugInfo(message);
+            LOGGER.debug(s);
+        }
+        State currentState = State.findState(message.getText().replace("/", ""));
+        if (currentState != null) {
+            currentStateRepository.insertCurrentState(new CurrentState(message.getChatId(),
+                    currentState.getIdentifier()));
         }
         return false;
     }
@@ -331,7 +338,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 .collect(Collectors.groupingBy(Message::getChatId))
                 .values()
                 .forEach(this::processPostsInChannel);
-        //То, что сейчас делает forEach, потом следует сабмитить в executor
     }
 
     private void processPostsInChannel(List<Message> channelPosts) {
@@ -381,8 +387,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     }
                 }
             }
-        } catch (Exception e) {
-            sendAnswer(ownerChatId, "Произошла непредвиденная ошибка  " + e);
+        } catch (RuntimeException e) {
+            LOGGER.error("Error when handling post in " + channelId, e);
+            sendAnswer(ownerChatId, "Произошла непредвиденная ошибка при обработке поста " + e);
         }
     }
 
@@ -600,7 +607,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 currentGroupRepository.deleteCurrentGroup(chatId);
                 currentAccountRepository.deleteCurrentAccount(chatId);
                 List<UserChannels> userChannels = userChannelsRepository.getUserChannels(chatId);
-                for (UserChannels userChannel: userChannels) {
+                for (UserChannels userChannel : userChannels) {
                     channelGroupsRepository.deleteChannelGroup(userChannel.getChannelId(),
                             account.getSocialMedia().getName());
                 }
@@ -656,5 +663,10 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     @Override
     public void sendNotification(long userChatId, long channelId, String message) {
         checkAndSendNotification(userChatId, channelId, message);
+    }
+
+    private static String messageDebugInfo(Message message) {
+        String debugInfo = new ReflectionToStringBuilder(message).toString();
+        return "Update from " + message.getChatId() + "\n" + debugInfo;
     }
 }
