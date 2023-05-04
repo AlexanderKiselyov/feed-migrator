@@ -10,15 +10,11 @@ import java.util.concurrent.ExecutionException;
 public class GuavaRateLimiter implements polis.ratelim.RateLimiter {
 
     private final double permitsPerSecond;
-    private final int maxSize;
-    private final Duration expirationTime;
 
     private final Cache<Long, RateLimiter> rateLimiters;
 
     public GuavaRateLimiter(double permitsPerSecond, int recordsMaxSize, Duration recordExpirationTime){
         this.permitsPerSecond = permitsPerSecond;
-        this.maxSize = recordsMaxSize;
-        this.expirationTime = recordExpirationTime;
 
         rateLimiters = CacheBuilder.newBuilder()
                 .maximumSize(recordsMaxSize)
