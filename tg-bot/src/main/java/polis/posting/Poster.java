@@ -1,7 +1,6 @@
 package polis.posting;
 
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,13 +9,13 @@ import java.util.List;
 
 public interface Poster {
 
-    List<String> uploadPhotos(List<File> photos, String accessToken, long groupId)
+    List<String> uploadPhotos(List<File> photos, Integer userId, String accessToken, long groupId)
             throws URISyntaxException, IOException, ApiException;
 
-    List<String> uploadVideos(List<File> videos, String accessToken, long groupId)
+    List<String> uploadVideos(List<File> videos, Integer userId, String accessToken, long groupId)
             throws URISyntaxException, IOException, ApiException;
 
-    Post newPost();
+    Post newPost(Long ownerId);
 
     interface Post {
 
@@ -26,11 +25,11 @@ public interface Poster {
 
         Post addText(String text);
 
-        Post addPoll(Poll poll);
+        Post addPoll(Poll poll, String pollId);
 
-        Post addDocuments(List<File> documents);
+        Post addDocuments(List<String> documentIds);
 
-        void post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
+        void post(Integer userId, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
 
     }
 }

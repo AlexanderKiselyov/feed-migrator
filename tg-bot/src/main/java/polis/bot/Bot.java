@@ -385,18 +385,26 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     return;
                 }
                 for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
-                    String accessToken = "";
+                    String accessToken = null;
+                    Long userId = null;
                     for (Account account : accountsRepository.getAccountsForUser(userChatId)) {
                         if (Objects.equals(account.getAccountId(), group.getAccountId())) {
                             accessToken = account.getAccessToken();
+                            userId = account.getAccountId();
                             break;
                         }
                     }
+
+                    if (accessToken == null) {
+                        sendAnswer(ownerChatId, "Аккаунт не был найден.");
+                        return;
+                    }
+
                     switch (group.getSocialMedia()) {
                         case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
-                                channelId, accessToken);
+                                channelId, userId, accessToken);
                         case VK -> vkPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
-                                channelId, accessToken);
+                                channelId, userId, accessToken);
                         default -> {
                             LOGGER.error(String.format("Social media not found: %s",
                                     group.getSocialMedia()));

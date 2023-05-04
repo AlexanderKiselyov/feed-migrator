@@ -22,9 +22,9 @@ import java.util.List;
 
 @Component
 public class OkPostProcessor extends PostProcessor {
-    public static final String DOCUMENTS_ARENT_SUPPORTED =
+    private static final String DOCUMENTS_ARENT_SUPPORTED =
             "Тип файла 'Документ' не поддерживается в социальной сети Одноклассники";
-
+    private static final String OK_GROUP_URL = "ok.ru/group/";
     private final OkPoster okPoster;
 
     @Autowired
@@ -45,6 +45,7 @@ public class OkPostProcessor extends PostProcessor {
             long ownerChatId,
             long channelId,
             long groupId,
+            long userId,
             String accessToken
     ) {
         //Здесь можно будет сделать маленькие трайи, чтобы пользователю писать более конкретную ошибку
@@ -63,24 +64,24 @@ public class OkPostProcessor extends PostProcessor {
                 File file = tgContentManager.download(animation);
                 files.add(file);
             }
-            List<String> videoIds = okPoster.uploadVideos(files, accessToken, groupId);
+            List<String> videoIds = okPoster.uploadVideos(files, (int) userId, accessToken, groupId);
             files.clear();
 
             for (PhotoSize photo : photos) {
                 File file = tgContentManager.download(photo);
                 files.add(file);
             }
-            List<String> photoIds = okPoster.uploadPhotos(files, accessToken, groupId);
+            List<String> photoIds = okPoster.uploadPhotos(files, (int) userId, accessToken, groupId);
 
-            okPoster.newPost()
+            okPoster.newPost(null)
                     .addVideos(videoIds)
                     .addPhotos(photoIds)
-                    .addPoll(poll)
+                    .addPoll(poll, accessToken)
                     .addText(text)
-                    .post(accessToken, groupId);
-            sendSuccess(channelId, ownerChatId, "ok.ru/group/" + groupId);
+                    .post((int) userId, accessToken, groupId);
+            sendSuccess(channelId, ownerChatId, OK_GROUP_URL + groupId);
         } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {
-            tgNotificator.sendNotification(ownerChatId, channelId, ERROR_POST_MSG + groupId);
+            tgNotificator.sendNotification(ownerChatId, channelId, ERROR_POST_MSG + OK_GROUP_URL + groupId);
         }
     }
 }

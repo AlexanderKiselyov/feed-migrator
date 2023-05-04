@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import polis.ok.api.OKClient;
 import polis.ok.api.OkAuthorizator;
 import polis.ok.api.OkClientImpl;
+import polis.vk.api.VkClient;
+import polis.vk.api.VkClientImpl;
 
 import java.net.http.HttpClient;
 
@@ -47,5 +49,10 @@ public class AppConfig {
             @Autowired HttpClient httpClient
     ) {
         return new OkClientImpl(apacheHttpClient, httpClient);
+    }
+
+    @Bean
+    public VkClient vkClient() {
+        return new VkClientImpl();
     }
 }

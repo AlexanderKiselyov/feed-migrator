@@ -18,7 +18,7 @@ import java.util.List;
 
 public abstract class PostProcessor {
     protected static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n"
-            + "Не удалось опубликовать пост в ok.ru/group/";
+            + "Не удалось опубликовать пост в ";
     private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
             + "соответствии с Законом об авторском праве.";
 
@@ -41,6 +41,7 @@ public abstract class PostProcessor {
             long ownerChatId,
             long channelId,
             long groupId,
+            long userId,
             String accessToken
     );
 
@@ -50,7 +51,7 @@ public abstract class PostProcessor {
     }
 
     public void processPostInChannel(List<Message> postItems, long ownerChatId, long groupId, long channelId,
-                                     String accessToken) {
+                                     long userId, String accessToken) {
         List<PhotoSize> photos = new ArrayList<>(1);
         List<Video> videos = new ArrayList<>(1);
         String text = null;
@@ -88,6 +89,6 @@ public abstract class PostProcessor {
             }
         }
         processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, channelId, groupId,
-                accessToken);
+                userId, accessToken);
     }
 }

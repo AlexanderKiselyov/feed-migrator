@@ -34,7 +34,7 @@ public class OkPoster implements Poster {
     }
 
     @Override
-    public List<String> uploadPhotos(List<File> photos, String accessToken, long groupId)
+    public List<String> uploadPhotos(List<File> photos, Integer userId, String accessToken, long groupId)
             throws URISyntaxException, IOException, ApiException {
         if (photos == null || photos.isEmpty()) {
             return Collections.emptyList();
@@ -47,7 +47,7 @@ public class OkPoster implements Poster {
     }
 
     @Override
-    public List<String> uploadVideos(List<File> videos, String accessToken, long groupId)
+    public List<String> uploadVideos(List<File> videos, Integer userId, String accessToken, long groupId)
             throws URISyntaxException, IOException, ApiException {
         if (videos == null || videos.isEmpty()) {
             return Collections.emptyList();
@@ -66,7 +66,7 @@ public class OkPoster implements Poster {
     }
 
     @Override
-    public OkPost newPost() {
+    public OkPost newPost(Long ownerId) {
         return new OkPost();
     }
 
@@ -106,7 +106,7 @@ public class OkPoster implements Poster {
         }
 
         @Override
-        public OkPost addPoll(Poll poll) {
+        public OkPost addPoll(Poll poll, String pollId) {
             if (poll == null) {
                 return this;
             }
@@ -130,12 +130,13 @@ public class OkPoster implements Poster {
         }
 
         @Override
-        public OkPost addDocuments(List<File> documents) {
+        public OkPost addDocuments(List<String> documentIds) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
+        public void post(Integer userId, String accessToken, long groupId)
+                throws URISyntaxException, IOException, ApiException {
             try {
                 okClient.postMediaTopic(accessToken, groupId, attachment);
             } catch (OkApiException e) {
