@@ -4,6 +4,8 @@ import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import polis.bot.BotProperties;
 import polis.commands.NonCommand;
 import polis.util.State;
@@ -16,6 +18,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Objects;
 
+@Component
 public class TelegramDataCheck {
     private static final String GET_CHAT_MEMBER = "https://api.telegram.org/bot%s/getChatMember";
     public static final String WRONG_LINK_OR_BOT_NOT_ADMIN = """
@@ -29,8 +32,10 @@ public class TelegramDataCheck {
             Посмотреть информацию по телеграм-каналу можно по команде /%s""",
             State.TgChannelDescription.getIdentifier());
     private static final String GET_CHAT = "https://api.telegram.org/bot%s/getChat";
-    private final HttpClient client = HttpClient.newHttpClient();
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramDataCheck.class);
+
+    @Autowired
+    private HttpClient client;
 
     public TelegramDataCheck() {
 

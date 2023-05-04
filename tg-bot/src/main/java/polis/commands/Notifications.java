@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -12,27 +14,24 @@ import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.datacheck.DataCheck;
-import polis.telegram.TelegramDataCheck;
+import polis.util.SocialMedia;
 import polis.util.State;
-
-import java.util.Objects;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
-public class SyncOkTg extends Command {
-    private static final String SYNC_OK_TG = """
-            Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";
-    private static final String SYNC_OK_TG_INLINE = """
-            Хотите ли Вы синхронизировать их?
-                        
-            *При размещении контента на Вашем канале очень важно уважать права других авторов, в связи с чем мы не
-            осуществляем автопостинг для пересланных сообщений 🙂""";
-    private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
-            Невозможно связать Телеграм-канал и группу.
+public class Notifications extends Command {
+    private static final String NOTIFICATIONS_MSG = """
+            Включите уведомления, чтобы получать информацию о публикации Ваших постов.
+            """;
+    private static final String NOTIFICATIONS_MSG_INLINE = """
+            Включить данную функцию для Телеграм-канала <b>%s</b> и группы <b>%s (%s)</b>?""";
+    private static final String NO_CURRENT_TG_CHANNEL = """
+            Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
-    private static final int ROWS_COUNT = 1;
 
+    private static final String WRONG_SOCIAL_MEDIA_MSG = """
+            Социальная сеть неверная.""";
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
 
@@ -45,11 +44,11 @@ public class SyncOkTg extends Command {
     @Autowired
     private DataCheck dataCheck;
 
-    @Autowired
-    private TelegramDataCheck telegramDataCheck;
+    private static final int rowsCount = 1;
+    private final Logger logger = LoggerFactory.getLogger(Autoposting.class);
 
-    public SyncOkTg() {
-        super(State.SyncOkTg.getIdentifier(), State.SyncOkTg.getDescription());
+    public Notifications() {
+        super(State.Notifications.getIdentifier(), State.Notifications.getDescription());
     }
 
     @Override
@@ -57,57 +56,44 @@ public class SyncOkTg extends Command {
         CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
+
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
-            String groupName = dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
-
-            if (Objects.equals(groupName, "")) {
-                sendAnswer(
-                        absSender,
-                        chat.getId(),
-                        this.getCommandIdentifier(),
-                        user.getUserName(),
-                        GROUP_NAME_NOT_FOUND,
-                        super.rowsCount,
-                        commandsForKeyboard,
-                        null,
-                        GO_BACK_BUTTON_TEXT);
-                return;
-            }
-
             sendAnswer(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    String.format(
-                            SYNC_OK_TG,
-                            telegramDataCheck.getChatParameter(currentChannel.getChannelUsername(), "title"),
-                            groupName,
-                            currentGroup.getSocialMedia().getName()
-                    ),
+                    NOTIFICATIONS_MSG,
                     super.rowsCount,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
+            String notificationsEnable;
+            if (currentGroup.getSocialMedia() == SocialMedia.OK) {
+                notificationsEnable = String.format(NOTIFICATIONS_MSG_INLINE,
+                        currentChannel.getChannelUsername(),
+                        dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken()),
+                        currentGroup.getGroupName());
+            } else {
+                logger.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
+                notificationsEnable = WRONG_SOCIAL_MEDIA_MSG;
+            }
             sendAnswer(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    SYNC_OK_TG_INLINE,
-                    ROWS_COUNT,
+                    notificationsEnable,
+                    rowsCount,
                     commandsForKeyboard,
-                    yesNoList());
+                    getNotificationsButtons(currentChannel.getChannelId()));
         } else {
             sendAnswer(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    String.format(
-                            NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP,
-                            State.MainMenu.getIdentifier()
-                    ),
+                    String.format(NO_CURRENT_TG_CHANNEL, State.MainMenu.getIdentifier()),
                     super.rowsCount,
                     commandsForKeyboard,
                     null,
@@ -115,12 +101,12 @@ public class SyncOkTg extends Command {
         }
     }
 
-    private String[] yesNoList() {
+    private String[] getNotificationsButtons(Long id) {
         return new String[]{
                 "Да",
-                "yesNo 0",
+                String.format("notifications %s 0", id),
                 "Нет",
-                "yesNo 1"
+                String.format("notifications %s 1", id)
         };
     }
 }

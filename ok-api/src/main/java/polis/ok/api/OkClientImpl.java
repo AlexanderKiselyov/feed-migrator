@@ -2,15 +2,14 @@ package polis.ok.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,28 +38,25 @@ import static polis.ok.api.LoggingUtils.sendRequest;
 import static polis.ok.api.LoggingUtils.wrapAndLog;
 
 public class OkClientImpl implements OKClient {
-    private static final Integer CLIENT_RESPONSE_TIMEOUT = 5;
     private static final String OK_METHODS_URI = "https://api.ok.ru/fb.do";
     private static final String POST_MEDIA_TOPIC = "mediatopic.post";
     private static final String UPLOAD_PHOTO = "photosV2.getUploadUrl";
     private static final String UPLOAD_VIDEO = "video.getUploadUrl";
     private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
-    private final RequestConfig config;
-    private final HttpClient client = HttpClient.newHttpClient();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final HttpClient httpClient;
+    private final CloseableHttpClient apacheHttpClient;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public OkClientImpl() {
-         config = RequestConfig.custom()
-                .setConnectTimeout(CLIENT_RESPONSE_TIMEOUT * 1000)
-                .setConnectionRequestTimeout(CLIENT_RESPONSE_TIMEOUT * 1000)
-                .setSocketTimeout(CLIENT_RESPONSE_TIMEOUT * 1000).build();
+    public OkClientImpl(CloseableHttpClient apacheHttpClient, HttpClient httpClient) {
+        this.httpClient = httpClient;
+        this.apacheHttpClient = apacheHttpClient;
     }
 
     public void postMediaTopic(String accessToken, long groupId, Attachment attachment)
             throws URISyntaxException, IOException, OkApiException {
         List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair("application_key", OkAppProperties.APPLICATION_KEY));
-        parameters.add(new BasicNameValuePair("attachment", mapper.writeValueAsString(attachment)));
+        parameters.add(new BasicNameValuePair("attachment", objectMapper.writeValueAsString(attachment)));
         parameters.add(new BasicNameValuePair("format", "json"));
         parameters.add(new BasicNameValuePair("gid", String.valueOf(groupId)));
         parameters.add(new BasicNameValuePair("method", POST_MEDIA_TOPIC));
@@ -72,19 +68,19 @@ public class OkClientImpl implements OKClient {
         request.addHeader("Content-Type", "application/x-www-form-urlencoded");
         request.setEntity(new UrlEncodedFormEntity(parameters, StandardCharsets.UTF_8));
 
-        try (CloseableHttpClient advancedClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
-            org.apache.http.HttpResponse response = sendRequest(advancedClient, request, logger);
+        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, request, logger);
 
-            String statusLine = response.getStatusLine().toString();
-            String body = apacheResponseBody(response);
+        String statusLine = response.getStatusLine().toString();
+        String body = apacheResponseBody(response);
 
-            Matcher matcher = Pattern.compile("\"(\\d+)\"").matcher(body);
-            if (matcher.matches()) {
-                String postId = matcher.group(1);
-                logger.info("Posted post %s to group %d".formatted(postId, groupId));
-            } else {
-                parseResponse(body, statusLine, logger);
-            }
+        EntityUtils.consume(response.getEntity());
+
+        Matcher matcher = Pattern.compile("\"(\\d+)\"").matcher(body);
+        if (matcher.matches()) {
+            String postId = matcher.group(1);
+            logger.info("Posted post %s to group %d".formatted(postId, groupId));
+        } else {
+            parseResponse(body, statusLine, logger);
         }
     }
 
@@ -100,24 +96,24 @@ public class OkClientImpl implements OKClient {
         }
         httpPost.setEntity(multipartEntityBuilder.build());
 
-        try (CloseableHttpClient advancedClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
-            org.apache.http.HttpResponse response = sendRequest(advancedClient, httpPost, logger);
-            JSONObject responseJson = parseResponse(response, logger);
+        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, httpPost, logger);
+        JSONObject responseJson = parseResponse(response, logger);
 
-            try {
-                JSONObject photoIds = responseJson.getJSONObject("photos");
-                List<String> result = new ArrayList<>(photos.size());
-                for (int i = 0; i < photos.size(); i++) {
-                    String photoToken = uploadUrlResponse.photoTokens.get(i);
-                    String photoId = photoIds.getJSONObject(photoToken).getString("token");
-                    result.add(photoId);
-                }
-                return result;
-            } catch (JSONException e) {
-                throw wrapAndLog(e, "", "", logger);
-            } catch (IndexOutOfBoundsException e) {
-                throw new OkApiException(e);
+        EntityUtils.consume(response.getEntity());
+
+        try {
+            JSONObject photoIds = responseJson.getJSONObject("photos");
+            List<String> result = new ArrayList<>(photos.size());
+            for (int i = 0; i < photos.size(); i++) {
+                String photoToken = uploadUrlResponse.photoTokens.get(i);
+                String photoId = photoIds.getJSONObject(photoToken).getString("token");
+                result.add(photoId);
             }
+            return result;
+        } catch (JSONException e) {
+            throw wrapAndLog(e, "", "", logger);
+        } catch (IndexOutOfBoundsException e) {
+            throw new OkApiException(e);
         }
     }
 
@@ -131,9 +127,9 @@ public class OkClientImpl implements OKClient {
         multipartEntityBuilder.addPart("video", new FileBody(video));
         httpPost.setEntity(multipartEntityBuilder.build());
 
-        try (CloseableHttpClient advancedClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
-            sendRequest(advancedClient, httpPost, logger);
-        }
+        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, httpPost, logger);
+
+        EntityUtils.consume(response.getEntity());
 
         return uploadUrlResponse.videoId;
     }
@@ -152,7 +148,7 @@ public class OkClientImpl implements OKClient {
         HttpRequest getUploadUrlRequest = HttpRequest.newBuilder().GET()
                 .uri(uri)
                 .build();
-        HttpResponse<String> uploadUrlResponse = sendRequest(client, getUploadUrlRequest, logger);
+        HttpResponse<String> uploadUrlResponse = sendRequest(httpClient, getUploadUrlRequest, logger);
         JSONObject responseBodyJson = parseResponse(uploadUrlResponse, logger);
 
         try {
@@ -184,7 +180,7 @@ public class OkClientImpl implements OKClient {
         HttpRequest getUploadUrlRequest = HttpRequest.newBuilder().GET()
                 .uri(uri)
                 .build();
-        HttpResponse<String> uploadUrlResponse = sendRequest(client, getUploadUrlRequest, logger);
+        HttpResponse<String> uploadUrlResponse = sendRequest(httpClient, getUploadUrlRequest, logger);
         JSONObject object = parseResponse(uploadUrlResponse, logger);
 
         try {

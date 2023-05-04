@@ -64,12 +64,11 @@ public class NonCommand {
     @Autowired
     private DataCheck dataCheck;
 
-    private final TelegramDataCheck telegramDataCheck;
+    @Autowired
+    private TelegramDataCheck telegramDataCheck;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(NonCommand.class);
 
-    public NonCommand() {
-        telegramDataCheck = new TelegramDataCheck();
-    }
 
     public AnswerPair nonCommandExecute(String text, Long chatId, IState state) {
         if (state == null) {
