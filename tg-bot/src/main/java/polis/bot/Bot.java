@@ -232,7 +232,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
      * Устанавливает бота в определенное состояние в зависимости от введенной пользователем команды.
      *
      * @param message отправленное пользователем сообщение
-     * @return false, так как боту необходимо всегда обработать входящее сообщение
      */
     public void setStateForMessage(Message message) {
         if (message == null) {
