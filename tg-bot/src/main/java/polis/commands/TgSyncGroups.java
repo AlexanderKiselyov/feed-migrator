@@ -16,6 +16,7 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.datacheck.DataCheck;
 import polis.util.State;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,6 +46,7 @@ public class TgSyncGroups extends Command {
     private DataCheck dataCheck;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TgSyncGroups.class);
+    private static final String trashEmoji = "\uD83D\uDDD1";
 
     public TgSyncGroups() {
         super(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription());
@@ -58,7 +60,7 @@ public class TgSyncGroups extends Command {
             List<ChannelGroup> channelGroups =
                     channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId());
 
-            if (channelGroups != null) {
+            if (channelGroups != null && !channelGroups.isEmpty()) {
                 String groupName = "";
 
                 for (ChannelGroup group : channelGroups) {
@@ -83,8 +85,8 @@ public class TgSyncGroups extends Command {
                             this.getCommandIdentifier(),
                             user.getUserName(),
                             GROUP_NAME_NOT_FOUND,
-                            1,
-                            List.of(State.TgChannelDescription.getDescription()),
+                            rowsCount,
+                            Collections.emptyList(),
                             null,
                             GO_BACK_BUTTON_TEXT);
                     return;
@@ -96,7 +98,7 @@ public class TgSyncGroups extends Command {
                         user.getUserName(),
                         TG_SYNC_GROUPS,
                         rowsCount,
-                        commandsForKeyboard,
+                        Collections.emptyList(),
                         null,
                         GO_BACK_BUTTON_TEXT);
                 sendAnswer(
@@ -106,7 +108,7 @@ public class TgSyncGroups extends Command {
                         user.getUserName(),
                         TG_SYNC_GROUPS_INLINE,
                         channelGroups.size(),
-                        commandsForKeyboard,
+                        Collections.emptyList(),
                         getTgChannelGroupsArray(channelGroups, groupName));
                 return;
             }
@@ -119,8 +121,7 @@ public class TgSyncGroups extends Command {
                 String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
                 1,
                 List.of(State.TgChannelDescription.getDescription()),
-                null,
-                GO_BACK_BUTTON_TEXT);
+                null);
     }
 
     private String[] getTgChannelGroupsArray(List<ChannelGroup> groups, String groupName) {
@@ -131,7 +132,7 @@ public class TgSyncGroups extends Command {
             buttons[tmpIndex] = String.format("%s (%s)", groupName,
                     groups.get(i).getSocialMedia().getName());
             buttons[tmpIndex + 1] = String.format("group %s %d", groups.get(i).getGroupId(), 0);
-            buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
+            buttons[tmpIndex + 2] = trashEmoji + " Удалить";
             buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getGroupId(), 1);
         }
 
