@@ -23,17 +23,14 @@ public abstract class PostProcessor {
             "Не удалось опубликовать пост в ";
     private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
             + "соответствии с Законом об авторском праве.";
-    private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
 
-    protected final TgNotificator tgNotificator;
+    protected final TgNotificator tgNotificator; //TODO remove this
     protected final TgContentManager tgContentManager;
-    private final RateLimiter postingRateLimiter;
 
     @Autowired
-    public PostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager, RateLimiter postingRateLimiter) {
+    public PostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager) {
         this.tgNotificator = tgNotificator;
         this.tgContentManager = tgContentManager;
-        this.postingRateLimiter = postingRateLimiter;
     }
 
     protected abstract void processPostInChannel(
@@ -50,10 +47,6 @@ public abstract class PostProcessor {
     );
 
     public void processPostInChannel(List<Message> postItems, long userChatId, long groupId, long channelId, String accessToken) {
-        if(!postingRateLimiter.allowRequest(userChatId)){
-            tgNotificator.sendNotification(userChatId, channelId, TOO_MANY_API_REQUESTS_MSG);
-            return;
-        }
         List<PhotoSize> photos = new ArrayList<>(1);
         List<Video> videos = new ArrayList<>(1);
         String text = null;
