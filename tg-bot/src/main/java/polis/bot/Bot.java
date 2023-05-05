@@ -514,7 +514,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.GroupDescription);
                 } else if (isDeletionRequested(dataParts)) {
                     CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chatId);
-                    String socialMediaName = dataParts[2];
+                    String socialMediaName = dataParts[3];
                     channelGroupsRepository.deleteChannelGroup(currentChannel.getChannelId(), socialMediaName);
                     currentGroupRepository.deleteCurrentGroup(chatId);
                     deleteLastMessage(msg, chatId);
