@@ -36,7 +36,7 @@ public class OkPostProcessor extends PostProcessor {
             OkPoster okPoster,
             RateLimiter postingRateLimiter
     ) {
-        super(tgNotificator, tgContentManager, postingRateLimiter);
+        super(tgNotificator, tgContentManager);
         this.okPoster = okPoster;
     }
 
