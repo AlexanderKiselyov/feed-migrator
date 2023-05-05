@@ -74,7 +74,7 @@ public class VkApiMethods {
         return getGroupId(request, logger);
     }
 
-    public String getVkGroupName(VkAuthorizator.TokenWithId tokenWithId, Long groupId) throws VkApiException {
+    public String getVkGroupName(VkAuthorizator.TokenWithId tokenWithId, Integer groupId) throws VkApiException {
         GroupsGetByIdQueryWithObjectLegacy request = vk.groups()
                 .getByIdObjectLegacy(new UserActor(tokenWithId.userId(), tokenWithId.accessToken()))
                 .groupIds(String.valueOf(groupId))

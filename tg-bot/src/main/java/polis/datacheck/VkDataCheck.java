@@ -110,7 +110,7 @@ public class VkDataCheck {
         }
     }
 
-    public String getVkGroupName(VkAuthorizator.TokenWithId tokenWithId, Long groupId) {
+    public String getVkGroupName(VkAuthorizator.TokenWithId tokenWithId, Integer groupId) {
         try {
             return vkApiMethods.getVkGroupName(tokenWithId, groupId);
         } catch (VkApiException e) {

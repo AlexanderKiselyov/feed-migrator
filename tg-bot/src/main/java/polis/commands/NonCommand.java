@@ -181,8 +181,11 @@ public class NonCommand {
                 return new AnswerPair(USER_NOT_GROUP_ADMIN, true);
             }
 
-            String groupName = vkDataCheck.getVkUsername(new VkAuthorizator.TokenWithId(currentAccount.getAccessToken(),
-                    (int) currentAccount.getAccountId()));
+            String groupName = vkDataCheck.getVkGroupName(
+                    new VkAuthorizator.TokenWithId(currentAccount.getAccessToken(),
+                    (int) currentAccount.getAccountId()),
+                    groupId
+            );
 
             if (Objects.equals(groupName, null)) {
                 return new AnswerPair(GROUP_NAME_NOT_FOUND, true);

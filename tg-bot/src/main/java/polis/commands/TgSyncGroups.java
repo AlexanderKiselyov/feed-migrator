@@ -94,7 +94,7 @@ public class TgSyncGroups extends Command {
                                                     currentAccount.getAccessToken(),
                                                     (int) currentAccount.getAccountId()
                                             ),
-                                            group.getGroupId()
+                                            (int) group.getGroupId()
                                     );
                                     break;
                                 }
