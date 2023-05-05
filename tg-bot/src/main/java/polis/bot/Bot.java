@@ -89,7 +89,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
     private static final String AUTOPOSTING_ENABLE_AND_NOTIFICATIONS = "Функция автопостинга включена."
             + TURN_ON_NOTIFICATIONS_MSG;
-    private static final String ACCOUNT_NOT_FOUND = "Аккаунт не был найден.";
     private static final String CHANNEL_INFO_ERROR = "Ошибка получения информации по каналу.";
     private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.of(
             String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
@@ -389,16 +388,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 return;
             }
             for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
-                Account account = accountsRepository.getUserAccount(userChatId, group.getAccountId(),
-                        group.getSocialMedia().getName());
-
-                if (account == null) {
-                    checkAndSendNotification(ownerChatId, channelId, ACCOUNT_NOT_FOUND);
-                    continue;
-                }
-
-                String accessToken = account.getAccessToken();
-                long userId = account.getAccountId();
+                String accessToken = group.getAccessToken();
+                long userId = group.getAccountId();
 
                 if (accessToken == null) {
                     checkAndSendNotification(ownerChatId, channelId, CHANNEL_INFO_ERROR);
