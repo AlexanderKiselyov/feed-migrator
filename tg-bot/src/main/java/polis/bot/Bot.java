@@ -382,42 +382,37 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 return;
             }
             long userChatId = userChannelsRepository.getUserChatId(channelId);
-            List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(userChatId);
-            for (UserChannels tgChannel : tgChannels) {
-                if (!Objects.equals(tgChannel.getChannelId(), channelId)) {
+            UserChannels tgChannel = userChannelsRepository.getUserChannel(channelId, userChatId);
+            if (!tgChannel.isAutoposting()) {
+                return;
+            }
+            for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
+                String accessToken = null;
+                Long userId = null;
+                for (Account account : accountsRepository.getAccountsForUser(userChatId)) {
+                    if (Objects.equals(account.getAccountId(), group.getAccountId())) {
+                        accessToken = account.getAccessToken();
+                        userId = account.getAccountId();
+                        break;
+                    }
+                }
+
+                if (accessToken == null) {
+                    sendAnswer(ownerChatId, "Аккаунт не был найден.");
                     return;
                 }
-                if (!tgChannel.isAutoposting()) {
-                    return;
-                }
-                for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
-                    String accessToken = null;
-                    Long userId = null;
-                    for (Account account : accountsRepository.getAccountsForUser(userChatId)) {
-                        if (Objects.equals(account.getAccountId(), group.getAccountId())) {
-                            accessToken = account.getAccessToken();
-                            userId = account.getAccountId();
-                            break;
-                        }
+
+                switch (group.getSocialMedia()) {
+                    case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
+                            channelId, userId, accessToken);
+                    case VK -> vkPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
+                            channelId, userId, accessToken);
+                    default -> {
+                        LOGGER.error(String.format("Social media not found: %s",
+                                group.getSocialMedia()));
+                        checkAndSendNotification(ownerChatId, channelId, ERROR_POST_MSG + group.getGroupId());
                     }
 
-                    if (accessToken == null) {
-                        sendAnswer(ownerChatId, "Аккаунт не был найден.");
-                        return;
-                    }
-
-                    switch (group.getSocialMedia()) {
-                        case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
-                                channelId, userId, accessToken);
-                        case VK -> vkPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
-                                channelId, userId, accessToken);
-                        default -> {
-                            LOGGER.error(String.format("Social media not found: %s",
-                                    group.getSocialMedia()));
-                            checkAndSendNotification(ownerChatId, channelId, ERROR_POST_MSG + group.getGroupId());
-                        }
-
-                    }
                 }
             }
         } catch (RuntimeException e) {
