@@ -20,6 +20,7 @@ import polis.datacheck.VkDataCheck;
 import polis.util.State;
 import polis.vk.api.VkAuthorizator;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -55,6 +56,7 @@ public class TgSyncGroups extends Command {
     private VkDataCheck vkDataCheck;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TgSyncGroups.class);
+    private static final String trashEmoji = "\uD83D\uDDD1";
 
     public TgSyncGroups() {
         super(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription());
@@ -111,8 +113,8 @@ public class TgSyncGroups extends Command {
                             this.getCommandIdentifier(),
                             user.getUserName(),
                             GROUP_NAME_NOT_FOUND,
-                            1,
-                            List.of(State.TgChannelDescription.getDescription()),
+                            ROWS_COUNT,
+                            Collections.emptyList(),
                             null,
                             GO_BACK_BUTTON_TEXT);
                     LOGGER.error(String.format("Error detecting group name of group: %d", groupId));
@@ -125,7 +127,7 @@ public class TgSyncGroups extends Command {
                         user.getUserName(),
                         TG_SYNC_GROUPS,
                         ROWS_COUNT,
-                        commandsForKeyboard,
+                        Collections.emptyList(),
                         null,
                         GO_BACK_BUTTON_TEXT);
                 sendAnswer(
@@ -135,7 +137,7 @@ public class TgSyncGroups extends Command {
                         user.getUserName(),
                         TG_SYNC_GROUPS_INLINE,
                         channelGroups.size(),
-                        commandsForKeyboard,
+                        Collections.emptyList(),
                         getButtonsForTgChannelGroups(channelGroups, groupName));
                 return;
             }
@@ -148,8 +150,7 @@ public class TgSyncGroups extends Command {
                 String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
                 1,
                 List.of(State.TgChannelDescription.getDescription()),
-                null,
-                GO_BACK_BUTTON_TEXT);
+                null);
     }
 
     private String[] getButtonsForTgChannelGroups(List<ChannelGroup> groups, String groupName) {
@@ -160,7 +161,7 @@ public class TgSyncGroups extends Command {
             buttons[tmpIndex] = String.format("%s (%s)", groupName,
                     groups.get(i).getSocialMedia().getName());
             buttons[tmpIndex + 1] = String.format("group %s %d", groups.get(i).getGroupId(), 0);
-            buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
+            buttons[tmpIndex + 2] = trashEmoji + " Удалить";
             buttons[tmpIndex + 3] = String.format("group %s %d", groups.get(i).getGroupId(), 1);
         }
 
