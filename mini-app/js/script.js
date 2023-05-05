@@ -26,28 +26,33 @@ if (code === null || code.length === 0) {
     main.appendChild(element);
 }
 
-function copyToClipboard() {
-    const text = codeField.innerText;
-    const textarea = document.createElement("textarea");
-    document.body.appendChild(textarea);
-    textarea.value = text;
-    textarea.select();
-    let isDone;
-    try {
-        navigator.clipboard.writeText(textarea.value);
-        isDone = true;
-    } catch (error) {
-        console.warn('Copy to clipboard failed.', error);
-        isDone = false;
-    } finally {
-        document.body.removeChild(textarea);
+function copyToClipboard(text) {
+    if (window.clipboardData && window.clipboardData.setData) {
+        // IE specific code path to prevent textarea being shown while dialog is visible.
+        return clipboardData.setData('Text', text);
+
+    }
+    if (document.queryCommandSupported && document.queryCommandSupported('copy')) {
+        const textarea = document.createElement('textarea');
+        textarea.textContent = text;
+        textarea.style.position = 'fixed'; // Prevent scrolling to bottom of page in MS Edge.
+        document.body.append(textarea);
+        textarea.select();
+        try {
+            return document.execCommand('copy'); // Security exception may be thrown by some browsers.
+        } catch (error) {
+            console.warn('Copy to clipboard failed.', error);
+            return false;
+        } finally {
+            document.body.removeChild(textarea);
+        }
     }
 
-    return isDone;
 }
 
-copyButton.addEventListener("click", () => {
-    if (code !== null && code.length !== 0 && copyToClipboard()) {
+copyButton.addEventListener("click", code => {
+    if (code !== null && code.length !== 0) {
+        copyToClipboard(code);
         alert("Код был успешно скопирован!");
     } else {
         console.error('Code is empty and cannot be copied.');
