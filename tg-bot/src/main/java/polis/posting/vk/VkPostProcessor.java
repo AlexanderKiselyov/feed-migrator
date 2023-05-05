@@ -79,11 +79,11 @@ public class VkPostProcessor extends PostProcessor {
                 File file = tgContentManager.download(document);
                 files.add(file);
             }
-            List<String> documentIds = vkPoster.saveDocuments(files, (int) userId, accessToken, groupId);
+            List<String> documentIds = vkPoster.uploadDocuments(files, (int) userId, accessToken, groupId);
 
             String pollId = null;
             if (poll != null) {
-                 pollId = vkPoster.createPoll(
+                 pollId = vkPoster.uploadPoll(
                          (int) userId,
                          accessToken,
                          poll.getQuestion(),

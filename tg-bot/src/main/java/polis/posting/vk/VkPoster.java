@@ -53,13 +53,15 @@ public class VkPoster implements IVkPoster {
         return new VkPost(ownerId);
     }
 
-    public String createPoll(Integer userId, String accessToken, String question, Boolean isAnonymous,
+    @Override
+    public String uploadPoll(Integer userId, String accessToken, String question, Boolean isAnonymous,
                              Boolean isMultiple, Boolean isClosed, List<String> answers)
             throws VkApiException, URISyntaxException, IOException {
         return vkClient.createPoll(userId, accessToken, question, isAnonymous, isMultiple, isClosed, answers);
     }
 
-    public List<String> saveDocuments(List<File> documents, Integer userId, String accessToken, long groupId)
+    @Override
+    public List<String> uploadDocuments(List<File> documents, Integer userId, String accessToken, long groupId)
             throws VkApiException {
         return vkClient.saveDocuments(documents, userId, accessToken, groupId);
     }

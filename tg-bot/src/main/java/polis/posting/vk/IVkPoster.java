@@ -2,6 +2,7 @@ package polis.posting.vk;
 
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import polis.posting.ApiException;
+import polis.vk.api.exceptions.VkApiException;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +15,13 @@ public interface IVkPoster {
 
     List<String> uploadVideos(List<File> videos, Integer userId, String accessToken, long groupId)
             throws URISyntaxException, IOException, ApiException;
+
+    List<String> uploadDocuments(List<File> documents, Integer userId, String accessToken, long groupId)
+            throws VkApiException;
+
+    String uploadPoll(Integer userId, String accessToken, String question, Boolean isAnonymous,
+                      Boolean isMultiple, Boolean isClosed, List<String> answers)
+            throws VkApiException, URISyntaxException, IOException;
 
     IVkPost newPost(Long ownerId);
 
