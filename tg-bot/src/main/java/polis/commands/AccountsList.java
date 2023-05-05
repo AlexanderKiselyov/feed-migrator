@@ -60,7 +60,7 @@ public class AccountsList extends Command {
                             this.getCommandIdentifier(),
                             user.getUserName(),
                             USERNAME_NOT_FOUND,
-                            rowsCount,
+                            ROWS_COUNT,
                             commandsForKeyboard,
                             null,
                             GO_BACK_BUTTON_TEXT);
