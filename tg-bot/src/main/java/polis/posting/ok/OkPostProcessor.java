@@ -25,7 +25,8 @@ import java.util.List;
 public class OkPostProcessor extends PostProcessor {
     private static final String DOCUMENTS_ARENT_SUPPORTED =
             "Тип файла 'Документ' не поддерживается в социальной сети Одноклассники";
-    public static final String GROUPS_LINK = "ok.ru/group/";
+    private static final String GROUPS_LINK = "ok.ru/group/";
+    private static final String POST_PREFIX = "/topic/";
 
     private final OkPoster okPoster;
 
@@ -41,7 +42,7 @@ public class OkPostProcessor extends PostProcessor {
     }
 
     @Override
-    public void processPostInChannel(
+    public String processPostInChannel(
             List<Video> videos,
             List<PhotoSize> photos,
             List<Animation> animations,
@@ -57,7 +58,7 @@ public class OkPostProcessor extends PostProcessor {
         //Здесь можно будет сделать маленькие трайи, чтобы пользователю писать более конкретную ошибку
         try {
             if (!documents.isEmpty() && animations.isEmpty()) {
-                tgNotificator.sendNotification(ownerChatId, channelId, DOCUMENTS_ARENT_SUPPORTED);
+                return DOCUMENTS_ARENT_SUPPORTED;
             }
 
             int maxListSize = Math.max(photos.size(), animations.size() + videos.size());
@@ -79,19 +80,23 @@ public class OkPostProcessor extends PostProcessor {
             }
             List<String> photoIds = okPoster.uploadPhotos(files, (int) userId, accessToken, groupId);
 
-            okPoster.newPost()
+            long postId = okPoster.newPost()
                     .addVideos(videoIds)
                     .addPhotos(photoIds)
                     .addPoll(poll)
                     .addText(text)
                     .post(accessToken, groupId);
-            tgNotificator.sendNotification(ownerChatId, channelId, successfulPostToGroupMsg(groupLink(groupId)));
+            return successfulPostMsg(postLink(groupId, postId));
         } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {
-            tgNotificator.sendNotification(ownerChatId, channelId, failPostToGroupMsg(groupLink(groupId)));
+            return failPostToGroupMsg(groupLink(groupId));
         }
     }
 
     private static String groupLink(long groupId) {
         return GROUPS_LINK + groupId;
+    }
+
+    private static String postLink(long groupId, long postId) {
+        return groupLink(groupId) + POST_PREFIX + postId;
     }
 }

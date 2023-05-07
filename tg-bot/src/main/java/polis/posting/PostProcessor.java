@@ -18,7 +18,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public abstract class PostProcessor {
-    private static final String SUCCESS_POST_MSG = "Успешно опубликовал пост в ";
+    private static final String SUCCESS_POST_MSG = "Успешно опубликовал пост ";
     private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n"
             + "Не удалось опубликовать пост в ";
     private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
@@ -37,7 +37,7 @@ public abstract class PostProcessor {
         this.postingRateLimiter = postingRateLimiter;
     }
 
-    protected abstract void processPostInChannel(
+    protected abstract String processPostInChannel(
             List<Video> videos,
             List<PhotoSize> photos,
             List<Animation> animations,
@@ -51,11 +51,10 @@ public abstract class PostProcessor {
             String accessToken
     );
 
-    public void processPostInChannel(List<Message> postItems, long ownerChatId, long groupId, long channelId,
+    public String processPostInChannel(List<Message> postItems, long ownerChatId, long groupId, long channelId,
                                      long userId, String accessToken) {
         if (!postingRateLimiter.allowRequest(ownerChatId)) {
-            tgNotificator.sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG);
-            return;
+            return TOO_MANY_API_REQUESTS_MSG;
         }
         List<PhotoSize> photos = new ArrayList<>(1);
         List<Video> videos = new ArrayList<>(1);
@@ -66,8 +65,7 @@ public abstract class PostProcessor {
         for (Message postItem : postItems) {
             Chat forwardFromChat = postItem.getForwardFromChat();
             if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
-                tgNotificator.sendNotification(ownerChatId, channelId, AUTHOR_RIGHTS_MSG);
-                return;
+                return AUTHOR_RIGHTS_MSG;
             }
             if (postItem.hasPhoto()) {
                 postItem.getPhoto().stream()
@@ -93,12 +91,12 @@ public abstract class PostProcessor {
                 documents.add(postItem.getDocument());
             }
         }
-        processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, channelId, groupId,
+        return processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, channelId, groupId,
                 userId, accessToken);
     }
 
-    protected static String successfulPostToGroupMsg(String where) {
-        return SUCCESS_POST_MSG + where;
+    protected static String successfulPostMsg(String what) {
+        return SUCCESS_POST_MSG + what;
     }
 
     protected static String failPostToGroupMsg(String where) {

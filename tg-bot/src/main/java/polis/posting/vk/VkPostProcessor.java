@@ -14,7 +14,6 @@ import polis.bot.TgNotificator;
 import polis.posting.ApiException;
 import polis.posting.PostProcessor;
 import polis.ratelim.RateLimiter;
-import polis.vk.api.LoggingUtils;
 import polis.vk.api.exceptions.VkApiException;
 
 import java.io.File;
@@ -27,6 +26,8 @@ import java.util.List;
 @Component
 public class VkPostProcessor extends PostProcessor {
     private static final String VK_GROUP_URL = "vk.com/club";
+    private static final String GROUP_POSTFIX = "?w=wall-";
+    private static final String POST_PREFIX = "_";
     private final VkPoster vkPoster;
 
     public VkPostProcessor(
@@ -40,7 +41,7 @@ public class VkPostProcessor extends PostProcessor {
     }
 
     @Override
-    protected void processPostInChannel(
+    protected String processPostInChannel(
             List<Video> videos,
             List<PhotoSize> photos,
             List<Animation> animations,
@@ -94,20 +95,24 @@ public class VkPostProcessor extends PostProcessor {
                 );
             }
 
-            vkPoster.newPost(userId)
+            long postId = vkPoster.newPost(userId)
                     .addPhotos(photoIds)
                     .addVideos(videoIds, groupId)
                     .addText(text)
                     .addPoll(poll, pollId)
                     .addDocuments(documentIds, groupId)
                     .post((int) userId, accessToken, groupId);
-            tgNotificator.sendNotification(ownerChatId, channelId, successfulPostToGroupMsg(groupLink(groupId)));
+            return successfulPostMsg(postLink(groupId, postId));
         } catch (VkApiException | ApiException | URISyntaxException | IOException | TelegramApiException e) {
-            tgNotificator.sendNotification(ownerChatId, channelId, failPostToGroupMsg(groupLink(groupId)));
+            return failPostToGroupMsg(groupLink(groupId));
         }
     }
 
     private static String groupLink(long groupId) {
         return VK_GROUP_URL + groupId;
+    }
+
+    private static String postLink(long groupId, long postId) {
+        return groupLink(groupId) + GROUP_POSTFIX + groupId + POST_PREFIX + postId;
     }
 }
