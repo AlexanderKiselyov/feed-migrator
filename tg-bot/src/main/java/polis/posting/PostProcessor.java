@@ -43,11 +43,11 @@ public abstract class PostProcessor {
             long ownerChatId,
             long channelId,
             long groupId,
-            long userId,
+            long accountId,
             String accessToken
     );
 
-    public void processPostInChannel(List<Message> postItems, long userChatId, long groupId, long channelId, String accessToken) {
+    public void processPostInChannel(List<Message> postItems, long userChatId, long groupId, long channelId, long accountId,String accessToken) {
         List<PhotoSize> photos = new ArrayList<>(1);
         List<Video> videos = new ArrayList<>(1);
         String text = null;
@@ -57,7 +57,7 @@ public abstract class PostProcessor {
         for (Message postItem : postItems) {
             Chat forwardFromChat = postItem.getForwardFromChat();
             if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
-                tgNotificator.sendNotification(ownerChatId, channelId, AUTHOR_RIGHTS_MSG);
+                tgNotificator.sendNotification(userChatId, channelId, AUTHOR_RIGHTS_MSG);
                 return;
             }
             if (postItem.hasPhoto()) {
@@ -84,8 +84,8 @@ public abstract class PostProcessor {
                 documents.add(postItem.getDocument());
             }
         }
-        processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, channelId, groupId,
-                userId, accessToken);
+        processPostInChannel(videos, photos, animations, documents, text, poll, userChatId, channelId, groupId,
+                accountId, accessToken);
     }
 
     protected static String successfulPostToGroupMsg(String where) {

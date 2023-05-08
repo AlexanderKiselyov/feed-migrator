@@ -32,10 +32,9 @@ public class VkPostProcessor extends PostProcessor {
     public VkPostProcessor(
             @Qualifier("Bot") TgNotificator tgNotificator,
             TgContentManager tgContentManager,
-            VkPoster vkPoster,
-            RateLimiter postingRateLimiter
+            VkPoster vkPoster
     ) {
-        super(tgNotificator, tgContentManager, postingRateLimiter);
+        super(tgNotificator, tgContentManager);
         this.vkPoster = vkPoster;
     }
 
@@ -50,7 +49,7 @@ public class VkPostProcessor extends PostProcessor {
             long ownerChatId,
             long channelId,
             long groupId,
-            long userId,
+            long accountId,
             String accessToken
     ) {
         try {
@@ -65,26 +64,26 @@ public class VkPostProcessor extends PostProcessor {
                 File file = tgContentManager.download(animation);
                 files.add(file);
             }
-            List<String> videoIds = vkPoster.uploadVideos(files, (int) userId, accessToken, groupId);
+            List<String> videoIds = vkPoster.uploadVideos(files, (int) accountId, accessToken, groupId);
             files.clear();
 
             for (PhotoSize photo : photos) {
                 File file = tgContentManager.download(photo);
                 files.add(file);
             }
-            List<String> photoIds = vkPoster.uploadPhotos(files, (int) userId, accessToken, groupId);
+            List<String> photoIds = vkPoster.uploadPhotos(files, (int) accountId, accessToken, groupId);
             files.clear();
 
             for (Document document : documents) {
                 File file = tgContentManager.download(document);
                 files.add(file);
             }
-            List<String> documentIds = vkPoster.uploadDocuments(files, (int) userId, accessToken, groupId);
+            List<String> documentIds = vkPoster.uploadDocuments(files, (int) accountId, accessToken, groupId);
 
             String pollId = null;
             if (poll != null) {
                  pollId = vkPoster.uploadPoll(
-                         (int) userId,
+                         (int) accountId,
                          accessToken,
                          poll.getQuestion(),
                          poll.getIsAnonymous(),
@@ -94,13 +93,13 @@ public class VkPostProcessor extends PostProcessor {
                 );
             }
 
-            vkPoster.newPost(userId)
+            vkPoster.newPost(accountId)
                     .addPhotos(photoIds)
                     .addVideos(videoIds, groupId)
                     .addText(text)
                     .addPoll(poll, pollId)
                     .addDocuments(documentIds, groupId)
-                    .post((int) userId, accessToken, groupId);
+                    .post((int) accountId, accessToken, groupId);
             tgNotificator.sendNotification(ownerChatId, channelId, successfulPostToGroupMsg(groupLink(groupId)));
         } catch (VkApiException | ApiException | URISyntaxException | IOException | TelegramApiException e) {
             tgNotificator.sendNotification(ownerChatId, channelId, failPostToGroupMsg(groupLink(groupId)));
