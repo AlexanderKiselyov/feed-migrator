@@ -13,8 +13,6 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.OkDataCheck;
-import polis.datacheck.VkDataCheck;
 import polis.util.State;
 
 import java.util.Objects;
@@ -40,12 +38,6 @@ public class Autoposting extends Command {
 
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
-
-    @Autowired
-    private OkDataCheck okDataCheck;
-
-    @Autowired
-    private VkDataCheck vkDataCheck;
 
     @Autowired
     private CommandUtils commandUtils;
@@ -118,9 +110,9 @@ public class Autoposting extends Command {
     private String[] getButtonsForAutopostingOptions(long chatId, long channelId) {
         return new String[]{
                 "Да",
-                String.format("autoposting %d %d 1", chatId, channelId),
+                String.format("autoposting %d %d 0", chatId, channelId),
                 "Нет",
-                String.format("autoposting %d %d 0", chatId, channelId)
+                String.format("autoposting %d %d 1", chatId, channelId)
         };
     }
 }
