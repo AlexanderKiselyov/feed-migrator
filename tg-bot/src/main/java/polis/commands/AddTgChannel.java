@@ -13,7 +13,7 @@ public class AddTgChannel extends Command {
             1. Добавить бота в администраторы Вашего Телеграм-канала.
             2. Скопировать ссылку на Телеграм-канал. Пример такой ссылки: https://t.me/exploitex
             3. Прислать ссылку в данный диалог.""";
-    private static final int rowsCount = 1;
+    private static final int ROWS_COUNT = 1;
     private static final List<String> commandsForKeyboard = List.of(
             State.MainMenu.getDescription()
     );
@@ -30,7 +30,7 @@ public class AddTgChannel extends Command {
                 this.getCommandIdentifier(),
                 user.getUserName(),
                 ADD_TELEGRAM_CHANNEL,
-                rowsCount,
+                ROWS_COUNT,
                 commandsForKeyboard,
                 null);
     }

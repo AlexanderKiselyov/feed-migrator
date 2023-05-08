@@ -16,7 +16,7 @@ public abstract class Command extends BotCommand {
     public static final String USERNAME_NOT_FOUND = "Не удалось найти имя пользователя. Попробуйте еще раз.";
     public static final String GROUP_NAME_NOT_FOUND = "Не удалось найти название группы. Попробуйте еще раз.";
     private static final Logger LOGGER = LoggerFactory.getLogger(Command.class);
-    final int rowsCount = 0;
+    static final int ROWS_COUNT = 0;
     final List<String> commandsForKeyboard = List.of(
     );
 

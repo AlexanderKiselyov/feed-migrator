@@ -1,6 +1,5 @@
-package polis.posting.ok;
+package polis.posting.vk;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Document;
@@ -8,40 +7,40 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
+import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.TgContentManager;
 import polis.bot.TgNotificator;
 import polis.posting.ApiException;
 import polis.posting.PostProcessor;
 import polis.ratelim.RateLimiter;
+import polis.vk.api.LoggingUtils;
+import polis.vk.api.exceptions.VkApiException;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Component
-public class OkPostProcessor extends PostProcessor {
-    private static final String DOCUMENTS_ARENT_SUPPORTED =
-            "Тип файла 'Документ' не поддерживается в социальной сети Одноклассники";
-    public static final String GROUPS_LINK = "ok.ru/group/";
+public class VkPostProcessor extends PostProcessor {
+    private static final String VK_GROUP_URL = "vk.com/club";
+    private final VkPoster vkPoster;
 
-    private final OkPoster okPoster;
-
-    @Autowired
-    public OkPostProcessor(
+    public VkPostProcessor(
             @Qualifier("Bot") TgNotificator tgNotificator,
             TgContentManager tgContentManager,
-            OkPoster okPoster,
+            VkPoster vkPoster,
             RateLimiter postingRateLimiter
     ) {
         super(tgNotificator, tgContentManager, postingRateLimiter);
-        this.okPoster = okPoster;
+        this.vkPoster = vkPoster;
     }
 
     @Override
-    public void processPostInChannel(
+    protected void processPostInChannel(
             List<Video> videos,
             List<PhotoSize> photos,
             List<Animation> animations,
@@ -54,13 +53,9 @@ public class OkPostProcessor extends PostProcessor {
             long userId,
             String accessToken
     ) {
-        //Здесь можно будет сделать маленькие трайи, чтобы пользователю писать более конкретную ошибку
         try {
-            if (!documents.isEmpty() && animations.isEmpty()) {
-                tgNotificator.sendNotification(ownerChatId, channelId, DOCUMENTS_ARENT_SUPPORTED);
-            }
-
-            int maxListSize = Math.max(photos.size(), animations.size() + videos.size());
+            int maxListSize = Collections.max(List.of(photos.size(), animations.size() + videos.size(),
+                    documents.size()));
             List<File> files = new ArrayList<>(maxListSize);
             for (Video video : videos) {
                 File file = tgContentManager.download(video);
@@ -70,28 +65,49 @@ public class OkPostProcessor extends PostProcessor {
                 File file = tgContentManager.download(animation);
                 files.add(file);
             }
-            List<String> videoIds = okPoster.uploadVideos(files, (int) userId, accessToken, groupId);
+            List<String> videoIds = vkPoster.uploadVideos(files, (int) userId, accessToken, groupId);
             files.clear();
 
             for (PhotoSize photo : photos) {
                 File file = tgContentManager.download(photo);
                 files.add(file);
             }
-            List<String> photoIds = okPoster.uploadPhotos(files, (int) userId, accessToken, groupId);
+            List<String> photoIds = vkPoster.uploadPhotos(files, (int) userId, accessToken, groupId);
+            files.clear();
 
-            okPoster.newPost()
-                    .addVideos(videoIds)
+            for (Document document : documents) {
+                File file = tgContentManager.download(document);
+                files.add(file);
+            }
+            List<String> documentIds = vkPoster.uploadDocuments(files, (int) userId, accessToken, groupId);
+
+            String pollId = null;
+            if (poll != null) {
+                 pollId = vkPoster.uploadPoll(
+                         (int) userId,
+                         accessToken,
+                         poll.getQuestion(),
+                         poll.getIsAnonymous(),
+                         poll.getAllowMultipleAnswers(),
+                         poll.getIsClosed(),
+                         poll.getOptions().stream().map(PollOption::getText).toList()
+                );
+            }
+
+            vkPoster.newPost(userId)
                     .addPhotos(photoIds)
-                    .addPoll(poll)
+                    .addVideos(videoIds, groupId)
                     .addText(text)
-                    .post(accessToken, groupId);
+                    .addPoll(poll, pollId)
+                    .addDocuments(documentIds, groupId)
+                    .post((int) userId, accessToken, groupId);
             tgNotificator.sendNotification(ownerChatId, channelId, successfulPostToGroupMsg(groupLink(groupId)));
-        } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {
+        } catch (VkApiException | ApiException | URISyntaxException | IOException | TelegramApiException e) {
             tgNotificator.sendNotification(ownerChatId, channelId, failPostToGroupMsg(groupLink(groupId)));
         }
     }
 
     private static String groupLink(long groupId) {
-        return GROUPS_LINK + groupId;
+        return VK_GROUP_URL + groupId;
     }
 }

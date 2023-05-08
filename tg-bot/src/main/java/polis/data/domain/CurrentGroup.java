@@ -11,10 +11,10 @@ public class CurrentGroup {
     @PrimaryKeyColumn(type = PrimaryKeyType.PARTITIONED, name = "chat_id")
     private final long chatId;
 
-    @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "social_media")
+    @Column("social_media")
     private final String socialMedia;
 
-    @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "group_id")
+    @Column("group_id")
     private final long groupId;
 
     @Column("group_name")

@@ -13,7 +13,8 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.util.State;
 
 import java.util.Objects;
@@ -41,9 +42,15 @@ public class Autoposting extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
 
-    private static final int rowsCount = 1;
+    @Autowired
+    private VkDataCheck vkDataCheck;
+
+    @Autowired
+    private CommandUtils commandUtils;
+
+    private static final int ROWS_COUNT = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(Autoposting.class);
 
     public Autoposting() {
@@ -57,19 +64,20 @@ public class Autoposting extends Command {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
 
         if (currentChannel != null && currentAccount != null && currentGroup != null) {
-            String groupName = dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+            String groupName = commandUtils.getGroupName(currentAccount, currentGroup);
 
-            if (Objects.equals(groupName, "")) {
+            if (Objects.equals(groupName, null)) {
                 sendAnswer(
                         absSender,
                         chat.getId(),
                         this.getCommandIdentifier(),
                         user.getUserName(),
                         GROUP_NAME_NOT_FOUND,
-                        super.rowsCount,
+                        super.ROWS_COUNT,
                         commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
+                LOGGER.error(String.format("Error detecting groupName of group: %d", currentGroup.getGroupId()));
                 return;
             }
 
@@ -79,27 +87,20 @@ public class Autoposting extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     AUTOPOSTING,
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
-            String autopostingEnable = "";
-            switch (currentGroup.getSocialMedia()) {
-                case OK -> autopostingEnable = String.format(AUTOPOSTING_INLINE,
-                        currentChannel.getChannelUsername(),
-                        groupName,
-                        currentGroup.getSocialMedia().getName());
-                default -> LOGGER.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
-            }
             sendAnswer(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    autopostingEnable,
-                    rowsCount,
+                    String.format(AUTOPOSTING_INLINE, currentChannel.getChannelUsername(), groupName,
+                            currentGroup.getSocialMedia().getName()),
+                    ROWS_COUNT,
                     commandsForKeyboard,
-                    getIfAddAutoposting(chat.getId(), currentChannel.getChannelId()));
+                    getButtonsForAutopostingOptions(chat.getId(), currentChannel.getChannelId()));
         } else {
             sendAnswer(
                     absSender,
@@ -107,14 +108,14 @@ public class Autoposting extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NO_CURRENT_TG_CHANNEL, State.MainMenu.getIdentifier()),
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
         }
     }
 
-    private String[] getIfAddAutoposting(long chatId, long channelId) {
+    private String[] getButtonsForAutopostingOptions(long chatId, long channelId) {
         return new String[]{
                 "Да",
                 String.format("autoposting %d %d 1", chatId, channelId),

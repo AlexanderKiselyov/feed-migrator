@@ -33,6 +33,15 @@ public class UserChannelsRepository {
         );
     }
 
+    public UserChannels getUserChannel(long channelId, long chatId) throws DataAccessException {
+        return cassandraOperations.selectOne(
+                query(
+                        where(CHANNEL_ID).is(channelId))
+                        .and(where(CHAT_ID).is(chatId)),
+                UserChannels.class
+        );
+    }
+
     public long getUserChatId(long channelId) throws DataAccessException {
         return Objects.requireNonNull(cassandraOperations.selectOne(
                 query(

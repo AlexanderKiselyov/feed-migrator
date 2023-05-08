@@ -15,12 +15,12 @@ import polis.util.State;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
-public class AddOkGroup extends Command {
-    private static final String ADD_OK_GROUP = """
+public class AddVkGroup extends Command {
+    private static final String ADD_VK_GROUP = """
             Чтобы добавить новую группу, введите в чат ссылку на нее.
             Примеры ссылок:
-            https://ok.ru/ok
-            https://ok.ru/group57212027273260""";
+            https://vk.com/lentach
+            https://vk.com/club1234567890""";
     static final String SAME_SOCIAL_MEDIA = """
             Социальная сеть %s уже была синхронизирована с текущим Телеграм-каналом.
             Пожалуйста, выберите другую социальную сеть и попробуйте снова.""";
@@ -31,8 +31,8 @@ public class AddOkGroup extends Command {
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
 
-    public AddOkGroup() {
-        super(State.AddOkGroup.getIdentifier(), State.AddOkGroup.getDescription());
+    public AddVkGroup() {
+        super(State.AddVkGroup.getIdentifier(), State.AddVkGroup.getDescription());
     }
 
     @Override
@@ -40,12 +40,12 @@ public class AddOkGroup extends Command {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
         if (currentChannel != null) {
             for (ChannelGroup smg : channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId())) {
-                if (smg.getSocialMedia() == SocialMedia.OK) {
+                if (smg.getSocialMedia() == SocialMedia.VK) {
                     sendAnswer(absSender,
                             chat.getId(),
                             this.getCommandIdentifier(),
                             user.getUserName(),
-                            String.format(SAME_SOCIAL_MEDIA, SocialMedia.OK.getName()),
+                            String.format(SAME_SOCIAL_MEDIA, SocialMedia.VK.getName()),
                             ROWS_COUNT,
                             commandsForKeyboard,
                             null,
@@ -58,7 +58,7 @@ public class AddOkGroup extends Command {
                 chat.getId(),
                 this.getCommandIdentifier(),
                 user.getUserName(),
-                ADD_OK_GROUP,
+                ADD_VK_GROUP,
                 ROWS_COUNT,
                 commandsForKeyboard,
                 null,
