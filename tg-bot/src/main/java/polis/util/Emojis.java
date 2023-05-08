@@ -16,4 +16,5 @@ public class Emojis {
     public static final String BACK_ARROW = "\uD83D\uDD19";
     public static final String TRASH = "\uD83D\uDDD1";
     public static final String SAD_FACE = "\uD83D\uDE1F";
+    public static final String HAPPY_FACE = "🙂";
 }

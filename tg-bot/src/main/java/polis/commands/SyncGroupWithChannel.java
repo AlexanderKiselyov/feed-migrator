@@ -15,6 +15,7 @@ import polis.util.State;
 import java.util.List;
 
 import static polis.commands.CommandUtils.getButtonsForSyncOptions;
+import static polis.util.Emojis.HAPPY_FACE;
 
 public abstract class SyncGroupWithChannel extends Command {
     static final String SYNC_MSG = """
@@ -23,7 +24,7 @@ public abstract class SyncGroupWithChannel extends Command {
             Хотите ли Вы синхронизировать их?
                         
             *При размещении контента на Вашем канале очень важно уважать права других авторов, в связи с чем мы не
-            осуществляем автопостинг для пересланных сообщений 🙂""";
+            осуществляем автопостинг для пересланных сообщений""" + HAPPY_FACE;
     static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
             Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
