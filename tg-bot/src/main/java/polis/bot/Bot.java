@@ -55,8 +55,8 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.posting.ok.OkPostProcessor;
-import polis.ratelim.RateLimiter;
 import polis.posting.vk.VkPostProcessor;
+import polis.ratelim.RateLimiter;
 import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
@@ -381,7 +381,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private void processPostItems(List<Message> postItems) {
         long channelId = postItems.get(0).getChatId();
         long ownerChatId = userChannelsRepository.getUserChatId(channelId);
-        if(!postingRateLimiter.allowRequest(ownerChatId)){
+        if (!postingRateLimiter.allowRequest(ownerChatId)) {
             sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG);
             return;
         }
@@ -404,23 +404,19 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     continue;
                 }
 
+                String message;
                 switch (group.getSocialMedia()) {
-                    case OK -> {
-                        String okMessage = okPostProcessor.processPostInChannel(postItems, ownerChatId,
-                                group.getGroupId(), channelId, accountId, accessToken);
-                        messagesToChannelOwner.add(okMessage);
-                    }
-                    case VK -> {
-                        String vkMessage = vkPostProcessor.processPostInChannel(postItems, ownerChatId,
-                                group.getGroupId(), channelId, accountId, accessToken);
-                        messagesToChannelOwner.add(vkMessage);
-                    }
+                    case OK -> message = okPostProcessor.processPostInChannel(postItems, ownerChatId,
+                            group.getGroupId(), channelId, accountId, accessToken);
+                    case VK -> message = vkPostProcessor.processPostInChannel(postItems, ownerChatId,
+                            group.getGroupId(), channelId, accountId, accessToken);
                     default -> {
                         LOGGER.error(String.format("Social media not found: %s",
                                 group.getSocialMedia()));
-                        messagesToChannelOwner.add(ERROR_POST_MSG + group.getGroupId());
+                        message =ERROR_POST_MSG + group.getGroupId();
                     }
                 }
+                messagesToChannelOwner.add(message);
             }
             String aggregatedMessages = aggregateMessages(messagesToChannelOwner);
             checkAndSendNotification(ownerChatId, channelId, aggregatedMessages);
@@ -433,9 +429,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private static String aggregateMessages(List<String> messagesToChannelOwner) {
         StringBuilder stringBuilder = new StringBuilder();
         for (String message : messagesToChannelOwner) {
-            if (!stringBuilder.isEmpty() && stringBuilder.toString().contains(message)) {
-                continue;
-            }
             stringBuilder.append(message);
             stringBuilder.append("\n");
         }

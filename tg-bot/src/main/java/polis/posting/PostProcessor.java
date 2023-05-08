@@ -1,7 +1,6 @@
 package polis.posting;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -10,8 +9,6 @@ import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import polis.bot.TgContentManager;
-import polis.bot.TgNotificator;
-import polis.ratelim.RateLimiter;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,13 +20,10 @@ public abstract class PostProcessor {
             + "Не удалось опубликовать пост в ";
     private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
             + "соответствии с Законом об авторском праве.";
-
-    protected final TgNotificator tgNotificator; //TODO remove this
     protected final TgContentManager tgContentManager;
 
     @Autowired
-    public PostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager) {
-        this.tgNotificator = tgNotificator;
+    public PostProcessor(TgContentManager tgContentManager) {
         this.tgContentManager = tgContentManager;
     }
 
@@ -47,7 +41,8 @@ public abstract class PostProcessor {
             String accessToken
     );
 
-    public String processPostInChannel(List<Message> postItems, long userChatId, long groupId, long channelId, long accountId,String accessToken) {
+    public String processPostInChannel(List<Message> postItems, long userChatId, long groupId, long channelId,
+                                       long accountId,String accessToken) {
         List<PhotoSize> photos = new ArrayList<>(1);
         List<Video> videos = new ArrayList<>(1);
         String text = null;

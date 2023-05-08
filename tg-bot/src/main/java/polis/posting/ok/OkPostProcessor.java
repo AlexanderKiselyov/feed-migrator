@@ -1,7 +1,6 @@
 package polis.posting.ok;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
@@ -10,10 +9,8 @@ import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.TgContentManager;
-import polis.bot.TgNotificator;
 import polis.posting.ApiException;
 import polis.posting.PostProcessor;
-import polis.ratelim.RateLimiter;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,12 +28,8 @@ public class OkPostProcessor extends PostProcessor {
     private final OkPoster okPoster;
 
     @Autowired
-    public OkPostProcessor(
-            @Qualifier("Bot") TgNotificator tgNotificator,
-            TgContentManager tgContentManager,
-            OkPoster okPoster
-    ) {
-        super(tgNotificator, tgContentManager);
+    public OkPostProcessor(TgContentManager tgContentManager, OkPoster okPoster) {
+        super(tgContentManager);
         this.okPoster = okPoster;
     }
 
