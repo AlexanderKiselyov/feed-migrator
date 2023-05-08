@@ -28,8 +28,9 @@ public class AccountsList extends Command {
     private static final String NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST = """
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
-    private static final String ACCOUNT_USERNAME_ERROR_MSG = "Произошла ошибка при попытке найти Ваш аккаунт, " +
-            "пожалуйста, вернитесь назад и попробуйте снова/";
+    private static final String ACCOUNT_USERNAME_ERROR_MSG = """
+            Произошла ошибка при попытке найти Ваш аккаунт.
+            Пожалуйста, вернитесь назад и попробуйте снова.""";
     private static final String trashEmoji = "\uD83D\uDDD1";
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountsList.class);
 
