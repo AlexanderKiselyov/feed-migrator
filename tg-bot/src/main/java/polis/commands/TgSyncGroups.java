@@ -30,6 +30,7 @@ public class TgSyncGroups extends Command {
     private static final String NO_SYNC_GROUPS = """
             Список синхронизированных групп пуст.
             Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и добавьте хотя бы одну группу.""";
+    private static final String trashEmoji = "\uD83D\uDDD1";
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -48,8 +49,6 @@ public class TgSyncGroups extends Command {
 
     @Autowired
     private VkDataCheck vkDataCheck;
-
-    private static final String trashEmoji = "\uD83D\uDDD1";
 
     public TgSyncGroups() {
         super(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription());
@@ -101,11 +100,11 @@ public class TgSyncGroups extends Command {
         for (int i = 0; i < groups.size(); i++) {
             int tmpIndex = i * 4;
 
-            ChannelGroup group = groups.get(i);
-            buttons[tmpIndex] = String.format("%s (%s)", group.getGroupName(), group.getSocialMedia().getName());
-            buttons[tmpIndex + 1] = String.format("group %s %d", group.getGroupId(), 0);
+            String socialMediaName = groups.get(i).getSocialMedia().getName();
+            buttons[tmpIndex] = String.format("%s (%s)", groupName, socialMediaName);
+            buttons[tmpIndex + 1] = String.format("group %s %d %s", groups.get(i).getGroupId(), 0, socialMediaName);
             buttons[tmpIndex + 2] = trashEmoji + " Удалить";
-            buttons[tmpIndex + 3] = String.format("group %s %d", group.getGroupId(), 1);
+            buttons[tmpIndex + 3] = String.format("group %s %d %s", groups.get(i).getGroupId(), 1, socialMediaName);
         }
 
         return buttons;
