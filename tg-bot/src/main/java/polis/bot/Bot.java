@@ -389,6 +389,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             repliesThrottler.throttle(ownerChatId, () ->
                     sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG)
             );
+            return;
         }
         try {
             if (!userChannelsRepository.isSetAutoposting(ownerChatId, channelId)) {
