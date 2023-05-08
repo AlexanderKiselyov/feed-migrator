@@ -54,22 +54,20 @@ public class Notifications extends Command {
             sendAnswerWithInlineKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
                     NOTIFICATIONS_MSG,
                     notificationsEnable,
                     ROWS_COUNT,
-                    getButtonsForNotificationsOptions(currentChannel.getChannelId()));
+                    getButtonsForNotificationsOptions(currentChannel.getChannelId()),
+                    loggingInfo(user.getUserName()));
             return;
         }
         sendAnswerWithReplyKeyboardAndBackButton(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 String.format(NO_CURRENT_TG_CHANNEL, State.MainMenu.getIdentifier()),
                 ROWS_COUNT,
-                commandsForKeyboardInErrorCase);
+                commandsForKeyboardInErrorCase,
+                loggingInfo(user.getUserName()));
     }
 
     private List<String> getButtonsForNotificationsOptions(Long id) {

@@ -56,10 +56,9 @@ public class SyncGroupDescription extends Command {
         sendAnswerWithReplyKeyboardAndBackButton(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 text,
                 ROWS_COUNT,
-                noErrorCondition ? commandsForKeyboard : commandsForKeyboardInErrorCase);
+                noErrorCondition ? commandsForKeyboard : commandsForKeyboardInErrorCase,
+                loggingInfo(user.getUserName()));
     }
 }

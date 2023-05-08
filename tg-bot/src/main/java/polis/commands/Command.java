@@ -25,8 +25,8 @@ public abstract class Command extends BotCommand {
         super(commandIdentifier, description);
     }
 
-    private void setAndSendMessage(AbsSender absSender, Long chatId, String commandName, String userName, String text,
-                                   SendMessage message) {
+    private static void setAndSendMessage(AbsSender absSender, Long chatId, String text, SendMessage message,
+                                          LoggingInfo loggingInfo) {
         message.setChatId(chatId.toString());
         message.setParseMode(ParseMode.HTML);
         message.setText(text);
@@ -35,43 +35,48 @@ public abstract class Command extends BotCommand {
         try {
             absSender.execute(message);
         } catch (TelegramApiException e) {
-            LOGGER.error(String.format("Cannot execute command %s of user %s: %s", commandName, userName,
-                    e.getMessage()));
+            LOGGER.error(String.format("Cannot execute command %s of user %s: %s", loggingInfo.commandIdentifier,
+                    loggingInfo.userName, e.getMessage()));
         }
     }
 
-    void sendAnswerWithInlineKeyboard(AbsSender absSender, Long chatId, String commandName, String userName,
-                                      String text, int rowsCount, List<String> inlineKeyboardCommands) {
+    static void sendAnswerWithInlineKeyboard(AbsSender absSender, Long chatId, String text, int rowsCount,
+                                             List<String> inlineKeyboardCommands, LoggingInfo loggingInfo) {
         SendMessage message = InlineKeyboard.INSTANCE.createSendMessage(chatId, text, rowsCount,
                 inlineKeyboardCommands);
-        setAndSendMessage(absSender, chatId, commandName, userName, text, message);
+        setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }
 
-    void sendAnswerWithReplyKeyboard(AbsSender absSender, Long chatId, String commandName, String userName, String text,
-                                     int rowsCount, List<String> commandsList) {
+    static void sendAnswerWithReplyKeyboard(AbsSender absSender, Long chatId, String text, int rowsCount,
+                                            List<String> commandsList, LoggingInfo loggingInfo) {
         SendMessage message = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, rowsCount, commandsList);
-        setAndSendMessage(absSender, chatId, commandName, userName, text, message);
+        setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }
 
-    void sendAnswerWithReplyKeyboardAndBackButton(AbsSender absSender, Long chatId, String commandName, String userName,
-                                                  String text, int rowsCount, List<String> commandsList) {
+    static void sendAnswerWithReplyKeyboardAndBackButton(AbsSender absSender, Long chatId, String text, int rowsCount,
+                                                         List<String> commandsList, LoggingInfo loggingInfo) {
         SendMessage message = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, rowsCount, commandsList,
                 GO_BACK_BUTTON_TEXT);
-        setAndSendMessage(absSender, chatId, commandName, userName, text, message);
+        setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }
 
-    void sendAnswerWithInlineKeyboardAndBackButton(AbsSender absSender, Long chatId, String commandName,
-                                                   String userName, String textReply, String textInline, int rowsCount,
-                                                   List<String> inlineKeyboardCommands) {
-        sendAnswerWithOnlyBackButton(absSender, chatId, commandName, userName, textReply);
-        sendAnswerWithInlineKeyboard(absSender, chatId, commandName, userName, textInline, rowsCount,
-                inlineKeyboardCommands);
+    static void sendAnswerWithInlineKeyboardAndBackButton(AbsSender absSender, Long chatId, String textReply,
+                                                          String textInline, int rowsCount,
+                                                          List<String> inlineKeyboardCommands, LoggingInfo loggingInfo) {
+        sendAnswerWithOnlyBackButton(absSender, chatId, textReply, loggingInfo);
+        sendAnswerWithInlineKeyboard(absSender, chatId, textInline, rowsCount, inlineKeyboardCommands, loggingInfo);
     }
 
-    void sendAnswerWithOnlyBackButton(AbsSender absSender, Long chatId, String commandName, String userName,
-                                      String text) {
+    static void sendAnswerWithOnlyBackButton(AbsSender absSender, Long chatId, String text, LoggingInfo loggingInfo) {
         SendMessage message = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, 0, Collections.emptyList(),
                 GO_BACK_BUTTON_TEXT);
-        setAndSendMessage(absSender, chatId, commandName, userName, text, message);
+        setAndSendMessage(absSender, chatId, text, message, loggingInfo);
+    }
+
+    protected LoggingInfo loggingInfo(String userName) {
+        return new LoggingInfo(userName, getCommandIdentifier());
+    }
+
+    private record LoggingInfo(String userName, String commandIdentifier) {
     }
 }

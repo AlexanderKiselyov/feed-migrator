@@ -39,18 +39,16 @@ public class AddGroup extends Command {
             sendAnswerWithReplyKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
                     String.format(ADD_GROUP_MSG, currentChannel.getChannelUsername()),
                     ROWS_COUNT,
-                    commandsForKeyboard);
+                    commandsForKeyboard,
+                    loggingInfo(user.getUserName()));
             return;
         }
         sendAnswerWithOnlyBackButton(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
-                String.format(NOT_VALID_TG_CHANNEL_MSG, State.MainMenu.getIdentifier()));
+                String.format(NOT_VALID_TG_CHANNEL_MSG, State.MainMenu.getIdentifier()),
+                loggingInfo(user.getUserName()));
     }
 }

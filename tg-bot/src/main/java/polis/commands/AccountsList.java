@@ -38,22 +38,20 @@ public class AccountsList extends Command {
             sendAnswerWithInlineKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
                     ACCOUNTS_LIST_MSG,
                     ACCOUNTS_LIST_INLINE_MSG,
                     accounts.size(),
-                    getButtonsForAccounts(accounts));
+                    getButtonsForAccounts(accounts),
+                    loggingInfo(user.getUserName()));
             return;
         }
         sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 String.format(NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST_MSG, State.AddGroup.getIdentifier()),
                 ROWS_COUNT,
-                commandsForKeyboardInErrorCase);
+                commandsForKeyboardInErrorCase,
+                loggingInfo(user.getUserName()));
     }
 
     private List<String> getButtonsForAccounts(List<Account> socialMediaAccounts) {

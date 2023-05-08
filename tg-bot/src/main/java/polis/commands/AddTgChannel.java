@@ -25,10 +25,9 @@ public class AddTgChannel extends Command {
         sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 ADD_TELEGRAM_CHANNEL,
                 ROWS_COUNT,
-                commandsForKeyboard);
+                commandsForKeyboard,
+                loggingInfo(user.getUserName()));
     }
 }

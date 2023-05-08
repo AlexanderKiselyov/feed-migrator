@@ -39,10 +39,9 @@ public class OkAccountDescription extends Command {
                 String.format(ACCOUNT_DESCRIPTION, currentAccount.getUserFullName());
         sendAnswerWithReplyKeyboardAndBackButton(absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 text,
                 ROWS_COUNT,
-                noCurrentAccountCondition ? commandsForKeyboardInErrorCase : commandsForKeyboard);
+                noCurrentAccountCondition ? commandsForKeyboardInErrorCase : commandsForKeyboard,
+                loggingInfo(user.getUserName()));
     }
 }

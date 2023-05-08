@@ -41,17 +41,15 @@ public class AddVkGroup extends Command {
                 if (smg.getSocialMedia() == SocialMedia.VK) {
                     sendAnswerWithOnlyBackButton(absSender,
                             chat.getId(),
-                            this.getCommandIdentifier(),
-                            user.getUserName(),
-                            String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.VK.getName()));
+                            String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.VK.getName()),
+                            loggingInfo(user.getUserName()));
                     return;
                 }
             }
         }
         sendAnswerWithOnlyBackButton(absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
-                ADD_VK_GROUP_MSG);
+                ADD_VK_GROUP_MSG,
+                loggingInfo(user.getUserName()));
     }
 }

@@ -39,10 +39,9 @@ public class VkAccountDescription extends Command {
                 : String.format(NOT_VALID_ACCOUNT, State.AddGroup.getIdentifier());
         sendAnswerWithReplyKeyboardAndBackButton(absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 text,
                 ROWS_COUNT,
-                noErrorCondition ? commandsForKeyboard : commandsForKeyboardInErrorCase);
+                noErrorCondition ? commandsForKeyboard : commandsForKeyboardInErrorCase,
+                loggingInfo(user.getUserName()));
     }
 }

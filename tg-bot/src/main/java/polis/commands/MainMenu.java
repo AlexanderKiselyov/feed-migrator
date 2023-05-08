@@ -27,10 +27,9 @@ public class MainMenu extends Command {
         sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 String.format(MAIN_MENU, State.AccountsList.getIdentifier(), State.AddTgChannel.getIdentifier()),
                 ROWS_COUNT,
-                commandsForKeyboard);
+                commandsForKeyboard,
+                loggingInfo(user.getUserName()));
     }
 }

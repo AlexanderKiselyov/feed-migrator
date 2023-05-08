@@ -25,10 +25,9 @@ public class StartCommand extends Command {
         sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 startAnswer,
                 ROWS_COUNT,
-                commandsForKeyboard);
+                commandsForKeyboard,
+                loggingInfo(user.getUserName()));
     }
 }

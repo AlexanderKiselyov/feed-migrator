@@ -48,10 +48,9 @@ public class TgChannelDescription extends Command {
         sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 text,
                 noErrorCondition ? ROWS_COUNT : ROWS_COUNT_IN_ERROR_CASE,
-                noErrorCondition ? commandsForKeyboard : commandsForKeyboardInErrorCase);
+                noErrorCondition ? commandsForKeyboard : commandsForKeyboardInErrorCase,
+                loggingInfo(user.getUserName()));
     }
 }

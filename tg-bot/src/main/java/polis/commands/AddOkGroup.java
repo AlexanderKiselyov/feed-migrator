@@ -41,17 +41,15 @@ public class AddOkGroup extends Command {
                 if (smg.getSocialMedia() == SocialMedia.OK) {
                     sendAnswerWithOnlyBackButton(absSender,
                             chat.getId(),
-                            this.getCommandIdentifier(),
-                            user.getUserName(),
-                            String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.OK.getName()));
+                            String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.OK.getName()),
+                            loggingInfo(user.getUserName()));
                     return;
                 }
             }
         }
         sendAnswerWithOnlyBackButton(absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
-                ADD_OK_GROUP_MSG);
+                ADD_OK_GROUP_MSG,
+                loggingInfo(user.getUserName()));
     }
 }

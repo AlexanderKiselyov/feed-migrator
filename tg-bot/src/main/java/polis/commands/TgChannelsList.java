@@ -43,21 +43,19 @@ public class TgChannelsList extends Command {
             sendAnswerWithInlineKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
                     TG_CHANNELS_LIST_MSG,
                     TG_CHANNELS_LIST_INLINE_MSG,
                     channels.size(),
-                    getUserTgChannelsArray(channels));
+                    getUserTgChannelsArray(channels),
+                    loggingInfo(user.getUserName()));
         } else {
             sendAnswerWithReplyKeyboard(
                     absSender,
                     chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
                     NO_TG_CHANNELS,
                     ROWS_COUNT,
-                    commandsForKeyboard);
+                    commandsForKeyboard,
+                    loggingInfo(user.getUserName()));
         }
     }
 

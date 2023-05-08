@@ -52,23 +52,21 @@ public class Autoposting extends Command {
             sendAnswerWithInlineKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
                     AUTOPOSTING_MSG,
                     String.format(AUTOPOSTING_INLINE_MSG, currentChannel.getChannelUsername(), groupName,
                             currentGroup.getSocialMedia().getName()),
                     ROWS_COUNT,
-                    getButtonsForAutopostingOptions(chat.getId(), currentChannel.getChannelId()));
+                    getButtonsForAutopostingOptions(chat.getId(), currentChannel.getChannelId()),
+                    loggingInfo(user.getUserName()));
             return;
         }
         sendAnswerWithReplyKeyboardAndBackButton(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 String.format(NO_CURRENT_TG_CHANNEL_MSG, State.MainMenu.getIdentifier()),
                 ROWS_COUNT,
-                commandsForKeyboardInErrorCase);
+                commandsForKeyboardInErrorCase,
+                loggingInfo(user.getUserName()));
     }
 
     private List<String> getButtonsForAutopostingOptions(long chatId, long channelId) {

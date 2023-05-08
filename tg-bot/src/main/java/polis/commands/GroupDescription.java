@@ -70,19 +70,17 @@ public class GroupDescription extends Command {
             sendAnswerWithReplyKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
                     String.format(msgToSend, groupName,
                             currentGroup.getSocialMedia().getName()),
                     rowsCount,
-                    commandsForKeyboard);
+                    commandsForKeyboard,
+                    loggingInfo(user.getUserName()));
             return;
         }
         sendAnswerWithOnlyBackButton(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
-                String.format(NO_VALID_GROUP_MSG, State.TgChannelDescription.getIdentifier()));
+                String.format(NO_VALID_GROUP_MSG, State.TgChannelDescription.getIdentifier()),
+                loggingInfo(user.getUserName()));
     }
 }

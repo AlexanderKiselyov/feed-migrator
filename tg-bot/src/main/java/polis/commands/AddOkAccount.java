@@ -28,9 +28,8 @@ public class AddOkAccount extends Command {
             sendAnswerWithOnlyBackButton(
                     absSender,
                     chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
-                    messageText);
+                    messageText,
+                    loggingInfo(user.getUserName()));
         } catch (URISyntaxException e) {
             LOGGER.error(String.format("Cannot form link: %s", e));
         }

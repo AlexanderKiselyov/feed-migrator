@@ -26,6 +26,9 @@ public class TgSyncGroups extends Command {
     private static final String NO_SYNC_GROUPS = """
             Список синхронизированных групп пуст.
             Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и добавьте хотя бы одну группу.""";
+    private static final int ROWS_COUNT = 1;
+    private static final List<String> commandsForKeyboardInErrorCase = List.of(
+            State.TgChannelDescription.getDescription());
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -49,23 +52,21 @@ public class TgSyncGroups extends Command {
                 sendAnswerWithInlineKeyboardAndBackButton(
                         absSender,
                         chat.getId(),
-                        this.getCommandIdentifier(),
-                        user.getUserName(),
                         TG_SYNC_GROUPS_MSG,
                         TG_SYNC_GROUPS_INLINE_MSG,
                         channelGroups.size(),
-                        getButtonsForTgChannelGroups(channelGroups));
+                        getButtonsForTgChannelGroups(channelGroups),
+                        loggingInfo(user.getUserName()));
                 return;
             }
         }
         sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
-                1,
-                List.of(State.TgChannelDescription.getDescription()));
+                ROWS_COUNT,
+                commandsForKeyboardInErrorCase,
+                loggingInfo(user.getUserName()));
     }
 
     private List<String> getButtonsForTgChannelGroups(List<ChannelGroup> groups) {

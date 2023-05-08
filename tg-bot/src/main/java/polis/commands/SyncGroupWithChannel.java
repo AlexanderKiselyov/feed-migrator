@@ -54,8 +54,6 @@ public abstract class SyncGroupWithChannel extends Command {
             sendAnswerWithInlineKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
                     String.format(
                             SYNC_MSG,
                             currentChannel.getChannelUsername(),
@@ -64,19 +62,19 @@ public abstract class SyncGroupWithChannel extends Command {
                     ),
                     SYNC_INLINE_MSG,
                     ROWS_COUNT,
-                    getButtonsForSyncOptions());
+                    getButtonsForSyncOptions(),
+                    loggingInfo(user.getUserName()));
             return;
         }
         sendAnswerWithReplyKeyboardAndBackButton(
                 absSender,
                 chat.getId(),
-                this.getCommandIdentifier(),
-                user.getUserName(),
                 String.format(
                         NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP,
                         State.MainMenu.getIdentifier()
                 ),
                 ROWS_COUNT,
-                commandsForKeyboardInErrorCase);
+                commandsForKeyboardInErrorCase,
+                loggingInfo(user.getUserName()));
     }
 }
