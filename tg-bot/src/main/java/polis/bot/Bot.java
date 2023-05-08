@@ -259,7 +259,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
      */
     public void setStateForMessage(Message message) {
         if (message == null) {
-            LOGGER.warn("Received null message");
             return;
         }
         if (LOGGER.isDebugEnabled()) {
