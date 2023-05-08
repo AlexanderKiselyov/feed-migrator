@@ -55,6 +55,7 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.posting.ok.OkPostProcessor;
+import polis.ratelim.RateLimiter;
 import polis.posting.vk.VkPostProcessor;
 import polis.util.IState;
 import polis.util.SocialMedia;
@@ -124,6 +125,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
     private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n"
             + "Не удалось опубликовать пост в ok.ru/group/";
+    private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
     private static final String SINGLE_ITEM_POSTS = "";
 
     @Autowired
@@ -194,6 +196,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
 
     @Autowired
     private SyncVkTg syncVkTg;
+
+    @Autowired
+    private RateLimiter postingRateLimiter;
 
     @Lazy
     @Autowired
@@ -376,6 +381,10 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private void processPostItems(List<Message> postItems) {
         long channelId = postItems.get(0).getChatId();
         long ownerChatId = userChannelsRepository.getUserChatId(channelId);
+        if(!postingRateLimiter.allowRequest(ownerChatId)){
+            sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG);
+            return;
+        }
         try {
             if (!userChannelsRepository.isSetAutoposting(ownerChatId, channelId)) {
                 return;
@@ -388,7 +397,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             List<String> messagesToChannelOwner = new ArrayList<>();
             for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
                 String accessToken = group.getAccessToken();
-                long userId = group.getAccountId();
+                long accountId = group.getAccountId();
 
                 if (accessToken == null) {
                     checkAndSendNotification(ownerChatId, channelId, CHANNEL_INFO_ERROR);
@@ -398,12 +407,12 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 switch (group.getSocialMedia()) {
                     case OK -> {
                         String okMessage = okPostProcessor.processPostInChannel(postItems, ownerChatId,
-                                group.getGroupId(), channelId, userId, accessToken);
+                                group.getGroupId(), channelId, accountId, accessToken);
                         messagesToChannelOwner.add(okMessage);
                     }
                     case VK -> {
                         String vkMessage = vkPostProcessor.processPostInChannel(postItems, ownerChatId,
-                                group.getGroupId(), channelId, userId, accessToken);
+                                group.getGroupId(), channelId, accountId, accessToken);
                         messagesToChannelOwner.add(vkMessage);
                     }
                     default -> {

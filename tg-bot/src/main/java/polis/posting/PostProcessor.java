@@ -23,18 +23,14 @@ public abstract class PostProcessor {
             + "Не удалось опубликовать пост в ";
     private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
             + "соответствии с Законом об авторском праве.";
-    private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
 
-    protected final TgNotificator tgNotificator;
+    protected final TgNotificator tgNotificator; //TODO remove this
     protected final TgContentManager tgContentManager;
-    private final RateLimiter postingRateLimiter;
 
     @Autowired
-    public PostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager,
-                         RateLimiter postingRateLimiter) {
+    public PostProcessor(@Qualifier("Bot") TgNotificator tgNotificator, TgContentManager tgContentManager) {
         this.tgNotificator = tgNotificator;
         this.tgContentManager = tgContentManager;
-        this.postingRateLimiter = postingRateLimiter;
     }
 
     protected abstract String processPostInChannel(
@@ -47,15 +43,11 @@ public abstract class PostProcessor {
             long ownerChatId,
             long channelId,
             long groupId,
-            long userId,
+            long accountId,
             String accessToken
     );
 
-    public String processPostInChannel(List<Message> postItems, long ownerChatId, long groupId, long channelId,
-                                     long userId, String accessToken) {
-        if (!postingRateLimiter.allowRequest(ownerChatId)) {
-            return TOO_MANY_API_REQUESTS_MSG;
-        }
+    public String processPostInChannel(List<Message> postItems, long userChatId, long groupId, long channelId, long accountId,String accessToken) {
         List<PhotoSize> photos = new ArrayList<>(1);
         List<Video> videos = new ArrayList<>(1);
         String text = null;
@@ -91,8 +83,8 @@ public abstract class PostProcessor {
                 documents.add(postItem.getDocument());
             }
         }
-        return processPostInChannel(videos, photos, animations, documents, text, poll, ownerChatId, channelId, groupId,
-                userId, accessToken);
+        return processPostInChannel(videos, photos, animations, documents, text, poll, userChatId, channelId, groupId,
+                accountId, accessToken);
     }
 
     protected static String successfulPostMsg(String what) {
