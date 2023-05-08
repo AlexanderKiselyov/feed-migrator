@@ -1,6 +1,5 @@
 package polis.posting.vk;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
@@ -10,11 +9,8 @@ import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.TgContentManager;
-import polis.bot.TgNotificator;
 import polis.posting.ApiException;
 import polis.posting.PostProcessor;
-import polis.ratelim.RateLimiter;
-import polis.vk.api.LoggingUtils;
 import polis.vk.api.exceptions.VkApiException;
 
 import java.io.File;
@@ -27,19 +23,17 @@ import java.util.List;
 @Component
 public class VkPostProcessor extends PostProcessor {
     private static final String VK_GROUP_URL = "vk.com/club";
+    private static final String GROUP_POSTFIX = "?w=wall-";
+    private static final String POST_PREFIX = "_";
     private final VkPoster vkPoster;
 
-    public VkPostProcessor(
-            @Qualifier("Bot") TgNotificator tgNotificator,
-            TgContentManager tgContentManager,
-            VkPoster vkPoster
-    ) {
-        super(tgNotificator, tgContentManager);
+    public VkPostProcessor(TgContentManager tgContentManager, VkPoster vkPoster) {
+        super(tgContentManager);
         this.vkPoster = vkPoster;
     }
 
     @Override
-    protected void processPostInChannel(
+    protected String processPostInChannel(
             List<Video> videos,
             List<PhotoSize> photos,
             List<Animation> animations,
@@ -93,20 +87,24 @@ public class VkPostProcessor extends PostProcessor {
                 );
             }
 
-            vkPoster.newPost(accountId)
+            long postId = vkPoster.newPost(accountId)
                     .addPhotos(photoIds)
                     .addVideos(videoIds, groupId)
                     .addText(text)
                     .addPoll(poll, pollId)
                     .addDocuments(documentIds, groupId)
                     .post((int) accountId, accessToken, groupId);
-            tgNotificator.sendNotification(ownerChatId, channelId, successfulPostToGroupMsg(groupLink(groupId)));
+            return successfulPostMsg(postLink(groupId, postId));
         } catch (VkApiException | ApiException | URISyntaxException | IOException | TelegramApiException e) {
-            tgNotificator.sendNotification(ownerChatId, channelId, failPostToGroupMsg(groupLink(groupId)));
+            return failPostToGroupMsg(groupLink(groupId));
         }
     }
 
     private static String groupLink(long groupId) {
         return VK_GROUP_URL + groupId;
+    }
+
+    private static String postLink(long groupId, long postId) {
+        return groupLink(groupId) + GROUP_POSTFIX + groupId + POST_PREFIX + postId;
     }
 }

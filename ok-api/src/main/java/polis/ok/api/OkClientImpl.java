@@ -52,7 +52,7 @@ public class OkClientImpl implements OKClient {
         this.apacheHttpClient = apacheHttpClient;
     }
 
-    public void postMediaTopic(String accessToken, long groupId, Attachment attachment)
+    public long postMediaTopic(String accessToken, long groupId, Attachment attachment)
             throws URISyntaxException, IOException, OkApiException {
         List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair("application_key", OkAppProperties.APPLICATION_KEY));
@@ -79,8 +79,10 @@ public class OkClientImpl implements OKClient {
         if (matcher.matches()) {
             String postId = matcher.group(1);
             logger.info("Posted post %s to group %d".formatted(postId, groupId));
+            return Long.parseLong(postId);
         } else {
             parseResponse(body, statusLine, logger);
+            return Long.MAX_VALUE;
         }
     }
 

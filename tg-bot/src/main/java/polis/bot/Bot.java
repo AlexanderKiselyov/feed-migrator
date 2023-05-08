@@ -55,8 +55,8 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.posting.ok.OkPostProcessor;
-import polis.ratelim.RateLimiter;
 import polis.posting.vk.VkPostProcessor;
+import polis.ratelim.RateLimiter;
 import polis.ratelim.Throttler;
 import polis.util.IState;
 import polis.util.SocialMedia;
@@ -66,6 +66,7 @@ import polis.util.Substate;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -398,6 +399,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             if (tgChannel == null || !tgChannel.isAutoposting()) {
                 return;
             }
+            List<String> messagesToChannelOwner = new ArrayList<>();
             for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
                 String accessToken = group.getAccessToken();
                 long accountId = group.getAccountId();
@@ -407,23 +409,35 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     continue;
                 }
 
+                String message;
                 switch (group.getSocialMedia()) {
-                    case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
-                            channelId, accountId, accessToken);
-                    case VK -> vkPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
-                            channelId, accountId, accessToken);
+                    case OK -> message = okPostProcessor.processPostInChannel(postItems, ownerChatId,
+                            group.getGroupId(), channelId, accountId, accessToken);
+                    case VK -> message = vkPostProcessor.processPostInChannel(postItems, ownerChatId,
+                            group.getGroupId(), channelId, accountId, accessToken);
                     default -> {
                         LOGGER.error(String.format("Social media not found: %s",
                                 group.getSocialMedia()));
-                        checkAndSendNotification(ownerChatId, channelId, ERROR_POST_MSG + group.getGroupId());
+                        message =ERROR_POST_MSG + group.getGroupId();
                     }
-
                 }
+                messagesToChannelOwner.add(message);
             }
+            String aggregatedMessages = aggregateMessages(messagesToChannelOwner);
+            checkAndSendNotification(ownerChatId, channelId, aggregatedMessages);
         } catch (RuntimeException e) {
             LOGGER.error("Error when handling post in " + channelId, e);
             sendAnswer(ownerChatId, "Произошла непредвиденная ошибка при обработке поста " + e);
         }
+    }
+
+    private static String aggregateMessages(List<String> messagesToChannelOwner) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String message : messagesToChannelOwner) {
+            stringBuilder.append(message);
+            stringBuilder.append("\n");
+        }
+        return stringBuilder.toString();
     }
 
     private void checkAndSendNotification(long userChatId, long channelId, String message) {

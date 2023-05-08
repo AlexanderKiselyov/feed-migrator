@@ -6,7 +6,7 @@ import java.io.File;
 import java.util.List;
 
 public interface VkClient {
-    void postMediaTopic(Integer userId, String accessToken, long groupId, String message, String attachments)
+    long postMediaTopic(Integer userId, String accessToken, long groupId, String message, String attachments)
             throws VkApiException;
 
     long uploadVideo(Integer userId, String accessToken, long groupId, File video)

@@ -160,7 +160,7 @@ public class VkApiMethods {
         return getDocumentId(request, logger);
     }
 
-    public void postVkMediaTopic(Integer userId, String accessToken, long groupId, String message, String attachments)
+    public long postVkMediaTopic(Integer userId, String accessToken, long groupId, String message, String attachments)
             throws VkApiException {
         WallPostQuery request = vk.wall()
                 .post(new UserActor(userId, accessToken))
@@ -174,6 +174,6 @@ public class VkApiMethods {
             request = request.attachments(attachments);
         }
 
-        postMediaTopic(request, logger);
+        return postMediaTopic(request, logger);
     }
 }

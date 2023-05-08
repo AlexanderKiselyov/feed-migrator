@@ -130,9 +130,9 @@ public class VkPoster implements IVkPoster {
         }
 
         @Override
-        public void post(Integer userId, String accessToken, long groupId) throws ApiException {
+        public long post(Integer userId, String accessToken, long groupId) throws ApiException {
             try {
-                vkClient.postMediaTopic(userId, accessToken, groupId, message, String.join(",", attachments));
+                return vkClient.postMediaTopic(userId, accessToken, groupId, message, String.join(",", attachments));
             } catch (VkApiException e) {
                 throw new ApiException(e);
             }
