@@ -37,7 +37,7 @@ public interface IVkPoster {
 
         IVkPost addDocuments(List<String> documentIds, long groupId);
 
-        void post(Integer userId, String accessToken, long groupId)
+        long post(Integer userId, String accessToken, long groupId)
                 throws URISyntaxException, IOException, ApiException;
 
     }

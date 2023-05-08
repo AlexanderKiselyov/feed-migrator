@@ -30,7 +30,7 @@ public interface IOkPoster {
 
         IOkPost addDocuments(List<String> documentIds);
 
-        void post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
+        long post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
     }
 }
 

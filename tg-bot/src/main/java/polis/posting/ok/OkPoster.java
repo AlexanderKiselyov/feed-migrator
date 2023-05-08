@@ -134,10 +134,10 @@ public class OkPoster implements IOkPoster {
         }
 
         @Override
-        public void post(String accessToken, long groupId)
+        public long post(String accessToken, long groupId)
                 throws URISyntaxException, IOException, ApiException {
             try {
-                okClient.postMediaTopic(accessToken, groupId, attachment);
+                return okClient.postMediaTopic(accessToken, groupId, attachment);
             } catch (OkApiException e) {
                 throw new ApiException(e);
             }

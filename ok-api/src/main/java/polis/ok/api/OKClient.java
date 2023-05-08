@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface OKClient {
 
-    void postMediaTopic(String accessToken, long groupId, Attachment attachment)
+    long postMediaTopic(String accessToken, long groupId, Attachment attachment)
             throws URISyntaxException, IOException, OkApiException;
 
     long uploadVideo(String accessToken, long groupId, File video)

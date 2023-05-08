@@ -10,9 +10,9 @@ public class VkClientImpl implements VkClient {
     private final VkApiMethods vkApiMethods = new VkApiMethods();
 
     @Override
-    public void postMediaTopic(Integer userId, String accessToken, long groupId, String message, String attachments)
+    public long postMediaTopic(Integer userId, String accessToken, long groupId, String message, String attachments)
             throws VkApiException {
-        vkApiMethods.postVkMediaTopic(userId, accessToken, groupId, message, attachments);
+        return vkApiMethods.postVkMediaTopic(userId, accessToken, groupId, message, attachments);
     }
 
     @Override
