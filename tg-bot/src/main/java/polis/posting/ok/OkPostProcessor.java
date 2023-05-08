@@ -33,10 +33,9 @@ public class OkPostProcessor extends PostProcessor {
     public OkPostProcessor(
             @Qualifier("Bot") TgNotificator tgNotificator,
             TgContentManager tgContentManager,
-            OkPoster okPoster,
-            RateLimiter postingRateLimiter
+            OkPoster okPoster
     ) {
-        super(tgNotificator, tgContentManager, postingRateLimiter);
+        super(tgNotificator, tgContentManager);
         this.okPoster = okPoster;
     }
 
@@ -51,7 +50,7 @@ public class OkPostProcessor extends PostProcessor {
             long ownerChatId,
             long channelId,
             long groupId,
-            long userId,
+            long accountId,
             String accessToken
     ) {
         //Здесь можно будет сделать маленькие трайи, чтобы пользователю писать более конкретную ошибку
@@ -70,14 +69,14 @@ public class OkPostProcessor extends PostProcessor {
                 File file = tgContentManager.download(animation);
                 files.add(file);
             }
-            List<String> videoIds = okPoster.uploadVideos(files, (int) userId, accessToken, groupId);
+            List<String> videoIds = okPoster.uploadVideos(files, (int) accountId, accessToken, groupId);
             files.clear();
 
             for (PhotoSize photo : photos) {
                 File file = tgContentManager.download(photo);
                 files.add(file);
             }
-            List<String> photoIds = okPoster.uploadPhotos(files, (int) userId, accessToken, groupId);
+            List<String> photoIds = okPoster.uploadPhotos(files, (int) accountId, accessToken, groupId);
 
             okPoster.newPost()
                     .addVideos(videoIds)
