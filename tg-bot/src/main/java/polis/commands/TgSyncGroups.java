@@ -103,11 +103,9 @@ public class TgSyncGroups extends Command {
 
             ChannelGroup group = groups.get(i);
             buttons[tmpIndex] = String.format("%s (%s)", group.getGroupName(), group.getSocialMedia().getName());
-            buttons[tmpIndex + 1] = String.format("group %s %s %d", group.getGroupId(),
-                    group.getSocialMedia().getName(), 0);
+            buttons[tmpIndex + 1] = String.format("group %s %d", group.getGroupId(), 0);
             buttons[tmpIndex + 2] = trashEmoji + " Удалить";
-            buttons[tmpIndex + 3] = String.format("group %s %s %d", group.getGroupId(),
-                    group.getSocialMedia().getName(), 1);
+            buttons[tmpIndex + 3] = String.format("group %s %d", group.getGroupId(), 1);
         }
 
         return buttons;

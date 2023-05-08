@@ -496,11 +496,13 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 }
             }
             case GROUP_CALLBACK_TEXT -> {
-                if (Objects.equals(dataParts[3], "0")) {
+                if (Objects.equals(dataParts[2], "0")) {
                     changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.GroupDescription);
-                } else if (Objects.equals(dataParts[3], "1")) {
+                } else if (Objects.equals(dataParts[2], "1")) {
                     CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chatId);
-                    channelGroupsRepository.deleteChannelGroup(currentChannel.getChannelId(), dataParts[2]);
+                    CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chatId);
+                    channelGroupsRepository.deleteChannelGroup(currentChannel.getChannelId(),
+                            currentAccount.getSocialMedia());
                     currentGroupRepository.deleteCurrentGroup(chatId);
                     deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.TgSyncGroups.getIdentifier()).processMessage(this, msg, null);
@@ -509,13 +511,14 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 }
             }
             case ACCOUNT_CALLBACK_TEXT -> {
-                if (dataParts.length < 4) {
+                if (dataParts.length < 3) {
                     LOGGER.error(String.format("Wrong account-callback data: %s", data));
                     return;
                 }
-                boolean shouldDelete = dataParts[3].equals("1");
+                boolean shouldDelete = dataParts[2].equals("1");
+                String currentAccountSocialMedia = currentAccountRepository.getCurrentAccount(chatId).getSocialMedia();
                 State state = shouldDelete ? State.AddGroup :
-                        (dataParts[2].equals(SocialMedia.OK.getName()) ? State.OkAccountDescription
+                        (currentAccountSocialMedia.equals(SocialMedia.OK.getName()) ? State.OkAccountDescription
                                 : State.VkAccountDescription);
                 processAccountCallback(msg, chatId, dataParts, state, shouldDelete);
                 currentStateRepository.insertCurrentState(new CurrentState(
