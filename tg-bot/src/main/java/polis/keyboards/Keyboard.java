@@ -1,11 +1,12 @@
 package polis.keyboards;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import polis.util.Emojis;
 
 import java.util.List;
 
 public abstract class Keyboard {
-    public static String GO_BACK_BUTTON_TEXT = "\uD83D\uDD19 Назад";
+    public static String GO_BACK_BUTTON_TEXT = Emojis.BACK_ARROW + " Назад";
 
     public SendMessage createSendMessage(Long chatId, String messageText, int rowsCount, List<String> commands,
                                          String... optionalButtonsValues) {

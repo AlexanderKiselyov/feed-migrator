@@ -1,7 +1,5 @@
 package polis.commands;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -13,26 +11,21 @@ import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.UserChannelsRepository;
-import polis.datacheck.OkDataCheck;
-import polis.datacheck.VkDataCheck;
 import polis.util.State;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
-import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
 public class GroupDescription extends Command {
-    private static final String GROUP_DESCRIPTION = """
+    private static final String GROUP_DESCRIPTION_MSG = """
             Выбрана группа <b>%s</b> из социальной сети %s.
             Вы можете выбрать команду /autoposting для настройки автопостинга.""";
-    private static final String GROUP_DESCRIPTION_EXTENDED = """
+    private static final String GROUP_DESCRIPTION_EXTENDED_MSG = """
             Выбрана группа <b>%s</b> из социальной сети %s.
             Вы можете выбрать команду /autoposting для настройки автопостинга.
-            Настроить уведомления об автоматически опубликованных постах можно с помощью команды  /notifications.""";
-    private static final String NO_VALID_GROUP = """
+            Настроить уведомления об автоматически опубликованных постах можно с помощью команды /notifications.""";
+    private static final String NO_VALID_GROUP_MSG = """
             Ошибка выбора группы.
             Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и выберите нужную группу.""";
 
@@ -51,17 +44,6 @@ public class GroupDescription extends Command {
     @Autowired
     private UserChannelsRepository userChannelsRepository;
 
-    @Autowired
-    private OkDataCheck okDataCheck;
-
-    @Autowired
-    private VkDataCheck vkDataCheck;
-
-    @Autowired
-    private CommandUtils commandUtils;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(GroupDescription.class);
-
     public GroupDescription() {
         super(State.GroupDescription.getIdentifier(), State.GroupDescription.getDescription());
         this.commandsForKeyboard.add(State.Autoposting.getDescription());
@@ -73,25 +55,10 @@ public class GroupDescription extends Command {
         CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
 
         if (currentGroup != null && currentAccount != null) {
-            String groupName = commandUtils.getGroupName(currentAccount, currentGroup);
-
-            if (Objects.equals(groupName, null)) {
-                sendAnswer(
-                        absSender,
-                        chat.getId(),
-                        this.getCommandIdentifier(),
-                        user.getUserName(),
-                        GROUP_NAME_NOT_FOUND,
-                        rowsCount,
-                        commandsForKeyboard,
-                        null,
-                        GO_BACK_BUTTON_TEXT);
-                LOGGER.error(String.format("Error detecting groupName of group: %s", currentGroup.getSocialMedia()));
-                return;
-            }
+            String groupName = currentGroup.getGroupName();
             long channelId = currentChannelRepository.getCurrentChannel(chat.getId()).getChannelId();
             boolean isAutopostingEnable = userChannelsRepository.isSetAutoposting(chat.getId(), channelId);
-            String msgToSend = isAutopostingEnable ? GROUP_DESCRIPTION_EXTENDED : GROUP_DESCRIPTION;
+            String msgToSend = isAutopostingEnable ? GROUP_DESCRIPTION_EXTENDED_MSG : GROUP_DESCRIPTION_MSG;
             if (isAutopostingEnable && !commandsForKeyboard.contains(State.Notifications.getDescription())) {
                 commandsForKeyboard.add(State.Notifications.getDescription());
                 rowsCount++;
@@ -100,7 +67,7 @@ public class GroupDescription extends Command {
                 rowsCount--;
             }
 
-            sendAnswer(
+            sendAnswerWithReplyKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
@@ -108,20 +75,14 @@ public class GroupDescription extends Command {
                     String.format(msgToSend, groupName,
                             currentGroup.getSocialMedia().getName()),
                     rowsCount,
-                    commandsForKeyboard,
-                    null,
-                    GO_BACK_BUTTON_TEXT);
-        } else {
-            sendAnswer(
-                    absSender,
-                    chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
-                    String.format(NO_VALID_GROUP, State.TgChannelDescription.getIdentifier()),
-                    ROWS_COUNT,
-                    super.commandsForKeyboard,
-                    null,
-                    GO_BACK_BUTTON_TEXT);
+                    commandsForKeyboard);
+            return;
         }
+        sendAnswerWithOnlyBackButton(
+                absSender,
+                chat.getId(),
+                this.getCommandIdentifier(),
+                user.getUserName(),
+                String.format(NO_VALID_GROUP_MSG, State.TgChannelDescription.getIdentifier()));
     }
 }

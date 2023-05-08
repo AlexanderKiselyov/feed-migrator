@@ -12,16 +12,14 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.util.SocialMedia;
 import polis.util.State;
 
-import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
-
 @Component
 public class AddOkGroup extends Command {
-    private static final String ADD_OK_GROUP = """
+    private static final String ADD_OK_GROUP_MSG = """
             Чтобы добавить новую группу, введите в чат ссылку на нее.
             Примеры ссылок:
             https://ok.ru/ok
             https://ok.ru/group57212027273260""";
-    static final String SAME_SOCIAL_MEDIA = """
+    static final String SAME_SOCIAL_MEDIA_MSG = """
             Социальная сеть %s уже была синхронизирована с текущим Телеграм-каналом.
             Пожалуйста, выберите другую социальную сеть и попробуйте снова.""";
 
@@ -41,27 +39,19 @@ public class AddOkGroup extends Command {
         if (currentChannel != null) {
             for (ChannelGroup smg : channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.OK) {
-                    sendAnswer(absSender,
+                    sendAnswerWithOnlyBackButton(absSender,
                             chat.getId(),
                             this.getCommandIdentifier(),
                             user.getUserName(),
-                            String.format(SAME_SOCIAL_MEDIA, SocialMedia.OK.getName()),
-                            ROWS_COUNT,
-                            commandsForKeyboard,
-                            null,
-                            GO_BACK_BUTTON_TEXT);
+                            String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.OK.getName()));
                     return;
                 }
             }
         }
-        sendAnswer(absSender,
+        sendAnswerWithOnlyBackButton(absSender,
                 chat.getId(),
                 this.getCommandIdentifier(),
                 user.getUserName(),
-                ADD_OK_GROUP,
-                ROWS_COUNT,
-                commandsForKeyboard,
-                null,
-                GO_BACK_BUTTON_TEXT);
+                ADD_OK_GROUP_MSG);
     }
 }

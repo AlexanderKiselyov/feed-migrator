@@ -14,9 +14,7 @@ public class AddTgChannel extends Command {
             2. Скопировать ссылку на Телеграм-канал. Пример такой ссылки: https://t.me/exploitex
             3. Прислать ссылку в данный диалог.""";
     private static final int ROWS_COUNT = 1;
-    private static final List<String> commandsForKeyboard = List.of(
-            State.MainMenu.getDescription()
-    );
+    private static final List<String> commandsForKeyboard = List.of(State.MainMenu.getDescription());
 
     public AddTgChannel() {
         super(State.AddTgChannel.getIdentifier(), State.AddTgChannel.getDescription());
@@ -24,14 +22,13 @@ public class AddTgChannel extends Command {
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        sendAnswer(
+        sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),
                 this.getCommandIdentifier(),
                 user.getUserName(),
                 ADD_TELEGRAM_CHANNEL,
                 ROWS_COUNT,
-                commandsForKeyboard,
-                null);
+                commandsForKeyboard);
     }
 }

@@ -4,29 +4,32 @@ import java.util.Map;
 import java.util.Objects;
 
 public enum State implements IState {
-    Start("start", "\uD83D\uDC4B Старт"),
-    AddTgChannel("add_tg_channel", "➕ Добавление Телеграм-канала"),
-    MainMenu("main_menu", "\uD83E\uDDED Главное меню"),
-    TgChannelDescription("tg_channel_description", "\uD83D\uDCC3 Информация по Телеграм-каналу"),
-    TgChannelsList("tg_channels_list", "✅\uD83D\uDCC4 Список добавленных Телеграм-каналов"),
-    TgSyncGroups("tg_sync_groups", "\uD83C\uDFAF\uD83D\uDCC4"
+    Start("start", Emojis.HELLO_HAND + " Старт"),
+    AddTgChannel("add_tg_channel", Emojis.PLUS + " Добавление Телеграм-канала"),
+    MainMenu("main_menu", Emojis.COMPASS + " Главное меню"),
+    TgChannelDescription("tg_channel_description", Emojis.PAPER_LIST
+            + " Информация по Телеграм-каналу"),
+    TgChannelsList("tg_channels_list", Emojis.CHECKBOX + Emojis.PAPER_LIST_2
+            + " Список добавленных Телеграм-каналов"),
+    TgSyncGroups("tg_sync_groups", Emojis.TARGET + Emojis.PAPER_LIST_2
             + " Список синхронизованных с Телеграм-каналов групп"),
-    GroupDescription("group_description", "\uD83D\uDCD1 Описание группы"),
-    AddGroup("add_group", "➕ Добавление новой группы"),
-    AddOkAccount("add_ok_account", "\uD83C\uDF10 Добавление аккаунта Одноклассников"),
-    OkAccountDescription("ok_account_description", "\uD83D\uDCD1 Информация по аккаунту "
+    GroupDescription("group_description", Emojis.PAPER_LIST_3 + " Описание группы"),
+    AddGroup("add_group", Emojis.PLUS + " Добавление новой группы"),
+    AddOkAccount("add_ok_account", Emojis.WORLD + " Добавление аккаунта Одноклассников"),
+    OkAccountDescription("ok_account_description", Emojis.PAPER_LIST_3 + " Информация по аккаунту "
             + "Одноклассников"),
-    AccountsList("accounts_list", "\uD83D\uDCC4 Список добавленных аккаунтов"),
-    AddOkGroup("add_ok_group_and_sync", "➕ Добавление группы Одноклассников"),
+    AccountsList("accounts_list", Emojis.PAPER_LIST_2 + " Список добавленных аккаунтов"),
+    AddOkGroup("add_ok_group_and_sync", Emojis.PLUS + " Добавление группы Одноклассников"),
     SyncGroupDescription("group_description",
-            "\uD83D\uDCD1 Описание синрхронизованной с Телеграм-каналом группы Одноклассников"),
-    SyncOkTg("sync_ok_tg", "\uD83D\uDD04 Синхронизация группы Одноклассников с Телеграм-каналом"),
-    Autoposting("autoposting", "\uD83D\uDD04 Настройка функции автопостинга"),
-    Notifications("notifications", "\uD83D\uDD14 Настройка уведомлений о публикации"),
-    AddVkAccount("add_vk_account", "\uD83C\uDF10 Добавление аккаунта ВКонтакте"),
-    VkAccountDescription("vk_account_description", "\uD83D\uDCD1 Информация по аккаунту ВКонтакте"),
-    AddVkGroup("add_vk_group", "➕ Добавление группы ВКонтакте"),
-    SyncVkTg("sync_vk_tg", "\uD83D\uDD04 Синхронизация группы ВКонтакте с Телеграм-каналом");
+            Emojis.PAPER_LIST_3 + " Описание синрхронизованной с Телеграм-каналом группы Одноклассников"),
+    SyncOkTg("sync_ok_tg", Emojis.SYNC + " Синхронизация группы Одноклассников с Телеграм-каналом"),
+    Autoposting("autoposting", Emojis.SYNC + " Настройка функции автопостинга"),
+    Notifications("notifications", Emojis.BELL + " Настройка уведомлений о публикации"),
+    AddVkAccount("add_vk_account", Emojis.WORLD + " Добавление аккаунта ВКонтакте"),
+    VkAccountDescription("vk_account_description", Emojis.PAPER_LIST_3
+            + " Информация по аккаунту ВКонтакте"),
+    AddVkGroup("add_vk_group", Emojis.PLUS + " Добавление группы ВКонтакте"),
+    SyncVkTg("sync_vk_tg", Emojis.SYNC + " Синхронизация группы ВКонтакте с Телеграм-каналом");
 
     private final String identifier;
     private final String description;

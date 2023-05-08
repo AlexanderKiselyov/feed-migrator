@@ -7,15 +7,17 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.UserChannelsRepository;
-import polis.telegram.TelegramDataCheck;
+import polis.util.Emojis;
 import polis.util.State;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class TgChannelsList extends Command {
-    private static final String TG_CHANNELS_LIST = "Список добавленных Телеграм-каналов.";
-    private static final String TG_CHANNELS_LIST_INLINE = """
+    private static final String TG_CHANNELS_LIST_MSG = """
+            Список добавленных Телеграм-каналов.""";
+    private static final String TG_CHANNELS_LIST_INLINE_MSG = """
             Нажмите на Телеграм-канал, чтобы выбрать определенный.
             Для удаления Телеграм-канала нажмите 'Удалить' справа от канала.""";
     private static final String NO_TG_CHANNELS = """
@@ -30,9 +32,6 @@ public class TgChannelsList extends Command {
     @Autowired
     private UserChannelsRepository userChannelsRepository;
 
-    @Autowired
-    private TelegramDataCheck telegramDataCheck;
-
     public TgChannelsList() {
         super(State.TgChannelsList.getIdentifier(), State.TgChannelsList.getDescription());
     }
@@ -41,49 +40,37 @@ public class TgChannelsList extends Command {
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         List<UserChannels> channels = userChannelsRepository.getUserChannels(chat.getId());
         if (channels != null && !channels.isEmpty()) {
-            sendAnswer(
+            sendAnswerWithInlineKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    TG_CHANNELS_LIST,
-                    ROWS_COUNT,
-                    commandsForKeyboard,
-                    null);
-            sendAnswer(
-                    absSender,
-                    chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
-                    TG_CHANNELS_LIST_INLINE,
+                    TG_CHANNELS_LIST_MSG,
+                    TG_CHANNELS_LIST_INLINE_MSG,
                     channels.size(),
-                    commandsForKeyboard,
                     getUserTgChannelsArray(channels));
         } else {
-            sendAnswer(
+            sendAnswerWithReplyKeyboard(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     NO_TG_CHANNELS,
                     ROWS_COUNT,
-                    commandsForKeyboard,
-                    null);
+                    commandsForKeyboard);
         }
     }
 
-    private String[] getUserTgChannelsArray(List<UserChannels> channels) {
-        String[] buttons = new String[channels.size() * 4];
-        for (int i = 0; i < channels.size(); i++) {
-            int tmpIndex = i * 4;
-            String telegramChannelUsername = channels.get(i).getChannelUsername();
-            Long telegramChannelId = channels.get(i).getChannelId();
-            buttons[tmpIndex] = String.valueOf(telegramDataCheck.getChatParameter(telegramChannelUsername, "title"));
-            buttons[tmpIndex + 1] = String.format("tg_channel %s %d", telegramChannelId, 0);
-            buttons[tmpIndex + 2] = "\uD83D\uDDD1 Удалить";
-            buttons[tmpIndex + 3] = String.format("tg_channel %s %d", telegramChannelId, 1);
+    private List<String> getUserTgChannelsArray(List<UserChannels> channels) {
+        List<String> buttons = new ArrayList<>(channels.size() * 4);
+        for (UserChannels channel : channels) {
+            String telegramChannelUsername = channel.getChannelUsername();
+            Long telegramChannelId = channel.getChannelId();
+            buttons.add(telegramChannelUsername);
+            buttons.add(String.format("tg_channel %s %d", telegramChannelId, 0));
+            buttons.add(Emojis.TRASH + " Удалить");
+            buttons.add(String.format("tg_channel %s %d", telegramChannelId, 1));
         }
-
         return buttons;
     }
 }

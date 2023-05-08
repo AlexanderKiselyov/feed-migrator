@@ -24,14 +24,13 @@ public class MainMenu extends Command {
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        sendAnswer(
+        sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),
                 this.getCommandIdentifier(),
                 user.getUserName(),
                 String.format(MAIN_MENU, State.AccountsList.getIdentifier(), State.AddTgChannel.getIdentifier()),
                 ROWS_COUNT,
-                commandsForKeyboard,
-                null);
+                commandsForKeyboard);
     }
 }

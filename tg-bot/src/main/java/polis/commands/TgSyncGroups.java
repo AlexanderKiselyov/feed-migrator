@@ -7,48 +7,31 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
-import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.ChannelGroupsRepository;
-import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
-import polis.datacheck.OkDataCheck;
-import polis.datacheck.VkDataCheck;
+import polis.util.Emojis;
 import polis.util.State;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-
-import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
 public class TgSyncGroups extends Command {
-    private static final String TG_SYNC_GROUPS = """
+    private static final String TG_SYNC_GROUPS_MSG = """
             Список синхронизированных групп.""";
-    private static final String TG_SYNC_GROUPS_INLINE = """
+    private static final String TG_SYNC_GROUPS_INLINE_MSG = """
+            Список синхронизированных групп.
             Для выбора определенной группы нажмите на нужную группу.
             Для удаления группы нажмите 'Удалить' справа от группы.""";
     private static final String NO_SYNC_GROUPS = """
             Список синхронизированных групп пуст.
             Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и добавьте хотя бы одну группу.""";
-    private static final String trashEmoji = "\uD83D\uDDD1";
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
 
     @Autowired
-    private CurrentAccountRepository currentAccountRepository;
-
-    @Autowired
-    private AccountsRepository accountsRepository;
-
-    @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
-
-    @Autowired
-    private OkDataCheck okDataCheck;
-
-    @Autowired
-    private VkDataCheck vkDataCheck;
 
     public TgSyncGroups() {
         super(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription());
@@ -63,48 +46,37 @@ public class TgSyncGroups extends Command {
                     channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId());
 
             if (channelGroups != null && !channelGroups.isEmpty()) {
-                sendAnswer(absSender,
-                        chat.getId(),
-                        this.getCommandIdentifier(),
-                        user.getUserName(),
-                        TG_SYNC_GROUPS,
-                        ROWS_COUNT,
-                        Collections.emptyList(),
-                        null,
-                        GO_BACK_BUTTON_TEXT);
-                sendAnswer(
+                sendAnswerWithInlineKeyboardAndBackButton(
                         absSender,
                         chat.getId(),
                         this.getCommandIdentifier(),
                         user.getUserName(),
-                        TG_SYNC_GROUPS_INLINE,
+                        TG_SYNC_GROUPS_MSG,
+                        TG_SYNC_GROUPS_INLINE_MSG,
                         channelGroups.size(),
-                        Collections.emptyList(),
                         getButtonsForTgChannelGroups(channelGroups));
                 return;
             }
         }
-        sendAnswer(
+        sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),
                 this.getCommandIdentifier(),
                 user.getUserName(),
                 String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
                 1,
-                List.of(State.TgChannelDescription.getDescription()),
-                null);
+                List.of(State.TgChannelDescription.getDescription()));
     }
 
-    private String[] getButtonsForTgChannelGroups(List<ChannelGroup> groups) {
-        String[] buttons = new String[groups.size() * 4];
-        for (int i = 0; i < groups.size(); i++) {
-            int j = i * 4;
-            ChannelGroup group = groups.get(i);
+    private List<String> getButtonsForTgChannelGroups(List<ChannelGroup> groups) {
+        List<String> buttons = new ArrayList<>(groups.size() * 4);
+        for (ChannelGroup group : groups) {
             String socialMediaName = group.getSocialMedia().getName();
-            buttons[j] = String.format("%s (%s)", group.getGroupName(), socialMediaName);
-            buttons[j + 1] = String.format("group %s %d %s", group.getGroupId(), 0, socialMediaName);
-            buttons[j + 2] = trashEmoji + " Удалить";
-            buttons[j + 3] = String.format("group %s %d %s", group.getGroupId(), 1, socialMediaName);
+            long groupId = group.getGroupId();
+            buttons.add(String.format("%s (%s)", group.getGroupName(), socialMediaName));
+            buttons.add(String.format("group %s %d %s", groupId, 0, socialMediaName));
+            buttons.add(Emojis.TRASH + " Удалить");
+            buttons.add(String.format("group %s %d %s", groupId, 1, socialMediaName));
         }
         return buttons;
     }

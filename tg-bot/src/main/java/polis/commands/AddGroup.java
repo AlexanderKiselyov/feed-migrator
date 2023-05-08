@@ -7,18 +7,15 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.CurrentChannelRepository;
-import polis.telegram.TelegramDataCheck;
 import polis.util.State;
 
 import java.util.List;
 
-import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
-
 @Component
 public class AddGroup extends Command {
-    private static final String ADD_GROUP = """
+    private static final String ADD_GROUP_MSG = """
             Меню добавления групп для Телеграм-канала <b>%s</b>.""";
-    private static final String NOT_VALID_TG_CHANNEL = """
+    private static final String NOT_VALID_TG_CHANNEL_MSG = """
             Невозможно получить информацию по текущему телеграм-каналу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private static final int ROWS_COUNT = 2;
@@ -31,9 +28,6 @@ public class AddGroup extends Command {
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
 
-    @Autowired
-    private TelegramDataCheck telegramDataCheck;
-
     public AddGroup() {
         super(State.AddGroup.getIdentifier(), State.AddGroup.getDescription());
     }
@@ -42,28 +36,21 @@ public class AddGroup extends Command {
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
         if (currentChannel != null) {
-            sendAnswer(
+            sendAnswerWithReplyKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
                     this.getCommandIdentifier(),
                     user.getUserName(),
-                    String.format(ADD_GROUP,
-                            telegramDataCheck.getChatParameter(currentChannel.getChannelUsername(), "title")),
+                    String.format(ADD_GROUP_MSG, currentChannel.getChannelUsername()),
                     ROWS_COUNT,
-                    commandsForKeyboard,
-                    null,
-                    GO_BACK_BUTTON_TEXT);
-        } else {
-            sendAnswer(
-                    absSender,
-                    chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
-                    String.format(NOT_VALID_TG_CHANNEL, State.MainMenu.getIdentifier()),
-                    ROWS_COUNT,
-                    commandsForKeyboard,
-                    null,
-                    GO_BACK_BUTTON_TEXT);
+                    commandsForKeyboard);
+            return;
         }
+        sendAnswerWithOnlyBackButton(
+                absSender,
+                chat.getId(),
+                this.getCommandIdentifier(),
+                user.getUserName(),
+                String.format(NOT_VALID_TG_CHANNEL_MSG, State.MainMenu.getIdentifier()));
     }
 }
