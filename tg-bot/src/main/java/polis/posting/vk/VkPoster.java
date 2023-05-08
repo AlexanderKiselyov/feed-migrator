@@ -2,7 +2,9 @@ package polis.posting.vk;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
+import polis.ok.api.exceptions.OkApiException;
 import polis.posting.ApiException;
 import polis.vk.api.VkClient;
 import polis.vk.api.exceptions.VkApiException;
@@ -49,8 +51,8 @@ public class VkPoster implements IVkPoster {
     }
 
     @Override
-    public VkPost newPost(Long ownerId) {
-        return new VkPost(ownerId);
+    public VkPost newPost(Long ownerId, String accessToken) {
+        return new VkPost(ownerId, accessToken);
     }
 
     @Override
@@ -70,9 +72,11 @@ public class VkPoster implements IVkPoster {
         private final List<String> attachments = new ArrayList<>();
         private String message = null;
         private final long ownerId;
+        private final String accessToken;
 
-        public VkPost(Long ownerId) {
+        public VkPost(Long ownerId, String accessToken) {
             this.ownerId = ownerId;
+            this.accessToken = accessToken;
         }
 
         @Override
@@ -100,9 +104,23 @@ public class VkPoster implements IVkPoster {
         }
 
         @Override
-        public VkPost addText(String text) {
+        public VkPost addTextWithLinks(String text, List<MessageEntity> textLinks) throws ApiException {
             if (text != null && !text.isEmpty()) {
-                message = text;
+                int textGlobalOffset = 0;
+                StringBuilder formattedText = new StringBuilder(text);
+                try {
+                    for (MessageEntity textLink : textLinks) {
+                        String shortTextLink = String.format(" (%s)",
+                                vkClient.getShortLink((int) ownerId, accessToken, textLink.getUrl()));
+                        formattedText.insert(textGlobalOffset + textLink.getOffset() + textLink.getLength(),
+                                shortTextLink.toCharArray(), 0, shortTextLink.length());
+                        textGlobalOffset += shortTextLink.length();
+                    }
+                } catch (VkApiException e) {
+                    throw new ApiException(e);
+                }
+
+                message = formattedText.toString();
             }
             return this;
         }
@@ -130,7 +148,7 @@ public class VkPoster implements IVkPoster {
         }
 
         @Override
-        public long post(Integer userId, String accessToken, long groupId) throws ApiException {
+        public long post(Integer userId, long groupId) throws ApiException {
             try {
                 return vkClient.postMediaTopic(userId, accessToken, groupId, message, String.join(",", attachments));
             } catch (VkApiException e) {

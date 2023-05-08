@@ -3,6 +3,7 @@ package polis.posting.ok;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
@@ -39,6 +40,7 @@ public class OkPostProcessor extends PostProcessor {
             List<PhotoSize> photos,
             List<Animation> animations,
             List<Document> documents,
+            List<MessageEntity> textLinks,
             String text,
             Poll poll,
             long ownerChatId,
@@ -72,12 +74,12 @@ public class OkPostProcessor extends PostProcessor {
             }
             List<String> photoIds = okPoster.uploadPhotos(files, (int) accountId, accessToken, groupId);
 
-            long postId = okPoster.newPost()
+            long postId = okPoster.newPost(accessToken)
                     .addVideos(videoIds)
                     .addPhotos(photoIds)
                     .addPoll(poll)
-                    .addText(text)
-                    .post(accessToken, groupId);
+                    .addTextWithLinks(text, textLinks)
+                    .post(groupId);
             return successfulPostMsg(postLink(groupId, postId));
         } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {
             return failPostToGroupMsg(groupLink(groupId));

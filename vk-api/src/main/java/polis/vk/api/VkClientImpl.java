@@ -3,6 +3,8 @@ package polis.vk.api;
 import polis.vk.api.exceptions.VkApiException;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,5 +69,10 @@ public class VkClientImpl implements VkClient {
         }
 
         return documentIds;
+    }
+
+    @Override
+    public String getShortLink(Integer userId, String accessToken, String link) throws VkApiException {
+        return vkApiMethods.getVkShortLink(userId, accessToken, link);
     }
 }

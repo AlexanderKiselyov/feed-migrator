@@ -2,6 +2,7 @@ package polis.posting.ok;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
 import polis.ok.api.OKClient;
@@ -65,12 +66,17 @@ public class OkPoster implements IOkPoster {
     }
 
     @Override
-    public OkPost newPost() {
-        return new OkPost();
+    public OkPost newPost(String accessToken) {
+        return new OkPost(accessToken);
     }
 
     public class OkPost implements IOkPost {
         private final Attachment attachment = new Attachment();
+        private final String accessToken;
+
+        public OkPost(String accessToken) {
+            this.accessToken = accessToken;
+        }
 
         @Override
         public OkPost addPhotos(List<String> photoIds) {
@@ -97,9 +103,24 @@ public class OkPoster implements IOkPoster {
         }
 
         @Override
-        public OkPost addText(String text) {
+        public OkPost addTextWithLinks(String text, List<MessageEntity> textLinks)
+                throws IOException, URISyntaxException, ApiException {
             if (text != null && !text.isEmpty()) {
-                attachment.addMedia(new TextMedia(text));
+                int textGlobalOffset = 0;
+                StringBuilder formattedText = new StringBuilder(text);
+                try {
+                    for (MessageEntity textLink : textLinks) {
+                        String shortTextLink = String.format(" (%s)",
+                                okClient.getShortLink(accessToken, textLink.getUrl()));
+                        formattedText.insert(textGlobalOffset + textLink.getOffset() + textLink.getLength(),
+                                shortTextLink.toCharArray(), 0, shortTextLink.length());
+                        textGlobalOffset += shortTextLink.length();
+                    }
+                } catch (OkApiException e) {
+                    throw new ApiException(e);
+                }
+
+                attachment.addMedia(new TextMedia(formattedText.toString()));
             }
             return this;
         }
@@ -134,7 +155,7 @@ public class OkPoster implements IOkPoster {
         }
 
         @Override
-        public long post(String accessToken, long groupId)
+        public long post(long groupId)
                 throws URISyntaxException, IOException, ApiException {
             try {
                 return okClient.postMediaTopic(accessToken, groupId, attachment);

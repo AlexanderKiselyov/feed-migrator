@@ -2,6 +2,7 @@ package polis.posting.vk;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
@@ -38,6 +39,7 @@ public class VkPostProcessor extends PostProcessor {
             List<PhotoSize> photos,
             List<Animation> animations,
             List<Document> documents,
+            List<MessageEntity> textLinks,
             String text,
             Poll poll,
             long ownerChatId,
@@ -87,13 +89,13 @@ public class VkPostProcessor extends PostProcessor {
                 );
             }
 
-            long postId = vkPoster.newPost(accountId)
+            long postId = vkPoster.newPost(accountId, accessToken)
                     .addPhotos(photoIds)
                     .addVideos(videoIds, groupId)
-                    .addText(text)
+                    .addTextWithLinks(text, textLinks)
                     .addPoll(poll, pollId)
                     .addDocuments(documentIds, groupId)
-                    .post((int) accountId, accessToken, groupId);
+                    .post((int) accountId, groupId);
             return successfulPostMsg(postLink(groupId, postId));
         } catch (VkApiException | ApiException | URISyntaxException | IOException | TelegramApiException e) {
             return failPostToGroupMsg(groupLink(groupId));

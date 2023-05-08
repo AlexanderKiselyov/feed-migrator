@@ -411,9 +411,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     case VK -> message = vkPostProcessor.processPostInChannel(postItems, ownerChatId,
                             group.getGroupId(), channelId, accountId, accessToken);
                     default -> {
-                        LOGGER.error(String.format("Social media not found: %s",
-                                group.getSocialMedia()));
-                        message =ERROR_POST_MSG + group.getGroupId();
+                        LOGGER.error(String.format("Social media not found: %s", group.getSocialMedia()));
+                        message = ERROR_POST_MSG + group.getGroupId();
                     }
                 }
                 messagesToChannelOwner.add(message);
