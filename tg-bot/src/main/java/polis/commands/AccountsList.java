@@ -126,9 +126,11 @@ public class AccountsList extends Command {
             long tmpAccountId = tmpAccount.getAccountId();
 
             buttons[tmpIndex] = String.format("%s (%s)", accountUsername, tmpAccountSocialMedia.getName());
-            buttons[tmpIndex + 1] = String.format("account %d 0", tmpAccountId);
+            buttons[tmpIndex + 1] = String.format("account %d %s 0", tmpAccountId,
+                    tmpAccount.getSocialMedia().getName());
             buttons[tmpIndex + 2] = trashEmoji + " Удалить";
-            buttons[tmpIndex + 3] = String.format("account %d 1", tmpAccountId);
+            buttons[tmpIndex + 3] = String.format("account %d %s 1", tmpAccountId,
+                    tmpAccount.getSocialMedia().getName());
         }
 
         return buttons;
