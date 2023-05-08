@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
@@ -49,6 +50,11 @@ public class TgContentManager {
 
     public File download(PhotoSize tgPhoto) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = tgPhoto.getFileId();
+        return fileLoader.downloadFileById(fileId);
+    }
+
+    public File download(Document document) throws URISyntaxException, IOException, TelegramApiException {
+        String fileId = document.getFileId();
         return fileLoader.downloadFileById(fileId);
     }
 

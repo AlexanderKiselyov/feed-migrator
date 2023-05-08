@@ -7,12 +7,14 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.data.domain.CurrentAccount;
 import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.UserChannelsRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.util.State;
 
 import java.util.ArrayList;
@@ -50,7 +52,13 @@ public class GroupDescription extends Command {
     private UserChannelsRepository userChannelsRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
+
+    @Autowired
+    private VkDataCheck vkDataCheck;
+
+    @Autowired
+    private CommandUtils commandUtils;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupDescription.class);
 
@@ -61,18 +69,13 @@ public class GroupDescription extends Command {
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        String groupName = "";
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
+        CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
 
-        if (currentGroup != null) {
-            switch (currentGroup.getSocialMedia()) {
-                case OK -> groupName = dataCheck.getOKGroupName(currentGroup.getGroupId(),
-                        currentAccountRepository.getCurrentAccount(chat.getId()).getAccessToken());
-                default -> LOGGER.error(String.format("Social media not found: %s",
-                        currentGroup.getSocialMedia()));
-            }
+        if (currentGroup != null && currentAccount != null) {
+            String groupName = commandUtils.getGroupName(currentAccount, currentGroup);
 
-            if (Objects.equals(groupName, "")) {
+            if (Objects.equals(groupName, null)) {
                 sendAnswer(
                         absSender,
                         chat.getId(),
@@ -83,6 +86,7 @@ public class GroupDescription extends Command {
                         commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
+                LOGGER.error(String.format("Error detecting groupName of group: %s", currentGroup.getSocialMedia()));
                 return;
             }
             long channelId = currentChannelRepository.getCurrentChannel(chat.getId()).getChannelId();
@@ -114,7 +118,7 @@ public class GroupDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NO_VALID_GROUP, State.TgChannelDescription.getIdentifier()),
-                    super.rowsCount,
+                    ROWS_COUNT,
                     super.commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);

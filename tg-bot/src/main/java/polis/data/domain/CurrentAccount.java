@@ -10,10 +10,10 @@ public class CurrentAccount {
     @PrimaryKeyColumn(type = PrimaryKeyType.PARTITIONED, name = "chat_id")
     private final long chatId;
 
-    @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "social_media")
+    @Column("social_media")
     private final String socialMedia;
 
-    @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, name = "account_id")
+    @Column("account_id")
     private final long accountId;
 
     @Column(value = "user_full_name")

@@ -23,6 +23,8 @@ import polis.commands.AddGroup;
 import polis.commands.AddOkAccount;
 import polis.commands.AddOkGroup;
 import polis.commands.AddTgChannel;
+import polis.commands.AddVkAccount;
+import polis.commands.AddVkGroup;
 import polis.commands.Autoposting;
 import polis.commands.GroupDescription;
 import polis.commands.MainMenu;
@@ -30,11 +32,13 @@ import polis.commands.NonCommand;
 import polis.commands.Notifications;
 import polis.commands.OkAccountDescription;
 import polis.commands.StartCommand;
-import polis.commands.SyncOkGroupDescription;
+import polis.commands.SyncGroupDescription;
 import polis.commands.SyncOkTg;
+import polis.commands.SyncVkTg;
 import polis.commands.TgChannelDescription;
 import polis.commands.TgChannelsList;
 import polis.commands.TgSyncGroups;
+import polis.commands.VkAccountDescription;
 import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentAccount;
@@ -52,7 +56,9 @@ import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.posting.ok.OkPostProcessor;
 import polis.ratelim.RateLimiter;
+import polis.posting.vk.VkPostProcessor;
 import polis.util.IState;
+import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
 
@@ -65,12 +71,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static polis.datacheck.DataCheck.OK_AUTH_STATE_ANSWER;
-import static polis.datacheck.DataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
-import static polis.datacheck.DataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
-import static polis.datacheck.DataCheck.OK_GROUP_ADDED;
-import static polis.datacheck.DataCheck.USER_HAS_NO_RIGHTS;
-import static polis.datacheck.DataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
+import static polis.commands.NonCommand.VK_GROUP_ADDED;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_GROUP_ADDED;
+import static polis.datacheck.OkDataCheck.USER_HAS_NO_RIGHTS;
+import static polis.datacheck.OkDataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
+import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_ANSWER;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
 import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
@@ -84,28 +92,25 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
     private static final String AUTOPOSTING_ENABLE_AND_NOTIFICATIONS = "Функция автопостинга включена."
             + TURN_ON_NOTIFICATIONS_MSG;
-    private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.of(
-            String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
-            List.of(State.OkAccountDescription.getDescription()),
-            String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()),
-            List.of(State.SyncOkTg.getDescription()),
-            RIGHT_LINK,
-            List.of(State.TgChannelDescription.getDescription()),
-            OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER,
-            EMPTY_LIST,
-            OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER,
-            EMPTY_LIST,
-            WRONG_LINK_OR_USER_HAS_NO_RIGHTS,
-            EMPTY_LIST,
-            USER_HAS_NO_RIGHTS,
-            EMPTY_LIST,
-            WRONG_LINK_OR_BOT_NOT_ADMIN,
-            EMPTY_LIST,
-            BOT_NOT_ADMIN,
-            EMPTY_LIST,
-            AUTOPOSTING_ENABLE_AND_NOTIFICATIONS,
-            List.of(State.Notifications.getDescription())
-    );
+    private static final String CHANNEL_INFO_ERROR = "Ошибка получения информации по каналу.";
+    private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.ofEntries(
+            Map.entry(String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
+                    List.of(State.OkAccountDescription.getDescription())),
+            Map.entry(String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()),
+                    List.of(State.SyncOkTg.getDescription())),
+            Map.entry(RIGHT_LINK, List.of(State.TgChannelDescription.getDescription())),
+            Map.entry(OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER, EMPTY_LIST),
+            Map.entry(OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, EMPTY_LIST),
+            Map.entry(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, EMPTY_LIST),
+            Map.entry(USER_HAS_NO_RIGHTS, EMPTY_LIST),
+            Map.entry(WRONG_LINK_OR_BOT_NOT_ADMIN, EMPTY_LIST),
+            Map.entry(BOT_NOT_ADMIN, EMPTY_LIST),
+            Map.entry(AUTOPOSTING_ENABLE_AND_NOTIFICATIONS, List.of(State.Notifications.getDescription())),
+            Map.entry(String.format(VK_AUTH_STATE_ANSWER, State.VkAccountDescription.getIdentifier()),
+                    List.of(State.VkAccountDescription.getDescription())),
+            Map.entry(String.format(VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()),
+                    List.of(State.SyncVkTg.getDescription())
+    ));
     private final String botName;
     private final String botToken;
     private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
@@ -171,7 +176,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private AddOkGroup addOkGroup;
 
     @Autowired
-    private SyncOkGroupDescription syncOkGroupDescription;
+    private SyncGroupDescription syncGroupDescription;
 
     @Autowired
     private SyncOkTg syncOkTg;
@@ -183,11 +188,24 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private Notifications notifications;
 
     @Autowired
+    private VkAccountDescription vkAccountDescription;
+
+    @Autowired
+    private AddVkGroup addVkGroup;
+
+    @Autowired
+    private SyncVkTg syncVkTg;
+
+    @Autowired
     private RateLimiter postingRateLimiter;
 
     @Lazy
     @Autowired
     private OkPostProcessor okPostProcessor;
+
+    @Lazy
+    @Autowired
+    private VkPostProcessor vkPostProcessor;
 
     @Lazy
     @Autowired
@@ -227,10 +245,14 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         register(okAccountDescription);
         register(accountsList);
         register(addOkGroup);
-        register(syncOkGroupDescription);
+        register(syncGroupDescription);
         register(syncOkTg);
         register(autoposting);
         register(notifications);
+        register(new AddVkAccount());
+        register(vkAccountDescription);
+        register(addVkGroup);
+        register(syncVkTg);
     }
 
     /**
@@ -240,7 +262,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
      */
     public void setStateForMessage(Message message) {
         if (message == null) {
-            LOGGER.warn("Received null message");
             return;
         }
         if (LOGGER.isDebugEnabled()) {
@@ -256,7 +277,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     currentState.getIdentifier()));
         }
     }
-
 
     @Override
     public void processNonCommandUpdate(Update update) {
@@ -369,31 +389,30 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 return;
             }
             long userChatId = userChannelsRepository.getUserChatId(channelId);
-            List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(userChatId);
-            for (UserChannels tgChannel : tgChannels) {
-                if (!Objects.equals(tgChannel.getChannelId(), channelId)) {
-                    return;
-                }
-                if (!tgChannel.isAutoposting()) {
-                    return;
-                }
-                for (ChannelGroup smg : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
-                    String accessToken = "";
-                    for (Account account : accountsRepository.getAccountsForUser(userChatId)) {
-                        if (Objects.equals(account.getAccountId(), smg.getAccountId())) {
-                            accessToken = account.getAccessToken();
-                            break;
-                        }
-                    }
-                    switch (smg.getSocialMedia()) {
-                        case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, smg.getGroupId(), channelId, accessToken);
-                        default -> {
-                            LOGGER.error(String.format("Social media not found: %s",
-                                    smg.getSocialMedia()));
-                            checkAndSendNotification(ownerChatId, channelId, ERROR_POST_MSG + smg.getGroupId());
-                        }
+            UserChannels tgChannel = userChannelsRepository.getUserChannel(channelId, userChatId);
+            if (tgChannel == null || !tgChannel.isAutoposting()) {
+                return;
+            }
+            for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
+                String accessToken = group.getAccessToken();
+                long userId = group.getAccountId();
 
+                if (accessToken == null) {
+                    checkAndSendNotification(ownerChatId, channelId, CHANNEL_INFO_ERROR);
+                    continue;
+                }
+
+                switch (group.getSocialMedia()) {
+                    case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
+                            channelId, userId, accessToken);
+                    case VK -> vkPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
+                            channelId, userId, accessToken);
+                    default -> {
+                        LOGGER.error(String.format("Social media not found: %s",
+                                group.getSocialMedia()));
+                        checkAndSendNotification(ownerChatId, channelId, ERROR_POST_MSG + group.getGroupId());
                     }
+
                 }
             }
         } catch (RuntimeException e) {
@@ -448,7 +467,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         String[] dataParts = data.split(" ");
         switch (dataParts[0]) {
             case TG_CHANNEL_CALLBACK_TEXT -> {
-                if (Objects.equals(dataParts[2], "0")) {
+                if (isJustCkick(dataParts)) {
                     UserChannels currentTelegramChannel = null;
                     List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(chatId);
                     for (UserChannels ch : tgChannels) {
@@ -466,7 +485,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     } else {
                         LOGGER.error(String.format("Cannot find such a telegram channel id: %s", dataParts[1]));
                     }
-                } else if (Objects.equals(dataParts[2], "1")) {
+                } else if (isDeletionRequested(dataParts)) {
                     List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(chatId);
                     for (UserChannels ch : tgChannels) {
                         if (Objects.equals(String.valueOf(ch.getChannelId()), dataParts[1])) {
@@ -484,28 +503,17 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 }
             }
             case GROUP_CALLBACK_TEXT -> {
-                if (Objects.equals(dataParts[2], "0")) {
+                if (dataParts.length < 4) {
+                    LOGGER.error(String.format("Wrong group-callback data: %s", data));
+                    return;
+                }
+                if (isJustCkick(dataParts)) {
                     changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.GroupDescription);
-                } else if (Objects.equals(dataParts[2], "1")) {
-                    boolean isFound = false;
-                    List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(chatId);
-                    for (UserChannels tgChannel : tgChannels) {
-                        if (Objects.equals(tgChannel.getChannelId(),
-                                currentChannelRepository.getCurrentChannel(chatId).getChannelId())) {
-                            for (ChannelGroup smg : channelGroupsRepository
-                                    .getGroupsForChannel(tgChannel.getChannelId())) {
-                                if (Objects.equals(String.valueOf(smg.getAccountId()), dataParts[1])) {
-                                    channelGroupsRepository.deleteChannelGroup(smg.getAccountId(),
-                                            smg.getSocialMedia().getName(), smg.getGroupId());
-                                    isFound = true;
-                                    break;
-                                }
-                            }
-                            if (isFound) {
-                                break;
-                            }
-                        }
-                    }
+                } else if (isDeletionRequested(dataParts)) {
+                    CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chatId);
+                    String socialMediaName = dataParts[3];
+                    channelGroupsRepository.deleteChannelGroup(currentChannel.getChannelId(), socialMediaName);
+                    currentGroupRepository.deleteCurrentGroup(chatId);
                     deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.TgSyncGroups.getIdentifier()).processMessage(this, msg, null);
                 } else {
@@ -513,12 +521,15 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 }
             }
             case ACCOUNT_CALLBACK_TEXT -> {
-                if (dataParts.length < 3) {
+                if (dataParts.length < 4) {
                     LOGGER.error(String.format("Wrong account-callback data: %s", data));
                     return;
                 }
-                boolean shouldDelete = dataParts[2].equals("1");
-                State state = shouldDelete ? State.AddGroup : State.OkAccountDescription;
+                boolean shouldDelete = isDeletionRequested(dataParts);
+                String socialMediaName = dataParts[3];
+                State state = shouldDelete ? State.AddGroup :
+                        (socialMediaName.equals(SocialMedia.OK.getName()) ? State.OkAccountDescription
+                                : State.VkAccountDescription);
                 processAccountCallback(msg, chatId, dataParts, state, shouldDelete);
                 currentStateRepository.insertCurrentState(new CurrentState(
                         chatId,
@@ -526,7 +537,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 ));
             }
             case YES_NO_CALLBACK_TEXT -> {
-                if (Objects.equals(dataParts[1], "0")) {
+                if (wasClickedYesButton(dataParts, 1)) {
                     CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chatId);
                     boolean isFound = false;
                     for (Account authData : accountsRepository.getAccountsForUser(chatId)) {
@@ -556,7 +567,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                         }
                     }
                     deleteLastMessage(msg, chatId);
-                    getRegisteredCommand(State.SyncOkGroupDescription.getIdentifier())
+                    getRegisteredCommand(State.SyncGroupDescription.getIdentifier())
                             .processMessage(this, msg, null);
                 } else {
                     currentGroupRepository.deleteCurrentGroup(chatId);
@@ -567,7 +578,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             }
             case AUTOPOSTING -> {
                 String enable = "включена";
-                if (Objects.equals(dataParts[3], "0")) {
+                if (!wasClickedYesButton(dataParts, 3)) {
                     userChannelsRepository.setAutoposting(chatId, Long.parseLong(dataParts[2]), false);
                     enable = "выключена";
                 } else {
@@ -581,7 +592,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 sendAnswer(chatId, text);
             }
             case NOTIFICATIONS -> {
-                boolean areEnable = Objects.equals(dataParts[2], "0");
+                boolean areEnable = wasClickedYesButton(dataParts, 2);
                 userChannelsRepository.setNotification(chatId, Long.parseLong(dataParts[1]), areEnable);
                 sendAnswer(chatId, String.format("Уведомления %s.", (areEnable ? "включены" : "выключены")));
                 deleteLastMessage(msg, chatId);
@@ -594,6 +605,18 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             case NO_CALLBACK_TEXT -> deleteLastMessage(msg, chatId);
             default -> LOGGER.error(String.format("Unknown inline keyboard data: %s", data));
         }
+    }
+
+    private static boolean isDeletionRequested(String[] dataParts) {
+        return Objects.equals(dataParts[2], "1");
+    }
+
+    private static boolean isJustCkick(String[] dataParts) {
+        return Objects.equals(dataParts[2], "0");
+    }
+
+    private static boolean wasClickedYesButton(String[] dataParts, int index) {
+        return Objects.equals(dataParts[index], "0");
     }
 
     private void processAccountCallback(Message msg, Long chatId, String[] dataParts, State state, boolean shouldDelete)

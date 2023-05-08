@@ -1,4 +1,5 @@
 package polis.posting.ok;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
@@ -13,7 +14,6 @@ import polis.ok.api.domain.Video;
 import polis.ok.api.domain.VideoMedia;
 import polis.ok.api.exceptions.OkApiException;
 import polis.posting.ApiException;
-import polis.posting.Poster;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class OkPoster implements Poster {
+public class OkPoster implements IOkPoster {
 
     private final OKClient okClient;
 
@@ -33,8 +33,9 @@ public class OkPoster implements Poster {
     }
 
     @Override
-    public List<String> uploadPhotos(List<File> photos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
-        if(photos == null || photos.isEmpty()){
+    public List<String> uploadPhotos(List<File> photos, Integer userId, String accessToken, long groupId)
+            throws URISyntaxException, IOException, ApiException {
+        if (photos == null || photos.isEmpty()) {
             return Collections.emptyList();
         }
         try {
@@ -45,8 +46,9 @@ public class OkPoster implements Poster {
     }
 
     @Override
-    public List<String> uploadVideos(List<File> videos, String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
-        if(videos == null || videos.isEmpty()){
+    public List<String> uploadVideos(List<File> videos, Integer userId, String accessToken, long groupId)
+            throws URISyntaxException, IOException, ApiException {
+        if (videos == null || videos.isEmpty()) {
             return Collections.emptyList();
         }
         List<String> videoIds = new ArrayList<>(videos.size());
@@ -67,11 +69,11 @@ public class OkPoster implements Poster {
         return new OkPost();
     }
 
-    public class OkPost implements Poster.Post {
+    public class OkPost implements IOkPost {
         private final Attachment attachment = new Attachment();
 
         @Override
-        public Post addPhotos(List<String> photoIds) {
+        public OkPost addPhotos(List<String> photoIds) {
             if (photoIds == null || photoIds.isEmpty()) {
                 return this;
             }
@@ -127,12 +129,13 @@ public class OkPoster implements Poster {
         }
 
         @Override
-        public OkPost addDocuments(List<File> documents) {
+        public OkPost addDocuments(List<String> documentIds) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException {
+        public void post(String accessToken, long groupId)
+                throws URISyntaxException, IOException, ApiException {
             try {
                 okClient.postMediaTopic(accessToken, groupId, attachment);
             } catch (OkApiException e) {

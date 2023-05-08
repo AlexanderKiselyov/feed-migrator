@@ -12,7 +12,7 @@ public class GuavaRateLimiter implements polis.ratelim.RateLimiter {
     private final double permitsPerSecond;
     private final Cache<Long, RateLimiter> rateLimiters;
 
-    public GuavaRateLimiter(double permitsPerSecond, int recordsMaxSize, Duration recordExpirationTime){
+    public GuavaRateLimiter(double permitsPerSecond, int recordsMaxSize, Duration recordExpirationTime) {
         this.permitsPerSecond = permitsPerSecond;
         rateLimiters = CacheBuilder.newBuilder()
                 .maximumSize(recordsMaxSize)

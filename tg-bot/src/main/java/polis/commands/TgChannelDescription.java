@@ -35,7 +35,6 @@ public class TgChannelDescription extends Command {
     @Autowired
     private TelegramDataCheck telegramDataCheck;
 
-
     public TgChannelDescription() {
         super(State.TgChannelDescription.getIdentifier(), State.TgChannelDescription.getDescription());
     }

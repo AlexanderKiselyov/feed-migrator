@@ -32,7 +32,7 @@ import static polis.commands.Command.USERNAME_NOT_FOUND;
 import static polis.commands.Command.USER_ID_NOT_FOUND;
 
 @Component
-public class DataCheck {
+public class OkDataCheck {
     public static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
             "Введенный код авторизации неверный. Пожалуйста, попробуйте еще раз.";
     public static final String OK_AUTH_STATE_ANSWER = """
@@ -65,7 +65,7 @@ public class DataCheck {
     @Autowired
     private HttpClient client;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataCheck.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OkDataCheck.class);
 
     public NonCommand.AnswerPair getOKAuthCode(String text, Long chatId) {
         OkAuthorizator.TokenPair pair;
@@ -75,9 +75,9 @@ public class DataCheck {
                 return new NonCommand.AnswerPair(OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER, true);
             }
 
-            long userId = Long.parseLong(getOKUserId(pair.accessToken()));
+            Long userId = getOKUserId(pair.accessToken());
 
-            if (userId == -1) {
+            if (userId == null) {
                 return new NonCommand.AnswerPair(USER_ID_NOT_FOUND,true);
             }
 
@@ -122,9 +122,9 @@ public class DataCheck {
     }
 
     public NonCommand.AnswerPair checkOKGroupAdminRights(String accessToken, Long groupId) {
-        String uid = getOKUserId(accessToken);
+        Long uid = getOKUserId(accessToken);
 
-        if (Objects.equals(uid, "-1")) {
+        if (Objects.equals(uid, null)) {
             return new NonCommand.AnswerPair(USER_ID_NOT_FOUND, true);
         }
 
@@ -134,7 +134,7 @@ public class DataCheck {
                     .addParameter("access_token", accessToken)
                     .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
                     .addParameter("group_id", String.valueOf(groupId))
-                    .addParameter("uids", uid)
+                    .addParameter("uids", String.valueOf(uid))
                     .build();
 
             HttpRequest request = HttpRequest
@@ -191,19 +191,19 @@ public class DataCheck {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                return -1L;
+                return null;
             }
 
             JSONObject object = new JSONObject(response.body());
 
             if (!object.has("objectId")) {
-                return -1L;
+                return null;
             }
 
             return object.getLong("objectId");
         } catch (URISyntaxException | IOException | InterruptedException e) {
             LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
-            return -1L;
+            return null;
         }
     }
 
@@ -226,29 +226,29 @@ public class DataCheck {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                return "";
+                return null;
             }
 
             JSONArray array = new JSONArray(response.body());
 
             if (array.length() != 1) {
-                return "";
+                return null;
             }
 
             JSONObject object = array.getJSONObject(0);
 
             if (!object.has("name")) {
-                return "";
+                return null;
             }
 
             return object.getString("name");
         } catch (URISyntaxException | IOException | InterruptedException e) {
             LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
-            return "";
+            return null;
         }
     }
 
-    public String getOKUserId(String accessToken) {
+    public Long getOKUserId(String accessToken) {
         try {
             URI uri = new URIBuilder(OK_METHOD_DO)
                     .addParameter("method", "users.getCurrentUser")
@@ -266,19 +266,19 @@ public class DataCheck {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                return "";
+                return null;
             }
 
             JSONObject object = new JSONObject(response.body());
 
             if (!object.has("uid")) {
-                return "";
+                return null;
             }
 
-            return object.getString("uid");
+            return object.getLong("uid");
         } catch (URISyntaxException | IOException | InterruptedException e) {
             LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
-            return "";
+            return null;
         }
     }
 
@@ -300,19 +300,19 @@ public class DataCheck {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                return "";
+                return null;
             }
 
             JSONObject object = new JSONObject(response.body());
 
             if (!object.has("name")) {
-                return "";
+                return null;
             }
 
             return object.getString("name");
         } catch (URISyntaxException | IOException | InterruptedException e) {
             LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
-            return "";
+            return null;
         }
     }
 }

@@ -8,12 +8,12 @@ import polis.util.State;
 import java.util.List;
 
 public class StartCommand extends Command {
-    // TODO Расширить список с соцсетями
     private static final String startAnswer = String.format("""
-            Давайте начнём! С помощью бота Вы можете синхронизировать Ваш Telegram-канал с группой в Одноклассники.
+            Давайте начнём! С помощью бота Вы можете синхронизировать Ваши Telegram-каналы
+            с группами в Одноклассники или группами в ВКонтакте.
             Введите /%s и добавьте новый Телеграм-канал, из которого хотите публиковать посты в другие социальные сети.
             Или можете воспользоваться клавиатурой с командами.""", State.AddTgChannel.getIdentifier());
-    private static final int rowsCount = 1;
+    private static final int ROWS_COUNT = 1;
     private static final List<String> commandsForKeyboard = List.of(
             State.AddTgChannel.getDescription()
     );
@@ -30,7 +30,7 @@ public class StartCommand extends Command {
                 this.getCommandIdentifier(),
                 user.getUserName(),
                 startAnswer,
-                rowsCount,
+                ROWS_COUNT,
                 commandsForKeyboard,
                 null);
     }

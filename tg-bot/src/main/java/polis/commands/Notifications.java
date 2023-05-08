@@ -13,8 +13,8 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.DataCheck;
-import polis.util.SocialMedia;
+import polis.datacheck.OkDataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.util.State;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
@@ -32,6 +32,7 @@ public class Notifications extends Command {
 
     private static final String WRONG_SOCIAL_MEDIA_MSG = """
             Социальная сеть неверная.""";
+
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
 
@@ -42,10 +43,16 @@ public class Notifications extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private OkDataCheck okDataCheck;
 
-    private static final int rowsCount = 1;
-    private final Logger logger = LoggerFactory.getLogger(Autoposting.class);
+    @Autowired
+    private VkDataCheck vkDataCheck;
+
+    @Autowired
+    private CommandUtils commandUtils;
+
+    private static final int ROWS_COUNT = 1;
+    private static final Logger LOGGER = LoggerFactory.getLogger(Notifications.class);
 
     public Notifications() {
         super(State.Notifications.getIdentifier(), State.Notifications.getDescription());
@@ -64,19 +71,23 @@ public class Notifications extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     NOTIFICATIONS_MSG,
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
             String notificationsEnable;
-            if (currentGroup.getSocialMedia() == SocialMedia.OK) {
-                notificationsEnable = String.format(NOTIFICATIONS_MSG_INLINE,
+            String groupName = commandUtils.getGroupName(currentAccount, currentGroup);
+            switch (currentGroup.getSocialMedia()) {
+                case OK, VK -> notificationsEnable = String.format(
+                        NOTIFICATIONS_MSG_INLINE,
                         currentChannel.getChannelUsername(),
-                        dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken()),
-                        currentGroup.getGroupName());
-            } else {
-                logger.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
-                notificationsEnable = WRONG_SOCIAL_MEDIA_MSG;
+                        groupName,
+                        currentGroup.getGroupName()
+                );
+                default -> {
+                    LOGGER.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
+                    notificationsEnable = WRONG_SOCIAL_MEDIA_MSG;
+                }
             }
             sendAnswer(
                     absSender,
@@ -84,9 +95,9 @@ public class Notifications extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     notificationsEnable,
-                    rowsCount,
+                    ROWS_COUNT,
                     commandsForKeyboard,
-                    getNotificationsButtons(currentChannel.getChannelId()));
+                    getButtonsForNotificationsOptions(currentChannel.getChannelId()));
         } else {
             sendAnswer(
                     absSender,
@@ -94,14 +105,14 @@ public class Notifications extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(NO_CURRENT_TG_CHANNEL, State.MainMenu.getIdentifier()),
-                    super.rowsCount,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
         }
     }
 
-    private String[] getNotificationsButtons(Long id) {
+    private String[] getButtonsForNotificationsOptions(Long id) {
         return new String[]{
                 "Да",
                 String.format("notifications %s 0", id),

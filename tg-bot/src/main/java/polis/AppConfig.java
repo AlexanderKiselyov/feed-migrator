@@ -12,6 +12,8 @@ import polis.ok.api.OKClient;
 import polis.ok.api.OkAuthorizator;
 import polis.ok.api.OkClientImpl;
 import polis.ratelim.GuavaRateLimiter;
+import polis.vk.api.VkClient;
+import polis.vk.api.VkClientImpl;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
@@ -54,11 +56,16 @@ public class AppConfig {
     }
 
     @Bean
+    public VkClient vkClient() {
+        return new VkClientImpl();
+    }
+
+    @Bean
     public GuavaRateLimiter rateLimiter(
             @Value("${api.ratelimiter.permits-per-second}") double permitsPerSeconds,
             @Value("${api.ratelimiter.records-maxsize}") int recordsMaxSize,
             @Value("${api.ratelimiter.records-ttl-minutes}") int recordsTtlMinutes
-    ){
+    ) {
         return new GuavaRateLimiter(permitsPerSeconds, recordsMaxSize,
                 Duration.of(recordsTtlMinutes, ChronoUnit.MINUTES)
         );

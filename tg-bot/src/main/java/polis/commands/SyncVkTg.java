@@ -1,5 +1,7 @@
 package polis.commands;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -11,27 +13,27 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.datacheck.DataCheck;
+import polis.datacheck.VkDataCheck;
 import polis.telegram.TelegramDataCheck;
 import polis.util.State;
+import polis.vk.api.VkAuthorizator;
 
-import java.util.List;
 import java.util.Objects;
 
+import static polis.commands.CommandUtils.getButtonsForSyncOptions;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
-public class SyncOkGroupDescription extends Command {
-    private static final String SYNC_OK_TG_DESCRIPTION = """
-            Телеграм-канал <b>%s</b> и группа <b>%s (%s)</b> были успешно синхронизированы.
-            Настроить функцию автопостинга можно по команде /%s.""";
-    private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP_DESCRIPTION = """
-            Невозможно показать информацию по связанным Телеграм-каналу и группе.
+public class SyncVkTg extends Command {
+    private static final String SYNC_VK_TG = """
+            Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";
+    private static final String SYNC_VK_TG_INLINE = """
+            Хотите ли Вы синхронизировать их?""";
+    private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
+            Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
+    private static final Logger LOGGER = LoggerFactory.getLogger(SyncVkTg.class);
     private static final int ROWS_COUNT = 1;
-    private static final List<String> commandsForKeyboard = List.of(
-            State.Autoposting.getDescription()
-    );
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -43,13 +45,13 @@ public class SyncOkGroupDescription extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private DataCheck dataCheck;
+    private VkDataCheck vkDataCheck;
 
     @Autowired
     private TelegramDataCheck telegramDataCheck;
 
-    public SyncOkGroupDescription() {
-        super(State.SyncOkGroupDescription.getIdentifier(), State.SyncOkGroupDescription.getDescription());
+    public SyncVkTg() {
+        super(State.SyncVkTg.getIdentifier(), State.SyncVkTg.getDescription());
     }
 
     @Override
@@ -57,21 +59,22 @@ public class SyncOkGroupDescription extends Command {
         CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
-
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
-            String groupName = dataCheck.getOKGroupName(currentGroup.getGroupId(), currentAccount.getAccessToken());
+            String groupName = vkDataCheck.getVkUsername(new VkAuthorizator.TokenWithId(currentGroup.getAccessToken(),
+                    (int) currentGroup.getAccountId()));
 
-            if (Objects.equals(groupName, "")) {
+            if (Objects.equals(groupName, null)) {
                 sendAnswer(
                         absSender,
                         chat.getId(),
                         this.getCommandIdentifier(),
                         user.getUserName(),
                         GROUP_NAME_NOT_FOUND,
-                        super.rowsCount,
-                        super.commandsForKeyboard,
+                        super.ROWS_COUNT,
+                        commandsForKeyboard,
                         null,
                         GO_BACK_BUTTON_TEXT);
+                LOGGER.error(String.format("Error detecting group name of group: %d", currentGroup.getGroupId()));
                 return;
             }
 
@@ -81,16 +84,24 @@ public class SyncOkGroupDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(
-                            SYNC_OK_TG_DESCRIPTION,
+                            SYNC_VK_TG,
                             telegramDataCheck.getChatParameter(currentChannel.getChannelUsername(), "title"),
                             groupName,
-                            currentGroup.getSocialMedia().getName(),
-                            State.Autoposting.getIdentifier()
+                            currentGroup.getSocialMedia().getName()
                     ),
-                    ROWS_COUNT,
+                    super.ROWS_COUNT,
                     commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
+            sendAnswer(
+                    absSender,
+                    chat.getId(),
+                    this.getCommandIdentifier(),
+                    user.getUserName(),
+                    SYNC_VK_TG_INLINE,
+                    ROWS_COUNT,
+                    commandsForKeyboard,
+                    getButtonsForSyncOptions());
         } else {
             sendAnswer(
                     absSender,
@@ -98,11 +109,11 @@ public class SyncOkGroupDescription extends Command {
                     this.getCommandIdentifier(),
                     user.getUserName(),
                     String.format(
-                            NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP_DESCRIPTION,
+                            NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP,
                             State.MainMenu.getIdentifier()
                     ),
-                    super.rowsCount,
-                    super.commandsForKeyboard,
+                    super.ROWS_COUNT,
+                    commandsForKeyboard,
                     null,
                     GO_BACK_BUTTON_TEXT);
         }
