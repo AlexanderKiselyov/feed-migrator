@@ -98,15 +98,14 @@ public class TgSyncGroups extends Command {
     private String[] getButtonsForTgChannelGroups(List<ChannelGroup> groups) {
         String[] buttons = new String[groups.size() * 4];
         for (int i = 0; i < groups.size(); i++) {
-            int tmpIndex = i * 4;
-
-            String socialMediaName = groups.get(i).getSocialMedia().getName();
-            buttons[tmpIndex] = String.format("%s (%s)", groupName, socialMediaName);
-            buttons[tmpIndex + 1] = String.format("group %s %d %s", groups.get(i).getGroupId(), 0, socialMediaName);
-            buttons[tmpIndex + 2] = trashEmoji + " Удалить";
-            buttons[tmpIndex + 3] = String.format("group %s %d %s", groups.get(i).getGroupId(), 1, socialMediaName);
+            int j = i * 4;
+            ChannelGroup group = groups.get(i);
+            String socialMediaName = group.getSocialMedia().getName();
+            buttons[j] = String.format("%s (%s)", group.getGroupName(), socialMediaName);
+            buttons[j + 1] = String.format("group %s %d %s", group.getGroupId(), 0, socialMediaName);
+            buttons[j + 2] = trashEmoji + " Удалить";
+            buttons[j + 3] = String.format("group %s %d %s", group.getGroupId(), 1, socialMediaName);
         }
-
         return buttons;
     }
 }
