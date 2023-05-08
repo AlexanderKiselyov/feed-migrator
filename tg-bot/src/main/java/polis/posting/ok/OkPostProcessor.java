@@ -33,8 +33,7 @@ public class OkPostProcessor extends PostProcessor {
     public OkPostProcessor(
             @Qualifier("Bot") TgNotificator tgNotificator,
             TgContentManager tgContentManager,
-            OkPoster okPoster,
-            RateLimiter postingRateLimiter
+            OkPoster okPoster
     ) {
         super(tgNotificator, tgContentManager);
         this.okPoster = okPoster;
