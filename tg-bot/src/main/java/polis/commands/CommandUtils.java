@@ -30,7 +30,7 @@ public class CommandUtils {
                             currentAccount.getAccessToken(),
                             (int) currentAccount.getAccountId()
                     ),
-                    currentGroup.getGroupId()
+                    (int) currentGroup.getGroupId()
             );
             default -> LOGGER.error(String.format("Social media incorrect: %s", currentGroup.getSocialMedia()));
         }

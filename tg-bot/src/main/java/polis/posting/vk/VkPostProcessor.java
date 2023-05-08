@@ -14,6 +14,7 @@ import polis.bot.TgNotificator;
 import polis.posting.ApiException;
 import polis.posting.PostProcessor;
 import polis.ratelim.RateLimiter;
+import polis.vk.api.LoggingUtils;
 import polis.vk.api.exceptions.VkApiException;
 
 import java.io.File;
@@ -78,11 +79,11 @@ public class VkPostProcessor extends PostProcessor {
                 File file = tgContentManager.download(document);
                 files.add(file);
             }
-            List<String> documentIds = vkPoster.saveDocuments(files, (int) userId, accessToken, groupId);
+            List<String> documentIds = vkPoster.uploadDocuments(files, (int) userId, accessToken, groupId);
 
             String pollId = null;
             if (poll != null) {
-                 pollId = vkPoster.createPoll(
+                 pollId = vkPoster.uploadPoll(
                          (int) userId,
                          accessToken,
                          poll.getQuestion(),
@@ -93,12 +94,12 @@ public class VkPostProcessor extends PostProcessor {
                 );
             }
 
-            vkPoster.newPost(groupId)
+            vkPoster.newPost(userId)
                     .addPhotos(photoIds)
-                    .addVideos(videoIds)
+                    .addVideos(videoIds, groupId)
                     .addText(text)
                     .addPoll(poll, pollId)
-                    .addDocuments(documentIds)
+                    .addDocuments(documentIds, groupId)
                     .post((int) userId, accessToken, groupId);
             tgNotificator.sendNotification(ownerChatId, channelId, successfulPostToGroupMsg(groupLink(groupId)));
         } catch (VkApiException | ApiException | URISyntaxException | IOException | TelegramApiException e) {

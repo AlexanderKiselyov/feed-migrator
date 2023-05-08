@@ -91,6 +91,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
     private static final String AUTOPOSTING_ENABLE_AND_NOTIFICATIONS = "Функция автопостинга включена."
             + TURN_ON_NOTIFICATIONS_MSG;
+    private static final String CHANNEL_INFO_ERROR = "Ошибка получения информации по каналу.";
     private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.ofEntries(
             Map.entry(String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
                     List.of(State.OkAccountDescription.getDescription())),
@@ -256,7 +257,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
      */
     public void setStateForMessage(Message message) {
         if (message == null) {
-            LOGGER.warn("Received null message");
             return;
         }
         if (LOGGER.isDebugEnabled()) {
@@ -380,42 +380,30 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 return;
             }
             long userChatId = userChannelsRepository.getUserChatId(channelId);
-            List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(userChatId);
-            for (UserChannels tgChannel : tgChannels) {
-                if (!Objects.equals(tgChannel.getChannelId(), channelId)) {
-                    return;
+            UserChannels tgChannel = userChannelsRepository.getUserChannel(channelId, userChatId);
+            if (tgChannel == null || !tgChannel.isAutoposting()) {
+                return;
+            }
+            for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
+                String accessToken = group.getAccessToken();
+                long userId = group.getAccountId();
+
+                if (accessToken == null) {
+                    checkAndSendNotification(ownerChatId, channelId, CHANNEL_INFO_ERROR);
+                    continue;
                 }
-                if (!tgChannel.isAutoposting()) {
-                    return;
-                }
-                for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
-                    String accessToken = null;
-                    Long userId = null;
-                    for (Account account : accountsRepository.getAccountsForUser(userChatId)) {
-                        if (Objects.equals(account.getAccountId(), group.getAccountId())) {
-                            accessToken = account.getAccessToken();
-                            userId = account.getAccountId();
-                            break;
-                        }
+
+                switch (group.getSocialMedia()) {
+                    case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
+                            channelId, userId, accessToken);
+                    case VK -> vkPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
+                            channelId, userId, accessToken);
+                    default -> {
+                        LOGGER.error(String.format("Social media not found: %s",
+                                group.getSocialMedia()));
+                        checkAndSendNotification(ownerChatId, channelId, ERROR_POST_MSG + group.getGroupId());
                     }
 
-                    if (accessToken == null) {
-                        sendAnswer(ownerChatId, "Аккаунт не был найден.");
-                        return;
-                    }
-
-                    switch (group.getSocialMedia()) {
-                        case OK -> okPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
-                                channelId, userId, accessToken);
-                        case VK -> vkPostProcessor.processPostInChannel(postItems, ownerChatId, group.getGroupId(),
-                                channelId, userId, accessToken);
-                        default -> {
-                            LOGGER.error(String.format("Social media not found: %s",
-                                    group.getSocialMedia()));
-                            checkAndSendNotification(ownerChatId, channelId, ERROR_POST_MSG + group.getGroupId());
-                        }
-
-                    }
                 }
             }
         } catch (RuntimeException e) {

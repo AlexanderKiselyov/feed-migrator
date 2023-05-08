@@ -16,7 +16,8 @@ public class AddVkAccount extends Command {
     private static final String VK_AUTH_ANSWER = """
                     Для авторизации в социальной сети ВКонтакте перейдите по ссылке:
                     %s
-                    После авторизации скопируйте код авторизации из адресной строки и отправьте его в этот диалог.""";
+                    После авторизации скопируйте код авторизации (все символы после "code=") из адресной строки
+                    или всю ссылку целиком и отправьте в этот диалог.""";
     private static final Logger LOGGER = LoggerFactory.getLogger(AddVkAccount.class);
 
     public AddVkAccount() {

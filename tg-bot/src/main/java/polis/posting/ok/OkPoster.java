@@ -14,7 +14,6 @@ import polis.ok.api.domain.Video;
 import polis.ok.api.domain.VideoMedia;
 import polis.ok.api.exceptions.OkApiException;
 import polis.posting.ApiException;
-import polis.posting.Poster;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class OkPoster implements Poster {
+public class OkPoster implements IOkPoster {
 
     private final OKClient okClient;
 
@@ -66,15 +65,15 @@ public class OkPoster implements Poster {
     }
 
     @Override
-    public OkPost newPost(Long ownerId) {
+    public OkPost newPost() {
         return new OkPost();
     }
 
-    public class OkPost implements Poster.Post {
+    public class OkPost implements IOkPost {
         private final Attachment attachment = new Attachment();
 
         @Override
-        public Post addPhotos(List<String> photoIds) {
+        public OkPost addPhotos(List<String> photoIds) {
             if (photoIds == null || photoIds.isEmpty()) {
                 return this;
             }
@@ -106,7 +105,7 @@ public class OkPoster implements Poster {
         }
 
         @Override
-        public OkPost addPoll(Poll poll, String pollId) {
+        public OkPost addPoll(Poll poll) {
             if (poll == null) {
                 return this;
             }
@@ -135,7 +134,7 @@ public class OkPoster implements Poster {
         }
 
         @Override
-        public void post(Integer userId, String accessToken, long groupId)
+        public void post(String accessToken, long groupId)
                 throws URISyntaxException, IOException, ApiException {
             try {
                 okClient.postMediaTopic(accessToken, groupId, attachment);

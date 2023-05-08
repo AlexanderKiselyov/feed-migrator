@@ -26,6 +26,7 @@ public class VkDataCheck {
     public static final String VK_AUTH_STATE_ANSWER = """
             Вы были успешно авторизованы в социальной сети ВКонтакте.
             Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
+    private static final String CODE = "code=";
     private static final Logger LOGGER = LoggerFactory.getLogger(VkDataCheck.class);
     private final VkAuthorizator vkAuthorizator = new VkAuthorizator();
     private final VkApiMethods vkApiMethods = new VkApiMethods();
@@ -41,6 +42,10 @@ public class VkDataCheck {
 
     public NonCommand.AnswerPair getVkAuthCode(String text, Long chatId) {
         try {
+            if (text.contains(CODE)) {
+                text = text.substring(text.indexOf(CODE) + CODE.length());
+            }
+
             VkAuthorizator.TokenWithId tokenWithId = vkAuthorizator.getToken(text);
 
             String username = getVkUsername(tokenWithId);
@@ -55,7 +60,7 @@ public class VkDataCheck {
                     tokenWithId.userId(),
                     username,
                     tokenWithId.accessToken(),
-                    "" // FIXME подумать над отсутствующим refresh_token в ВК
+                    ""
             );
 
             currentAccountRepository.insertCurrentAccount(
@@ -110,7 +115,7 @@ public class VkDataCheck {
         }
     }
 
-    public String getVkGroupName(VkAuthorizator.TokenWithId tokenWithId, Long groupId) {
+    public String getVkGroupName(VkAuthorizator.TokenWithId tokenWithId, Integer groupId) {
         try {
             return vkApiMethods.getVkGroupName(tokenWithId, groupId);
         } catch (VkApiException e) {

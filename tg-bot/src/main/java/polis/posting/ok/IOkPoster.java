@@ -1,13 +1,14 @@
-package polis.posting;
+package polis.posting.ok;
 
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
+import polis.posting.ApiException;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
-public interface Poster {
+public interface IOkPoster {
 
     List<String> uploadPhotos(List<File> photos, Integer userId, String accessToken, long groupId)
             throws URISyntaxException, IOException, ApiException;
@@ -15,23 +16,21 @@ public interface Poster {
     List<String> uploadVideos(List<File> videos, Integer userId, String accessToken, long groupId)
             throws URISyntaxException, IOException, ApiException;
 
-    Post newPost(Long ownerId);
+    IOkPost newPost();
 
-    interface Post {
+    interface IOkPost {
 
-        Post addPhotos(List<String> photoIds);
+        IOkPost addPhotos(List<String> photoIds);
 
-        Post addVideos(List<String> videoIds);
+        IOkPost addVideos(List<String> videoIds);
 
-        Post addText(String text);
+        IOkPost addText(String text);
 
-        Post addPoll(Poll poll, String pollId);
+        IOkPost addPoll(Poll poll);
 
-        Post addDocuments(List<String> documentIds);
+        IOkPost addDocuments(List<String> documentIds);
 
-        void post(Integer userId, String accessToken, long groupId)
-                throws URISyntaxException, IOException, ApiException;
-
+        void post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
     }
 }
 

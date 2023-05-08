@@ -1,15 +1,11 @@
 package polis.commands;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
-import polis.data.domain.CurrentAccount;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.ChannelGroupsRepository;
@@ -18,10 +14,9 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.datacheck.OkDataCheck;
 import polis.datacheck.VkDataCheck;
 import polis.util.State;
-import polis.vk.api.VkAuthorizator;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
@@ -55,8 +50,6 @@ public class TgSyncGroups extends Command {
     @Autowired
     private VkDataCheck vkDataCheck;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TgSyncGroups.class);
-
     public TgSyncGroups() {
         super(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription());
     }
@@ -64,69 +57,19 @@ public class TgSyncGroups extends Command {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
-        List<Account> accounts = accountsRepository.getAccountsForUser(chat.getId());
-        CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
 
-        if (currentChannel != null && accounts != null && !accounts.isEmpty()) {
+        if (currentChannel != null) {
             List<ChannelGroup> channelGroups =
                     channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId());
 
             if (channelGroups != null && !channelGroups.isEmpty()) {
-                String groupName = null;
-                Long groupId = null;
-
-                for (ChannelGroup group : channelGroups) {
-                    groupId = group.getGroupId();
-                    switch (group.getSocialMedia()) {
-                        case OK -> {
-                            for (Account socialMediaAccount : accounts) {
-                                if (Objects.equals(socialMediaAccount.getAccountId(), group.getAccountId())) {
-                                    groupName = okDataCheck.getOKGroupName(group.getGroupId(),
-                                            socialMediaAccount.getAccessToken());
-                                    break;
-                                }
-                            }
-                        }
-                        case VK -> {
-                            for (Account socialMediaAccount : accounts) {
-                                if (Objects.equals(socialMediaAccount.getAccountId(), group.getAccountId())) {
-                                    groupName = vkDataCheck.getVkGroupName(
-                                            new VkAuthorizator.TokenWithId(
-                                                    currentAccount.getAccessToken(),
-                                                    (int) currentAccount.getAccountId()
-                                            ),
-                                            group.getGroupId()
-                                    );
-                                    break;
-                                }
-                            }
-                        }
-                        default -> LOGGER.error(String.format("Social media not found: %s", group.getSocialMedia()));
-                    }
-                }
-
-                if (Objects.equals(groupName, null)) {
-                    sendAnswer(
-                            absSender,
-                            chat.getId(),
-                            this.getCommandIdentifier(),
-                            user.getUserName(),
-                            GROUP_NAME_NOT_FOUND,
-                            1,
-                            List.of(State.TgChannelDescription.getDescription()),
-                            null,
-                            GO_BACK_BUTTON_TEXT);
-                    LOGGER.error(String.format("Error detecting group name of group: %d", groupId));
-                    return;
-                }
-
                 sendAnswer(absSender,
                         chat.getId(),
                         this.getCommandIdentifier(),
                         user.getUserName(),
                         TG_SYNC_GROUPS,
                         ROWS_COUNT,
-                        commandsForKeyboard,
+                        Collections.emptyList(),
                         null,
                         GO_BACK_BUTTON_TEXT);
                 sendAnswer(
@@ -136,8 +79,8 @@ public class TgSyncGroups extends Command {
                         user.getUserName(),
                         TG_SYNC_GROUPS_INLINE,
                         channelGroups.size(),
-                        commandsForKeyboard,
-                        getButtonsForTgChannelGroups(channelGroups, groupName));
+                        Collections.emptyList(),
+                        getButtonsForTgChannelGroups(channelGroups));
                 return;
             }
         }
@@ -149,11 +92,10 @@ public class TgSyncGroups extends Command {
                 String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
                 1,
                 List.of(State.TgChannelDescription.getDescription()),
-                null,
-                GO_BACK_BUTTON_TEXT);
+                null);
     }
 
-    private String[] getButtonsForTgChannelGroups(List<ChannelGroup> groups, String groupName) {
+    private String[] getButtonsForTgChannelGroups(List<ChannelGroup> groups) {
         String[] buttons = new String[groups.size() * 4];
         for (int i = 0; i < groups.size(); i++) {
             int tmpIndex = i * 4;
