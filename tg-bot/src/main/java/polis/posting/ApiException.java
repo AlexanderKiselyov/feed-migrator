@@ -4,6 +4,7 @@ public class ApiException extends Exception {
     private final Integer code;
 
     public ApiException() {
+        super();
         this.code = 0;
     }
 
