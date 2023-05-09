@@ -39,7 +39,8 @@ public class AddOkGroup extends Command {
         if (currentChannel != null) {
             for (ChannelGroup smg : channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.OK) {
-                    sendAnswerWithOnlyBackButton(absSender,
+                    sendAnswerWithOnlyBackButton(
+                            absSender,
                             chat.getId(),
                             String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.OK.getName()),
                             loggingInfo(user.getUserName()));
@@ -47,7 +48,8 @@ public class AddOkGroup extends Command {
                 }
             }
         }
-        sendAnswerWithOnlyBackButton(absSender,
+        sendAnswerWithOnlyBackButton(
+                absSender,
                 chat.getId(),
                 ADD_OK_GROUP_MSG,
                 loggingInfo(user.getUserName()));

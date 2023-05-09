@@ -37,7 +37,8 @@ public class VkAccountDescription extends Command {
         boolean noErrorCondition = currentAccount != null;
         String text = noErrorCondition ? String.format(ACCOUNT_DESCRIPTION, currentAccount.getUserFullName())
                 : String.format(NOT_VALID_ACCOUNT, State.AddGroup.getIdentifier());
-        sendAnswerWithReplyKeyboardAndBackButton(absSender,
+        sendAnswerWithReplyKeyboardAndBackButton(
+                absSender,
                 chat.getId(),
                 text,
                 ROWS_COUNT,

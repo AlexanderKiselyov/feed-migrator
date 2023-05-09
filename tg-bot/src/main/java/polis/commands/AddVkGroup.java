@@ -39,7 +39,8 @@ public class AddVkGroup extends Command {
         if (currentChannel != null) {
             for (ChannelGroup smg : channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.VK) {
-                    sendAnswerWithOnlyBackButton(absSender,
+                    sendAnswerWithOnlyBackButton(
+                            absSender,
                             chat.getId(),
                             String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.VK.getName()),
                             loggingInfo(user.getUserName()));
@@ -47,7 +48,8 @@ public class AddVkGroup extends Command {
                 }
             }
         }
-        sendAnswerWithOnlyBackButton(absSender,
+        sendAnswerWithOnlyBackButton(
+                absSender,
                 chat.getId(),
                 ADD_VK_GROUP_MSG,
                 loggingInfo(user.getUserName()));
