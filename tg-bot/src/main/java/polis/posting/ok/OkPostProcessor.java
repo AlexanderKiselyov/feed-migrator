@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.TgContentManager;
 import polis.posting.ApiException;
 import polis.posting.PostProcessor;
+import polis.util.SocialMedia;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,12 @@ public class OkPostProcessor extends PostProcessor {
             "Тип файла 'Документ' не поддерживается в социальной сети Одноклассники";
     private static final String GROUPS_LINK = "ok.ru/group/";
     private static final String POST_PREFIX = "/topic/";
+    private static final String VIDEO_WARNING = """
+            Для показа видео в ленте группы необходимо принять условия соглашения для каждого из опубликованных видео:
+            1. Перейдите в раздел 'Все видео'
+            2. Выберите пункт 'Редактировать' у опубликованного видео
+            3. Отредактируйте поля с названием видео, описанием и другими полями, если необходимо
+            4. Нажмите на кнопку 'Сохранить'""";
 
     private final OkPoster okPoster;
 
@@ -78,10 +85,15 @@ public class OkPostProcessor extends PostProcessor {
                     .addPoll(poll)
                     .addText(text)
                     .post(accessToken, groupId);
-            return successfulPostMsg(postLink(groupId, postId));
+            if (videoIds == null || videoIds.isEmpty()) {
+                return successfulPostMsg(SocialMedia.OK.getName(), postLink(groupId, postId));
+            } else {
+                return successfulPostMsg(SocialMedia.OK.getName(), postLinkWithVideoWarning(groupId, postId));
+            }
         } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {
-            return failPostToGroupMsg(groupLink(groupId));
+            return failPostToGroupMsg(SocialMedia.OK.getName(), groupLink(groupId));
         }
+
     }
 
     private static String groupLink(long groupId) {
@@ -90,5 +102,9 @@ public class OkPostProcessor extends PostProcessor {
 
     private static String postLink(long groupId, long postId) {
         return groupLink(groupId) + POST_PREFIX + postId;
+    }
+
+    private static String postLinkWithVideoWarning(long groupId, long postId) {
+        return postLink(groupId, postId) + ". " + VIDEO_WARNING;
     }
 }
