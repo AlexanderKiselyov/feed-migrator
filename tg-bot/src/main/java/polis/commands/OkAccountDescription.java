@@ -37,8 +37,7 @@ public class OkAccountDescription extends Command {
         boolean noCurrentAccountCondition = currentAccount == null;
         String text = noCurrentAccountCondition ? String.format(NOT_VALID_ACCOUNT, State.AddGroup.getIdentifier()) :
                 String.format(ACCOUNT_DESCRIPTION, currentAccount.getUserFullName());
-        sendAnswerWithReplyKeyboardAndBackButton(
-                absSender,
+        sendAnswerWithReplyKeyboardAndBackButton(absSender,
                 chat.getId(),
                 text,
                 ROWS_COUNT,
