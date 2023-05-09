@@ -74,14 +74,24 @@ import java.util.stream.Collectors;
 
 import static polis.commands.NonCommand.VK_GROUP_ADDED;
 import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
 import static polis.datacheck.OkDataCheck.OK_GROUP_ADDED;
+import static polis.datacheck.OkDataCheck.SAME_OK_ACCOUNT;
+import static polis.datacheck.OkDataCheck.USER_HAS_NO_RIGHTS;
+import static polis.datacheck.OkDataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
 import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_ANSWER;
+import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
+import static polis.datacheck.VkDataCheck.SAME_VK_ACCOUNT;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
+import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
 import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
+import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
 
 @Configuration
 @Component("Bot")
 public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, TgNotificator {
+    private static final List<String> EMPTY_LIST = List.of();
     private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в "
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
     private static final String AUTOPOSTING_ENABLE_AND_NOTIFICATIONS = "Функция автопостинга включена."
@@ -93,6 +103,15 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             Map.entry(String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()),
                     List.of(State.SyncOkTg.getDescription())),
             Map.entry(RIGHT_LINK, List.of(State.TgChannelDescription.getDescription())),
+            Map.entry(OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER, EMPTY_LIST),
+            Map.entry(OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, EMPTY_LIST),
+            Map.entry(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, EMPTY_LIST),
+            Map.entry(USER_HAS_NO_RIGHTS, EMPTY_LIST),
+            Map.entry(SAME_OK_ACCOUNT, EMPTY_LIST),
+            Map.entry(VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, EMPTY_LIST),
+            Map.entry(SAME_VK_ACCOUNT, EMPTY_LIST),
+            Map.entry(WRONG_LINK_OR_BOT_NOT_ADMIN, EMPTY_LIST),
+            Map.entry(BOT_NOT_ADMIN, EMPTY_LIST),
             Map.entry(AUTOPOSTING_ENABLE_AND_NOTIFICATIONS, List.of(State.Notifications.getDescription())),
             Map.entry(String.format(VK_AUTH_STATE_ANSWER, State.VkAccountDescription.getIdentifier()),
                     List.of(State.VkAccountDescription.getDescription())),

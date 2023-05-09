@@ -45,7 +45,7 @@ public class OkDataCheck {
             Группа была успешно добавлена.
             Синхронизируйте группу с Телеграм-каналом по команде /%s.""";
     private static final String OK_METHOD_DO = "https://api.ok.ru/fb.do";
-    private static final String SAME_ACCOUNT = "Данный аккаунт уже был ранее добавлен.";
+    public static final String SAME_OK_ACCOUNT = "Данный аккаунт в социальной сети Одноклассники уже был добавлен.";
     public static final String WRONG_LINK_OR_USER_HAS_NO_RIGHTS = """
             Введенная ссылка не является верной или пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
@@ -91,7 +91,7 @@ public class OkDataCheck {
             }
 
             if (accountsRepository.getUserAccount(chatId, userId, SocialMedia.OK.getName()) != null) {
-                return new NonCommand.AnswerPair(SAME_ACCOUNT, true);
+                return new NonCommand.AnswerPair(SAME_OK_ACCOUNT, true);
             }
 
             Account newAccount = new Account(

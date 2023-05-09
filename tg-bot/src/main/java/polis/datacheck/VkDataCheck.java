@@ -29,7 +29,7 @@ public class VkDataCheck {
     public static final String VK_AUTH_STATE_ANSWER = """
             Вы были успешно авторизованы в социальной сети ВКонтакте.
             Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
-    private static final String SAME_ACCOUNT = "Данный аккаунт уже был ранее добавлен.";
+    public static final String SAME_VK_ACCOUNT = "Данный аккаунт в социальной сети ВКонтакте уже был добавлен.";
     private static final String CODE = "code=";
     private static final Logger LOGGER = LoggerFactory.getLogger(VkDataCheck.class);
     private final VkAuthorizator vkAuthorizator = new VkAuthorizator();
@@ -59,7 +59,7 @@ public class VkDataCheck {
             }
 
             if (accountsRepository.getUserAccount(chatId, tokenWithId.userId(), SocialMedia.VK.getName()) != null) {
-                return new NonCommand.AnswerPair(SAME_ACCOUNT, true);
+                return new NonCommand.AnswerPair(SAME_VK_ACCOUNT, true);
             }
 
             Account newAccount = new Account(
