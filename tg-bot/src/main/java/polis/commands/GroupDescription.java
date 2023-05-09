@@ -70,8 +70,7 @@ public class GroupDescription extends Command {
             sendAnswerWithReplyKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    String.format(msgToSend, groupName,
-                            currentGroup.getSocialMedia().getName()),
+                    String.format(msgToSend, groupName, currentGroup.getSocialMedia().getName()),
                     rowsCount,
                     commandsForKeyboard,
                     loggingInfo(user.getUserName()));
