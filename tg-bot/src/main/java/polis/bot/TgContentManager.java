@@ -45,7 +45,7 @@ public class TgContentManager {
 
     public File download(Video video) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = video.getFileId();
-        return fileLoader.downloadFileById(fileId);
+        return fileLoader.downloadFileByIdAndName(fileId, video.getFileName());
     }
 
     public File download(PhotoSize tgPhoto) throws URISyntaxException, IOException, TelegramApiException {
@@ -55,7 +55,7 @@ public class TgContentManager {
 
     public File download(Document document) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = document.getFileId();
-        return fileLoader.downloadFileById(fileId);
+        return fileLoader.downloadFileByIdAndName(fileId, document.getFileName());
     }
 
     public static List<Video> toVideos(List<Animation> animations) {
@@ -103,6 +103,32 @@ public class TgContentManager {
             logger.error("Error while changing extension of " + tgApiFilePath, e);
             throw new RuntimeException(e);
         }
+        return path.toFile();
+    }
+
+    static File fileWithOrigName(String tgApiFilePath, File file, String fileName) {
+        String absPath = file.getAbsolutePath();
+        int nameIndex = absPath.lastIndexOf('/') + 1;
+        String basePath = absPath.substring(0, nameIndex);
+        Path path = Path.of(basePath + fileName);
+        int i = 0;
+        while (Files.exists(path) && Files.exists(Path.of(basePath + i + "/" + fileName))) {
+            i++;
+        }
+        try {
+            if (Files.exists(path)) {
+                Path folder = Path.of(basePath + i);
+                if (!Files.exists(folder)) {
+                    Files.createDirectory(folder);
+                }
+                path = Path.of(folder + "/" + fileName);
+            }
+            Files.move(file.toPath(), path);
+        } catch (IOException e) {
+            logger.error("Error while changing name of " + tgApiFilePath, e);
+            throw new RuntimeException(e);
+        }
+        logger.info("Successfully changed name of file \"{}\" to file with path: {}", tgApiFilePath, path);
         return path.toFile();
     }
 

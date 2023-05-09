@@ -7,5 +7,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 public interface TgFileLoader {
-    File downloadFileById(String fileId) throws URISyntaxException, IOException, TelegramApiException;
+    File downloadFileById(String fileId) throws URISyntaxException, IOException,
+            TelegramApiException;
+    File downloadFileByIdAndName(String fileId, String fileName) throws URISyntaxException, IOException,
+            TelegramApiException;
 }
