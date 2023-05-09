@@ -22,10 +22,14 @@ import static polis.commands.Command.USERNAME_NOT_FOUND;
 
 @Component
 public class VkDataCheck {
-    public static final String VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = "Ошибка на сервере. Попробуйте еще раз.";
+    public static final String VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = """
+            Невозможно выполнить авторизацию в социальной сети ВКонтакте.
+            Пожалуйста, проверьте данные авторизации и попробуйте еще раз.""";
+
     public static final String VK_AUTH_STATE_ANSWER = """
             Вы были успешно авторизованы в социальной сети ВКонтакте.
             Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
+    private static final String SAME_ACCOUNT = "Данный аккаунт уже был ранее добавлен.";
     private static final String CODE = "code=";
     private static final Logger LOGGER = LoggerFactory.getLogger(VkDataCheck.class);
     private final VkAuthorizator vkAuthorizator = new VkAuthorizator();
@@ -52,6 +56,10 @@ public class VkDataCheck {
 
             if (username == null) {
                 return new NonCommand.AnswerPair(USERNAME_NOT_FOUND, true);
+            }
+
+            if (accountsRepository.getUserAccount(chatId, tokenWithId.userId(), SocialMedia.VK.getName()) != null) {
+                return new NonCommand.AnswerPair(SAME_ACCOUNT, true);
             }
 
             Account newAccount = new Account(
