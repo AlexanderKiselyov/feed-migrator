@@ -3,6 +3,7 @@ package polis.bot;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.text.Transliterator;
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -107,12 +108,13 @@ public class TgContentManager {
     }
 
     static File fileWithOrigName(String tgApiFilePath, File file, String fileName) {
+        String tmpFileName = containsCyrillic(fileName) ? transliterationFromRusToEng(fileName) : fileName;
         String absPath = file.getAbsolutePath();
-        int nameIndex = absPath.lastIndexOf('/') + 1;
+        int nameIndex = absPath.lastIndexOf(File.separatorChar) + 1;
         String basePath = absPath.substring(0, nameIndex);
-        Path path = Path.of(basePath + fileName);
+        Path path = Path.of(basePath + tmpFileName);
         int i = 0;
-        while (Files.exists(path) && Files.exists(Path.of(basePath + i + "/" + fileName))) {
+        while (Files.exists(path) && Files.exists(Path.of(basePath + i + File.separator + tmpFileName))) {
             i++;
         }
         try {
@@ -121,7 +123,7 @@ public class TgContentManager {
                 if (!Files.exists(folder)) {
                     Files.createDirectory(folder);
                 }
-                path = Path.of(folder + "/" + fileName);
+                path = Path.of(folder + File.separator + tmpFileName);
             }
             Files.move(file.toPath(), path);
         } catch (IOException e) {
@@ -130,6 +132,18 @@ public class TgContentManager {
         }
         logger.info("Successfully changed name of file \"{}\" to file with path: {}", tgApiFilePath, path);
         return path.toFile();
+    }
+
+    private static boolean containsCyrillic(String fileName) {
+        return fileName.chars()
+                .mapToObj(Character.UnicodeBlock::of)
+                .anyMatch(b -> b.equals(Character.UnicodeBlock.CYRILLIC));
+    }
+
+    private static String transliterationFromRusToEng(String filename) {
+        String CYRILLIC_TO_LATIN = "Cyrillic-Latin";
+        Transliterator toLatinTrans = Transliterator.getInstance(CYRILLIC_TO_LATIN);
+        return toLatinTrans.transliterate(filename);
     }
 
     private static String getFileUrl(String botToken) {
