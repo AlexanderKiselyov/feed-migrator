@@ -1,7 +1,6 @@
 package polis.posting;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
@@ -19,8 +18,6 @@ public abstract class PostProcessor {
     private static final String SUCCESS_POST_MSG = "Успешно опубликовал пост ";
     private static final String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
             + "Не удалось опубликовать пост в ";
-    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
-            + "соответствии с Законом об авторском праве.";
     protected final TgContentManager tgContentManager;
 
     @Autowired
@@ -51,10 +48,6 @@ public abstract class PostProcessor {
         List<Animation> animations = new ArrayList<>(1);
         List<Document> documents = new ArrayList<>(1);
         for (Message postItem : postItems) {
-            Chat forwardFromChat = postItem.getForwardFromChat();
-            if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
-                return AUTHOR_RIGHTS_MSG;
-            }
             if (postItem.hasPhoto()) {
                 postItem.getPhoto().stream()
                         .max(Comparator.comparingInt(PhotoSize::getFileSize))

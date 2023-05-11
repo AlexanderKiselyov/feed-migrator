@@ -14,6 +14,7 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -128,6 +129,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private static final String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
             + "Не удалось опубликовать пост в ok.ru/group/";
     private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
+    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
+            + "соответствии с Законом об авторском праве.";
     private static final String SINGLE_ITEM_POSTS = "";
 
     @Autowired
@@ -384,12 +387,18 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     }
 
     private void processPostItems(List<Message> postItems) {
-        long channelId = postItems.get(0).getChatId();
+        Message postItem = postItems.get(0);
+        long channelId = postItem.getChatId();
         long ownerChatId = userChannelsRepository.getUserChatId(channelId);
         if (!postingRateLimiter.allowRequest(ownerChatId)) {
             repliesThrottler.throttle(ownerChatId, () ->
                     sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG)
             );
+            return;
+        }
+        Chat forwardFromChat = postItem.getForwardFromChat();
+        if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
+            sendNotification(ownerChatId, channelId, AUTHOR_RIGHTS_MSG);
             return;
         }
         try {
