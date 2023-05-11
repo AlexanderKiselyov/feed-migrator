@@ -24,7 +24,7 @@ public class TgChannelsList extends Command {
             Список добавленных Телеграм-каналов пуст.
             Пожалуйста, добавьте хотя бы один канал.""";
     private static final int ROWS_COUNT = 2;
-    private static final List<String> commandsForKeyboard = List.of(
+    private static final List<String> KEYBOARD_COMMANDS = List.of(
             State.AddTgChannel.getDescription(),
             State.MainMenu.getDescription()
     );
@@ -54,12 +54,12 @@ public class TgChannelsList extends Command {
                     chat.getId(),
                     NO_TG_CHANNELS,
                     ROWS_COUNT,
-                    commandsForKeyboard,
+                    KEYBOARD_COMMANDS,
                     loggingInfo(user.getUserName()));
         }
     }
 
-    private List<String> getUserTgChannelsArray(List<UserChannels> channels) {
+    private static List<String> getUserTgChannelsArray(List<UserChannels> channels) {
         List<String> buttons = new ArrayList<>(channels.size() * 4);
         for (UserChannels channel : channels) {
             String telegramChannelUsername = channel.getChannelUsername();

@@ -35,7 +35,7 @@ public class Notifications extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     private static final int ROWS_COUNT = 1;
-    private static final List<String> commandsForKeyboardInErrorCase = List.of(State.MainMenu.getDescription());
+    private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
     public Notifications() {
         super(State.Notifications.getIdentifier(), State.Notifications.getDescription());
@@ -66,11 +66,11 @@ public class Notifications extends Command {
                 chat.getId(),
                 String.format(NO_CURRENT_TG_CHANNEL, State.MainMenu.getIdentifier()),
                 ROWS_COUNT,
-                commandsForKeyboardInErrorCase,
+                KEYBOARD_COMMANDS_IN_ERROR_CASE,
                 loggingInfo(user.getUserName()));
     }
 
-    private List<String> getButtonsForNotificationsOptions(Long id) {
+    private static List<String> getButtonsForNotificationsOptions(Long id) {
         return List.of(
                 "Да",
                 String.format("notifications %s 0", id),

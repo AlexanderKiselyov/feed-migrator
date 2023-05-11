@@ -19,7 +19,7 @@ public class AddGroup extends Command {
             Невозможно получить информацию по текущему телеграм-каналу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private static final int ROWS_COUNT = 2;
-    private static final List<String> commandsForKeyboard = List.of(
+    private static final List<String> KEYBOARD_COMMANDS = List.of(
             State.AccountsList.getDescription(),
             State.AddOkAccount.getDescription(),
             State.AddVkAccount.getDescription()
@@ -41,7 +41,7 @@ public class AddGroup extends Command {
                     chat.getId(),
                     String.format(ADD_GROUP_MSG, currentChannel.getChannelUsername()),
                     ROWS_COUNT,
-                    commandsForKeyboard,
+                    KEYBOARD_COMMANDS,
                     loggingInfo(user.getUserName()));
             return;
         }

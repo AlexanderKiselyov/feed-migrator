@@ -23,8 +23,8 @@ public class OkAccountDescription extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     private static final int ROWS_COUNT = 1;
-    private static final List<String> commandsForKeyboard = List.of(State.AddOkGroup.getDescription());
-    private static final List<String> commandsForKeyboardInErrorCase = List.of(State.MainMenu.getDescription());
+    private static final List<String> KEYBOARD_COMMANDS = List.of(State.AddOkGroup.getDescription());
+    private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
     public OkAccountDescription() {
         super(State.OkAccountDescription.getIdentifier(), State.OkAccountDescription.getDescription());
@@ -35,14 +35,15 @@ public class OkAccountDescription extends Command {
         CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
 
         boolean noCurrentAccountCondition = currentAccount == null;
-        String text = noCurrentAccountCondition ? String.format(NOT_VALID_ACCOUNT, State.AddGroup.getIdentifier()) :
-                String.format(ACCOUNT_DESCRIPTION, currentAccount.getUserFullName());
+        String text = noCurrentAccountCondition
+                ? String.format(NOT_VALID_ACCOUNT, State.AddGroup.getIdentifier())
+                : String.format(ACCOUNT_DESCRIPTION, currentAccount.getUserFullName());
         sendAnswerWithReplyKeyboardAndBackButton(
                 absSender,
                 chat.getId(),
                 text,
                 ROWS_COUNT,
-                noCurrentAccountCondition ? commandsForKeyboardInErrorCase : commandsForKeyboard,
+                noCurrentAccountCondition ? KEYBOARD_COMMANDS_IN_ERROR_CASE : KEYBOARD_COMMANDS,
                 loggingInfo(user.getUserName()));
     }
 }

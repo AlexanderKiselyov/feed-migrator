@@ -21,7 +21,7 @@ public class AccountsList extends Command {
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
     private static final int ROWS_COUNT = 1;
-    private static final List<String> commandsForKeyboardInErrorCase = List.of(State.AddGroup.getDescription());
+    private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.AddGroup.getDescription());
 
     @Autowired
     private AccountsRepository accountsRepository;
@@ -50,11 +50,11 @@ public class AccountsList extends Command {
                 chat.getId(),
                 String.format(NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST_MSG, State.AddGroup.getIdentifier()),
                 ROWS_COUNT,
-                commandsForKeyboardInErrorCase,
+                KEYBOARD_COMMANDS_IN_ERROR_CASE,
                 loggingInfo(user.getUserName()));
     }
 
-    private List<String> getButtonsForAccounts(List<Account> socialMediaAccounts) {
+    private static List<String> getButtonsForAccounts(List<Account> socialMediaAccounts) {
         List<String> buttons = new ArrayList<>(socialMediaAccounts.size() * 4);
         for (Account account : socialMediaAccounts) {
             String accountUsername = account.getUserFullName();

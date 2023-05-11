@@ -13,7 +13,7 @@ public class MainMenu extends Command {
             Здесь Вы можете посмотреть список добавленных Телеграм-каналов по команде /%s.
             Кроме того, Вы можете добавить новый Телеграм-канал для синхронизации по команде /%s.""";
     private static final int ROWS_COUNT = 2;
-    private static final List<String> commandsForKeyboard = List.of(
+    private static final List<String> KEYBOARD_COMMANDS = List.of(
             State.TgChannelsList.getDescription(),
             State.AddTgChannel.getDescription()
     );
@@ -29,7 +29,7 @@ public class MainMenu extends Command {
                 chat.getId(),
                 String.format(MAIN_MENU, State.AccountsList.getIdentifier(), State.AddTgChannel.getIdentifier()),
                 ROWS_COUNT,
-                commandsForKeyboard,
+                KEYBOARD_COMMANDS,
                 loggingInfo(user.getUserName()));
     }
 }

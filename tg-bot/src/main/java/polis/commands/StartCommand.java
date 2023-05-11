@@ -14,7 +14,7 @@ public class StartCommand extends Command {
             Введите /%s и добавьте новый Телеграм-канал, из которого хотите публиковать посты в другие социальные сети.
             Или можете воспользоваться клавиатурой с командами.""", State.AddTgChannel.getIdentifier());
     private static final int ROWS_COUNT = 1;
-    private static final List<String> commandsForKeyboard = List.of(State.AddTgChannel.getDescription());
+    private static final List<String> KEYBOARD_COMMANDS = List.of(State.AddTgChannel.getDescription());
 
     public StartCommand() {
         super(State.Start.getIdentifier(), State.Start.getDescription());
@@ -27,7 +27,7 @@ public class StartCommand extends Command {
                 chat.getId(),
                 startAnswer,
                 ROWS_COUNT,
-                commandsForKeyboard,
+                KEYBOARD_COMMANDS,
                 loggingInfo(user.getUserName()));
     }
 }

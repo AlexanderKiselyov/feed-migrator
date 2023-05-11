@@ -14,7 +14,6 @@ import polis.util.State;
 
 import java.util.List;
 
-import static polis.commands.CommandUtils.getButtonsForSyncOptions;
 import static polis.util.Emojis.HAPPY_FACE;
 
 public abstract class SyncGroupWithChannel extends Command {
@@ -29,7 +28,7 @@ public abstract class SyncGroupWithChannel extends Command {
             Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     static final int ROWS_COUNT = 1;
-    static final List<String> commandsForKeyboardInErrorCase = List.of(State.MainMenu.getDescription());
+    static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -74,7 +73,16 @@ public abstract class SyncGroupWithChannel extends Command {
                         State.MainMenu.getIdentifier()
                 ),
                 ROWS_COUNT,
-                commandsForKeyboardInErrorCase,
+                KEYBOARD_COMMANDS_IN_ERROR_CASE,
                 loggingInfo(user.getUserName()));
+    }
+
+    private static List<String> getButtonsForSyncOptions() {
+        return List.of(
+                "Да",
+                "yesNo 0",
+                "Нет",
+                "yesNo 1"
+        );
     }
 }

@@ -35,7 +35,7 @@ public class Autoposting extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     private static final int ROWS_COUNT = 1;
-    private static final List<String> commandsForKeyboardInErrorCase = List.of(State.MainMenu.getDescription());
+    private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
     public Autoposting() {
         super(State.Autoposting.getIdentifier(), State.Autoposting.getDescription());
@@ -65,11 +65,11 @@ public class Autoposting extends Command {
                 chat.getId(),
                 String.format(NO_CURRENT_TG_CHANNEL_MSG, State.MainMenu.getIdentifier()),
                 ROWS_COUNT,
-                commandsForKeyboardInErrorCase,
+                KEYBOARD_COMMANDS_IN_ERROR_CASE,
                 loggingInfo(user.getUserName()));
     }
 
-    private List<String> getButtonsForAutopostingOptions(long chatId, long channelId) {
+    private static List<String> getButtonsForAutopostingOptions(long chatId, long channelId) {
         return List.of(
                 "Да",
                 String.format("autoposting %d %d 0", chatId, channelId),

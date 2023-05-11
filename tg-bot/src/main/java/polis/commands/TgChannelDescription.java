@@ -23,12 +23,12 @@ public class TgChannelDescription extends Command {
             State.MainMenu.getIdentifier());
     private static final int ROWS_COUNT = 3;
     private static final int ROWS_COUNT_IN_ERROR_CASE = 1;
-    private static final List<String> commandsForKeyboard = List.of(
+    private static final List<String> KEYBOARD_COMMANDS = List.of(
             State.TgSyncGroups.getDescription(),
             State.AddGroup.getDescription(),
             State.MainMenu.getDescription()
     );
-    private static final List<String> commandsForKeyboardInErrorCase = List.of(State.MainMenu.getDescription());
+    private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -50,7 +50,7 @@ public class TgChannelDescription extends Command {
                 chat.getId(),
                 text,
                 noErrorCondition ? ROWS_COUNT : ROWS_COUNT_IN_ERROR_CASE,
-                noErrorCondition ? commandsForKeyboard : commandsForKeyboardInErrorCase,
+                noErrorCondition ? KEYBOARD_COMMANDS : KEYBOARD_COMMANDS_IN_ERROR_CASE,
                 loggingInfo(user.getUserName()));
     }
 }

@@ -27,7 +27,7 @@ public class TgSyncGroups extends Command {
             Список синхронизированных групп пуст.
             Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и добавьте хотя бы одну группу.""";
     private static final int ROWS_COUNT = 1;
-    private static final List<String> commandsForKeyboardInErrorCase = List.of(
+    private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(
             State.TgChannelDescription.getDescription());
 
     @Autowired
@@ -65,11 +65,11 @@ public class TgSyncGroups extends Command {
                 chat.getId(),
                 String.format(NO_SYNC_GROUPS, State.TgChannelDescription.getIdentifier()),
                 ROWS_COUNT,
-                commandsForKeyboardInErrorCase,
+                KEYBOARD_COMMANDS_IN_ERROR_CASE,
                 loggingInfo(user.getUserName()));
     }
 
-    private List<String> getButtonsForTgChannelGroups(List<ChannelGroup> groups) {
+    private static List<String> getButtonsForTgChannelGroups(List<ChannelGroup> groups) {
         List<String> buttons = new ArrayList<>(groups.size() * 4);
         for (ChannelGroup group : groups) {
             String socialMediaName = group.getSocialMedia().getName();

@@ -24,8 +24,8 @@ public class SyncGroupDescription extends Command {
             Невозможно показать информацию по связанным Телеграм-каналу и группе.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private static final int ROWS_COUNT = 1;
-    private static final List<String> commandsForKeyboard = List.of(State.Autoposting.getDescription());
-    private static final List<String> commandsForKeyboardInErrorCase = List.of(State.MainMenu.getDescription());
+    private static final List<String> KEYBOARD_COMMANDS = List.of(State.Autoposting.getDescription());
+    private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -58,7 +58,7 @@ public class SyncGroupDescription extends Command {
                 chat.getId(),
                 text,
                 ROWS_COUNT,
-                noErrorCondition ? commandsForKeyboard : commandsForKeyboardInErrorCase,
+                noErrorCondition ? KEYBOARD_COMMANDS : KEYBOARD_COMMANDS_IN_ERROR_CASE,
                 loggingInfo(user.getUserName()));
     }
 }
