@@ -713,6 +713,15 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     }
 
     @Override
+    public File downloadFileById(String fileId, String nameToSet) throws URISyntaxException, IOException,
+            TelegramApiException {
+        TgContentManager.GetFilePathResponse pathResponse = tgContentManager.retrieveFilePath(botToken, fileId);
+        String tgApiFilePath = pathResponse.getFilePath();
+        File file = downloadFile(tgApiFilePath);
+        return TgContentManager.fileWithOrigName(tgApiFilePath, file, nameToSet);
+    }
+
+    @Override
     public void sendNotification(long userChatId, long channelId, String message) {
         checkAndSendNotification(userChatId, channelId, message);
     }
