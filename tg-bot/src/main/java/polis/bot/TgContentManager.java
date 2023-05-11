@@ -141,7 +141,7 @@ public class TgContentManager {
     }
 
     private static String transliterationFromRusToEng(String filename) {
-        String CYRILLIC_TO_LATIN = "Cyrillic-Latin";
+        String CYRILLIC_TO_LATIN = "Russian-Latin/BGN";
         Transliterator toLatinTrans = Transliterator.getInstance(CYRILLIC_TO_LATIN);
         return toLatinTrans.transliterate(filename);
     }
