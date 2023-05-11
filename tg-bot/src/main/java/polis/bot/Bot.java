@@ -58,6 +58,7 @@ import polis.posting.ok.OkPostProcessor;
 import polis.posting.vk.VkPostProcessor;
 import polis.ratelim.RateLimiter;
 import polis.ratelim.Throttler;
+import polis.util.Emojis;
 import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
@@ -124,7 +125,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private static final String NOTIFICATIONS = "notifications";
     private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
     private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
-    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n"
+    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
             + "Не удалось опубликовать пост в ok.ru/group/";
     private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
     private static final String SINGLE_ITEM_POSTS = "";
@@ -419,7 +420,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     default -> {
                         LOGGER.error(String.format("Social media not found: %s",
                                 group.getSocialMedia()));
-                        message =ERROR_POST_MSG + group.getGroupId();
+                        message = ERROR_POST_MSG + group.getGroupId();
                     }
                 }
                 messagesToChannelOwner.add(message);

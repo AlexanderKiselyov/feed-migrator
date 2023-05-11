@@ -10,10 +10,8 @@ import polis.util.State;
 
 import java.net.URISyntaxException;
 
-import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
-
 public class AddOkAccount extends Command {
-    private static final String OK_AUTH_ANSWER = """
+    private static final String OK_AUTH_ANSWER_MSG = """
                     Для авторизации в социальной сети Одноклассники перейдите по ссылке:
                     %s
                     После авторизации скопируйте код авторизации из адресной строки и отправьте его в этот диалог.""";
@@ -26,17 +24,12 @@ public class AddOkAccount extends Command {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         try {
-            String messageText = String.format(OK_AUTH_ANSWER, OkAuthorizator.formAuthorizationUrl());
-            sendAnswer(
+            String messageText = String.format(OK_AUTH_ANSWER_MSG, OkAuthorizator.formAuthorizationUrl());
+            sendAnswerWithOnlyBackButton(
                     absSender,
                     chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
                     messageText,
-                    ROWS_COUNT,
-                    commandsForKeyboard,
-                    null,
-                    GO_BACK_BUTTON_TEXT);
+                    loggingInfo(user.getUserName()));
         } catch (URISyntaxException e) {
             LOGGER.error(String.format("Cannot form link: %s", e));
         }
