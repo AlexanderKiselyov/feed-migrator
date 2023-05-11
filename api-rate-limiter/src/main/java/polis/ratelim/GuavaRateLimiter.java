@@ -21,10 +21,10 @@ public class GuavaRateLimiter implements polis.ratelim.RateLimiter {
     }
 
     @Override
-    public boolean allowRequest(long userId) {
+    public boolean allowRequest(long id) {
         RateLimiter rateLimiter;
         try {
-            rateLimiter = rateLimiters.get(userId, this::createLimiter);
+            rateLimiter = rateLimiters.get(id, this::createLimiter);
         } catch (ExecutionException e) {
             throw new IllegalStateException(e);
         }

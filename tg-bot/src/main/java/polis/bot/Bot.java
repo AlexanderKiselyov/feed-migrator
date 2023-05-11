@@ -57,6 +57,7 @@ import polis.keyboards.ReplyKeyboard;
 import polis.posting.ok.OkPostProcessor;
 import polis.posting.vk.VkPostProcessor;
 import polis.ratelim.RateLimiter;
+import polis.ratelim.Throttler;
 import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
@@ -199,6 +200,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
 
     @Autowired
     private RateLimiter postingRateLimiter;
+
+    @Autowired
+    private Throttler repliesThrottler;
 
     @Lazy
     @Autowired
@@ -382,7 +386,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         long channelId = postItems.get(0).getChatId();
         long ownerChatId = userChannelsRepository.getUserChatId(channelId);
         if (!postingRateLimiter.allowRequest(ownerChatId)) {
-            sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG);
+            repliesThrottler.throttle(ownerChatId, () ->
+                    sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG)
+            );
             return;
         }
         try {

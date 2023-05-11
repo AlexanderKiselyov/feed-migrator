@@ -12,6 +12,9 @@ import polis.ok.api.OKClient;
 import polis.ok.api.OkAuthorizator;
 import polis.ok.api.OkClientImpl;
 import polis.ratelim.GuavaRateLimiter;
+import polis.ratelim.RateLimiter;
+import polis.ratelim.RateLimiterBasedThrottler;
+import polis.ratelim.Throttler;
 import polis.vk.api.VkClient;
 import polis.vk.api.VkClientImpl;
 
@@ -61,7 +64,7 @@ public class AppConfig {
     }
 
     @Bean
-    public GuavaRateLimiter rateLimiter(
+    public RateLimiter rateLimiter(
             @Value("${api.ratelimiter.permits-per-second}") double permitsPerSeconds,
             @Value("${api.ratelimiter.records-maxsize}") int recordsMaxSize,
             @Value("${api.ratelimiter.records-ttl-minutes}") int recordsTtlMinutes
@@ -69,5 +72,17 @@ public class AppConfig {
         return new GuavaRateLimiter(permitsPerSeconds, recordsMaxSize,
                 Duration.of(recordsTtlMinutes, ChronoUnit.MINUTES)
         );
+    }
+
+    @Bean
+    public Throttler throttler(
+            @Value("${bot.replythrottler.replies-per-second}") double repliesPerSecond,
+            @Value("${api.ratelimiter.records-maxsize}") int recordsMaxSize,
+            @Value("${api.ratelimiter.records-ttl-minutes}") int recordsTtlMinutes
+    ) {
+        RateLimiter rateLimiter = new GuavaRateLimiter(repliesPerSecond, recordsMaxSize,
+                Duration.of(recordsTtlMinutes, ChronoUnit.MINUTES)
+        );
+        return new RateLimiterBasedThrottler(rateLimiter);
     }
 }
