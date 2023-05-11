@@ -46,7 +46,7 @@ public class TgContentManager {
 
     public File download(Video video) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = video.getFileId();
-        return fileLoader.downloadFileByIdAndName(fileId, video.getFileName());
+        return fileLoader.downloadFileById(fileId, video.getFileName());
     }
 
     public File download(PhotoSize tgPhoto) throws URISyntaxException, IOException, TelegramApiException {
@@ -56,7 +56,7 @@ public class TgContentManager {
 
     public File download(Document document) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = document.getFileId();
-        return fileLoader.downloadFileByIdAndName(fileId, document.getFileName());
+        return fileLoader.downloadFileById(fileId, document.getFileName());
     }
 
     public static List<Video> toVideos(List<Animation> animations) {
