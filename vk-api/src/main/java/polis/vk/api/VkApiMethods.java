@@ -16,12 +16,14 @@ import com.vk.api.sdk.queries.upload.UploadVideoQuery;
 import com.vk.api.sdk.queries.users.UsersGetQuery;
 import com.vk.api.sdk.queries.video.VideoSaveQuery;
 import com.vk.api.sdk.queries.wall.WallPostQuery;
+import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import polis.vk.api.exceptions.VkApiException;
 
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import static polis.vk.api.LoggingUtils.getDocumentId;
@@ -127,13 +129,17 @@ public class VkApiMethods {
 
     public Integer getVkPollId(Integer userId, String accessToken, String question, Boolean isAnonymous,
                                Boolean isMultiple, Boolean isClosed, List<String> answers) throws VkApiException {
+        List<String> allAnswers = new ArrayList<>();
+        for (String answer : answers) {
+            allAnswers.add(answer.replaceAll("\"", "'"));
+        }
         PollsCreateQuery request = vk.polls()
                 .create(new UserActor(userId, accessToken))
                 .question(question)
                 .isAnonymous(isAnonymous)
                 .isMultiple(isMultiple)
                 .disableUnvote(isClosed)
-                .addAnswers("[\"".concat(String.join("\",\"", answers)).concat("\"]"));
+                .addAnswers("[\"".concat(String.join("\",\"", allAnswers)).concat("\"]"));
 
         return getPollId(request, logger);
     }
