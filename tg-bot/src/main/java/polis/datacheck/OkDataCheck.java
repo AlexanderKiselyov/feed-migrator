@@ -38,17 +38,21 @@ public class OkDataCheck {
     public static final String OK_AUTH_STATE_ANSWER = """
             Вы были успешно авторизованы в социальной сети Одноклассники.
             Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
-    public static final String OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = "Ошибка на сервере. Попробуйте еще раз.";
+    public static final String OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = """
+            Невозможно выполнить авторизацию в социальной сети Одноклассники.
+            Пожалуйста, проверьте данные авторизации и попробуйте еще раз.""";
     public static final String OK_GROUP_ADDED = """
             Группа была успешно добавлена.
             Синхронизируйте группу с Телеграм-каналом по команде /%s.""";
     private static final String OK_METHOD_DO = "https://api.ok.ru/fb.do";
+    public static final String SAME_OK_ACCOUNT = "Данный аккаунт в социальной сети Одноклассники уже был добавлен.";
     public static final String WRONG_LINK_OR_USER_HAS_NO_RIGHTS = """
             Введенная ссылка не является верной или пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
     public static final String USER_HAS_NO_RIGHTS = """
             Пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
+    private static final String OK_SOCIAL_NAME = SocialMedia.OK.getName();
 
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
@@ -81,6 +85,10 @@ public class OkDataCheck {
                 return new NonCommand.AnswerPair(USER_ID_NOT_FOUND,true);
             }
 
+            if (accountsRepository.getUserAccount(chatId, userId, OK_SOCIAL_NAME) != null) {
+                return new NonCommand.AnswerPair(SAME_OK_ACCOUNT, true);
+            }
+
             String username = getOKUsername(pair.accessToken());
 
             if (Objects.equals(username, "")) {
@@ -89,7 +97,7 @@ public class OkDataCheck {
 
             Account newAccount = new Account(
                     chatId,
-                    SocialMedia.OK.getName(),
+                    OK_SOCIAL_NAME,
                     userId,
                     username,
                     pair.accessToken(),

@@ -80,9 +80,12 @@ import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_ANSWER;
 import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
 import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
 import static polis.datacheck.OkDataCheck.OK_GROUP_ADDED;
+import static polis.datacheck.OkDataCheck.SAME_OK_ACCOUNT;
 import static polis.datacheck.OkDataCheck.USER_HAS_NO_RIGHTS;
 import static polis.datacheck.OkDataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
+import static polis.datacheck.VkDataCheck.SAME_VK_ACCOUNT;
 import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_ANSWER;
+import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
 import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
@@ -107,6 +110,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             Map.entry(OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, EMPTY_LIST),
             Map.entry(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, EMPTY_LIST),
             Map.entry(USER_HAS_NO_RIGHTS, EMPTY_LIST),
+            Map.entry(SAME_OK_ACCOUNT, EMPTY_LIST),
+            Map.entry(VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, EMPTY_LIST),
+            Map.entry(SAME_VK_ACCOUNT, EMPTY_LIST),
             Map.entry(WRONG_LINK_OR_BOT_NOT_ADMIN, EMPTY_LIST),
             Map.entry(BOT_NOT_ADMIN, EMPTY_LIST),
             Map.entry(AUTOPOSTING_ENABLE_AND_NOTIFICATIONS, List.of(State.Notifications.getDescription())),
@@ -446,7 +452,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         StringBuilder stringBuilder = new StringBuilder();
         for (String message : messagesToChannelOwner) {
             stringBuilder.append(message);
-            stringBuilder.append("\n");
+            stringBuilder.append("\n\n");
         }
         return stringBuilder.toString();
     }

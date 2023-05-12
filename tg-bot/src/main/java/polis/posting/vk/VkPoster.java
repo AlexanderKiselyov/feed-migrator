@@ -29,7 +29,7 @@ public class VkPoster implements IVkPoster {
         try {
             return vkClient.uploadPhotos(userId, accessToken, groupId, photos);
         } catch (VkApiException e) {
-            throw new ApiException(e);
+            throw new ApiException(e.getCode(), e);
         }
     }
 
@@ -43,7 +43,7 @@ public class VkPoster implements IVkPoster {
                 videoIds.add(String.valueOf(vkClient.uploadVideo(userId, accessToken, groupId, video)));
             }
         } catch (VkApiException e) {
-            throw new ApiException(e);
+            throw new ApiException(e.getCode(), e);
         }
 
         return videoIds;
@@ -52,14 +52,23 @@ public class VkPoster implements IVkPoster {
     @Override
     public String uploadPoll(Integer userId, String accessToken, String question, Boolean isAnonymous,
                              Boolean isMultiple, Boolean isClosed, List<String> answers)
-            throws VkApiException, URISyntaxException, IOException {
-        return vkClient.createPoll(userId, accessToken, question, isAnonymous, isMultiple, isClosed, answers);
+            throws ApiException, URISyntaxException, IOException {
+        try {
+            return vkClient.createPoll(userId, accessToken, question, isAnonymous, isMultiple, isClosed, answers);
+        } catch (VkApiException e) {
+            throw new ApiException(e.getCode(), e);
+        }
+
     }
 
     @Override
     public List<String> uploadDocuments(List<File> documents, Integer userId, String accessToken, long groupId)
-            throws VkApiException {
-        return vkClient.saveDocuments(documents, userId, accessToken, groupId);
+            throws ApiException {
+        try {
+            return vkClient.saveDocuments(documents, userId, accessToken, groupId);
+        } catch (VkApiException e) {
+            throw new ApiException(e.getCode(), e);
+        }
     }
 
     @Override
@@ -154,9 +163,10 @@ public class VkPoster implements IVkPoster {
         @Override
         public long post(Integer userId, long groupId) throws ApiException {
             try {
-                return vkClient.postMediaTopic(userId, accessToken, groupId, message, String.join(",", attachments));
+                return vkClient.postMediaTopic(userId, accessToken, groupId, message,
+                        String.join(",", attachments));
             } catch (VkApiException e) {
-                throw new ApiException(e);
+                throw new ApiException(e.getCode(), e);
             }
         }
     }

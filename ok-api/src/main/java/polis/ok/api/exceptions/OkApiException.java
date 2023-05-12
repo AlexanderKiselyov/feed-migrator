@@ -2,6 +2,7 @@ package polis.ok.api.exceptions;
 
 public class OkApiException extends Exception {
     public OkApiException() {
+        super();
     }
 
     public OkApiException(String message) {

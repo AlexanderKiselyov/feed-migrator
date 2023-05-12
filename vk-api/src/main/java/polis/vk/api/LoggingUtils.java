@@ -46,15 +46,10 @@ public class LoggingUtils {
                     response.getAccessToken(),
                     response.getUserId()
             );
-        } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
+        } catch (ClientException e) {
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -63,14 +58,9 @@ public class LoggingUtils {
             List<GetByIdObjectLegacyResponse> response = request.execute();
             return response.get(0).isAdmin();
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -87,15 +77,10 @@ public class LoggingUtils {
                 }
             }
             return null;
-        } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
+        } catch (ClientException e) {
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -104,14 +89,9 @@ public class LoggingUtils {
             List<GetByIdObjectLegacyResponse> response = request.execute();
             return response.get(0).getId();
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -120,14 +100,9 @@ public class LoggingUtils {
             List<GetByIdObjectLegacyResponse> response = request.execute();
             return response.get(0).getName();
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -136,14 +111,9 @@ public class LoggingUtils {
             SaveResponse response = request.execute();
             return response.getUploadUrl();
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -152,14 +122,9 @@ public class LoggingUtils {
             VideoUploadResponse response = request.execute();
             return response.getVideoId();
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -168,14 +133,9 @@ public class LoggingUtils {
             GetWallUploadServerResponse response = request.execute();
             return response.getUploadUrl();
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -188,14 +148,9 @@ public class LoggingUtils {
                     response.getHash()
             );
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -204,14 +159,9 @@ public class LoggingUtils {
             List<SaveWallPhotoResponse> response = request.execute();
             return response.get(0).getId();
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -220,14 +170,9 @@ public class LoggingUtils {
             CreateResponse response = request.execute();
             return response.getId();
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -236,14 +181,9 @@ public class LoggingUtils {
             GetUploadServerResponse response = request.execute();
             return response.getUploadUrl();
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -252,14 +192,9 @@ public class LoggingUtils {
             DocUploadResponse response = request.execute();
             return response.getFile();
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -268,14 +203,9 @@ public class LoggingUtils {
             com.vk.api.sdk.objects.docs.responses.SaveResponse response = request.execute();
             return response.getDoc().getId();
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -286,14 +216,9 @@ public class LoggingUtils {
             logger.info("Posted post %s to group %d".formatted(postId, groupId));
             return postId;
         } catch (ApiException e) {
-            logger.error(String.format("Received error from VK: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
-            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
-
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
-                    e.getMessage()));
+            throw wrapAndLogClientException(e, logger);
         }
     }
 
@@ -315,5 +240,18 @@ public class LoggingUtils {
 
     public record ServerPhoto(String photo, Integer server, String hash) {
 
+    }
+
+    private static VkApiException wrapAndLogApiException(ApiException e, Logger logger) {
+        logger.error(String.format("Received error from VK: %s", e.getMessage()));
+
+        return new VkApiException(e.getCode(),
+                String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+    }
+
+    private static VkApiException wrapAndLogClientException(ClientException e, Logger logger) {
+        logger.error(String.format("Failed to parse response: %s", e.getMessage()));
+
+        return new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s", e.getMessage()));
     }
 }

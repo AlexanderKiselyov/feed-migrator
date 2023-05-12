@@ -3,7 +3,6 @@ package polis.posting.vk;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import polis.posting.ApiException;
-import polis.vk.api.exceptions.VkApiException;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,11 +17,11 @@ public interface IVkPoster {
             throws URISyntaxException, IOException, ApiException;
 
     List<String> uploadDocuments(List<File> documents, Integer userId, String accessToken, long groupId)
-            throws VkApiException;
+            throws ApiException;
 
     String uploadPoll(Integer userId, String accessToken, String question, Boolean isAnonymous,
                       Boolean isMultiple, Boolean isClosed, List<String> answers)
-            throws VkApiException, URISyntaxException, IOException;
+            throws ApiException, URISyntaxException, IOException;
 
     String getTextLinks(String text, List<MessageEntity> textLinks, String accessToken, Integer ownerId)
             throws URISyntaxException, IOException, ApiException;
