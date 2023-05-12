@@ -74,20 +74,23 @@ public class VkPoster implements IVkPoster {
     @Override
     public String getTextLinks(String text, List<MessageEntity> textLinks, String accessToken, Integer ownerId)
             throws URISyntaxException, IOException, ApiException {
-        int textGlobalOffset = 0;
-        StringBuilder formattedText = new StringBuilder(text);
-        try {
-            for (MessageEntity textLink : textLinks) {
-                String shortTextLink = String.format(" (%s)",
-                        vkClient.getShortLink(ownerId, accessToken, textLink.getUrl()));
-                formattedText.insert(textGlobalOffset + textLink.getOffset() + textLink.getLength(),
-                        shortTextLink.toCharArray(), 0, shortTextLink.length());
-                textGlobalOffset += shortTextLink.length();
+        if (text != null && !text.isEmpty()) {
+            int textGlobalOffset = 0;
+            StringBuilder formattedText = new StringBuilder(text);
+            try {
+                for (MessageEntity textLink : textLinks) {
+                    String shortTextLink = String.format(" (%s)",
+                            vkClient.getShortLink(ownerId, accessToken, textLink.getUrl()));
+                    formattedText.insert(textGlobalOffset + textLink.getOffset() + textLink.getLength(),
+                            shortTextLink.toCharArray(), 0, shortTextLink.length());
+                    textGlobalOffset += shortTextLink.length();
+                }
+                return formattedText.toString();
+            } catch (VkApiException e) {
+                throw new ApiException(e);
             }
-            return formattedText.toString();
-        } catch (VkApiException e) {
-            throw new ApiException(e);
         }
+        return null;
     }
 
     @Override

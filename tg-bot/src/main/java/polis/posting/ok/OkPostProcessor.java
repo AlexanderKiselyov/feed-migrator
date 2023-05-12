@@ -82,10 +82,7 @@ public class OkPostProcessor extends PostProcessor {
             }
             List<String> photoIds = okPoster.uploadPhotos(files, (int) accountId, accessToken, groupId);
 
-            String formattedText = null;
-            if (text != null && !text.isEmpty()) {
-                formattedText = okPoster.getTextLinks(text, textLinks, accessToken);
-            }
+            String formattedText = okPoster.getTextLinks(text, textLinks, accessToken);
 
             long postId = okPoster.newPost(accessToken)
                     .addVideos(videoIds)

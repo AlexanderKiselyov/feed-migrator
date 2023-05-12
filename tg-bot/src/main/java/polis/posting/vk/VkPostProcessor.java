@@ -101,10 +101,7 @@ public class VkPostProcessor extends PostProcessor {
                 );
             }
 
-            String formattedText = null;
-            if (text != null && !text.isEmpty()) {
-                formattedText = vkPoster.getTextLinks(text, textLinks, accessToken, (int) accountId);
-            }
+            String formattedText = vkPoster.getTextLinks(text, textLinks, accessToken, (int) accountId);
 
             long postId = vkPoster.newPost(accountId, accessToken)
                     .addPhotos(photoIds)

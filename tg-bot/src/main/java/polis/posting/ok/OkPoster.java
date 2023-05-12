@@ -68,20 +68,23 @@ public class OkPoster implements IOkPoster {
     @Override
     public String getTextLinks(String text, List<MessageEntity> textLinks, String accessToken)
             throws URISyntaxException, IOException, ApiException {
-        int textGlobalOffset = 0;
-        StringBuilder formattedText = new StringBuilder(text);
-        try {
-            for (MessageEntity textLink : textLinks) {
-                String shortTextLink = String.format(" (%s)",
-                        okClient.getShortLink(accessToken, textLink.getUrl()));
-                formattedText.insert(textGlobalOffset + textLink.getOffset() + textLink.getLength(),
-                        shortTextLink.toCharArray(), 0, shortTextLink.length());
-                textGlobalOffset += shortTextLink.length();
+        if (text != null && !text.isEmpty()) {
+            int textGlobalOffset = 0;
+            StringBuilder formattedText = new StringBuilder(text);
+            try {
+                for (MessageEntity textLink : textLinks) {
+                    String shortTextLink = String.format(" (%s)",
+                            okClient.getShortLink(accessToken, textLink.getUrl()));
+                    formattedText.insert(textGlobalOffset + textLink.getOffset() + textLink.getLength(),
+                            shortTextLink.toCharArray(), 0, shortTextLink.length());
+                    textGlobalOffset += shortTextLink.length();
+                }
+                return formattedText.toString();
+            } catch (OkApiException e) {
+                throw new ApiException(e);
             }
-            return formattedText.toString();
-        } catch (OkApiException e) {
-            throw new ApiException(e);
         }
+        return null;
     }
 
     @Override
