@@ -31,6 +31,7 @@ public class OkPostProcessor extends PostProcessor {
             2. Выберите пункт 'Редактировать' у опубликованного видео
             3. Отредактируйте поля с названием видео, описанием и другими полями, если необходимо
             4. Нажмите на кнопку 'Сохранить'""";
+    private static final String OK_SOCIAL_NAME = SocialMedia.OK.getName();
 
     private final OkPoster okPoster;
 
@@ -86,12 +87,12 @@ public class OkPostProcessor extends PostProcessor {
                     .addText(text)
                     .post(accessToken, groupId);
             if (videoIds == null || videoIds.isEmpty()) {
-                return successfulPostMsg(SocialMedia.OK.getName(), postLink(groupId, postId));
+                return successfulPostMsg(OK_SOCIAL_NAME, postLink(groupId, postId));
             } else {
-                return successfulPostMsg(SocialMedia.OK.getName(), postLinkWithVideoWarning(groupId, postId));
+                return successfulPostMsg(OK_SOCIAL_NAME, postLinkWithVideoWarning(groupId, postId));
             }
         } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {
-            return failPostToGroupMsg(SocialMedia.OK.getName(), groupLink(groupId));
+            return failPostToGroupMsg(OK_SOCIAL_NAME, groupLink(groupId));
         }
 
     }

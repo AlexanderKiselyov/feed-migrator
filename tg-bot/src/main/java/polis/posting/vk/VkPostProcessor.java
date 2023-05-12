@@ -36,6 +36,7 @@ public class VkPostProcessor extends PostProcessor {
             2.1. Выберите подраздел 'Настройки' и далее 'Разделы'
             2.2. Откройте доступ к разделу 'Файлы' - либо сделайте его открытым для всех пользователей, либо ограниченным и доступным только для администраторов и редакторов сообщества""";
     private static final int DOCUMENT_POST_ERROR_CODE = 15;
+    private static final String VK_SOCIAL_NAME = SocialMedia.VK.getName();
     private final VkPoster vkPoster;
 
     public VkPostProcessor(TgContentManager tgContentManager, VkPoster vkPoster) {
@@ -105,15 +106,15 @@ public class VkPostProcessor extends PostProcessor {
                     .addPoll(poll, pollId)
                     .addDocuments(documentIds, groupId)
                     .post((int) accountId, accessToken, groupId);
-            return successfulPostMsg(SocialMedia.VK.getName(), postLink(groupId, postId));
+            return successfulPostMsg(VK_SOCIAL_NAME, postLink(groupId, postId));
         } catch (ApiException e) {
             if (e.getCode() == DOCUMENT_POST_ERROR_CODE) {
-                return failPostToGroupMsg(SocialMedia.VK.getName(), groupLinkWithDocumentWarning(groupId));
+                return failPostToGroupMsg(VK_SOCIAL_NAME, groupLinkWithDocumentWarning(groupId));
             } else {
-                return failPostToGroupMsg(SocialMedia.VK.getName(), groupLink(groupId));
+                return failPostToGroupMsg(VK_SOCIAL_NAME, groupLink(groupId));
             }
         } catch (URISyntaxException | IOException | TelegramApiException e) {
-            return failPostToGroupMsg(SocialMedia.VK.getName(), groupLink(groupId));
+            return failPostToGroupMsg(VK_SOCIAL_NAME, groupLink(groupId));
         }
     }
 
