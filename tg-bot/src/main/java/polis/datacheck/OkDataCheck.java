@@ -52,6 +52,7 @@ public class OkDataCheck {
     public static final String USER_HAS_NO_RIGHTS = """
             Пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
+    private static final String OK_SOCIAL_NAME = SocialMedia.OK.getName();
 
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
@@ -84,19 +85,19 @@ public class OkDataCheck {
                 return new NonCommand.AnswerPair(USER_ID_NOT_FOUND,true);
             }
 
+            if (accountsRepository.getUserAccount(chatId, userId, OK_SOCIAL_NAME) != null) {
+                return new NonCommand.AnswerPair(SAME_OK_ACCOUNT, true);
+            }
+
             String username = getOKUsername(pair.accessToken());
 
             if (Objects.equals(username, "")) {
                 return new NonCommand.AnswerPair(USERNAME_NOT_FOUND, true);
             }
 
-            if (accountsRepository.getUserAccount(chatId, userId, SocialMedia.OK.getName()) != null) {
-                return new NonCommand.AnswerPair(SAME_OK_ACCOUNT, true);
-            }
-
             Account newAccount = new Account(
                     chatId,
-                    SocialMedia.OK.getName(),
+                    OK_SOCIAL_NAME,
                     userId,
                     username,
                     pair.accessToken(),

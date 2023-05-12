@@ -31,6 +31,7 @@ public class VkDataCheck {
             Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
     public static final String SAME_VK_ACCOUNT = "Данный аккаунт в социальной сети ВКонтакте уже был добавлен.";
     private static final String CODE = "code=";
+    private static final String VK_SOCIAL_NAME = SocialMedia.VK.getName();
     private static final Logger LOGGER = LoggerFactory.getLogger(VkDataCheck.class);
     private final VkAuthorizator vkAuthorizator = new VkAuthorizator();
     private final VkApiMethods vkApiMethods = new VkApiMethods();
@@ -52,19 +53,19 @@ public class VkDataCheck {
 
             VkAuthorizator.TokenWithId tokenWithId = vkAuthorizator.getToken(text);
 
+            if (accountsRepository.getUserAccount(chatId, tokenWithId.userId(), VK_SOCIAL_NAME) != null) {
+                return new NonCommand.AnswerPair(SAME_VK_ACCOUNT, true);
+            }
+
             String username = getVkUsername(tokenWithId);
 
             if (username == null) {
                 return new NonCommand.AnswerPair(USERNAME_NOT_FOUND, true);
             }
 
-            if (accountsRepository.getUserAccount(chatId, tokenWithId.userId(), SocialMedia.VK.getName()) != null) {
-                return new NonCommand.AnswerPair(SAME_VK_ACCOUNT, true);
-            }
-
             Account newAccount = new Account(
                     chatId,
-                    SocialMedia.VK.getName(),
+                    VK_SOCIAL_NAME,
                     tokenWithId.userId(),
                     username,
                     tokenWithId.accessToken(),
