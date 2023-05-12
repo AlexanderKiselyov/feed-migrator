@@ -89,10 +89,12 @@ public class VkPostProcessor extends PostProcessor {
                 );
             }
 
+            String formattedText = vkPoster.getTextLinks(text, textLinks, accessToken, (int) accountId);
+
             long postId = vkPoster.newPost(accountId, accessToken)
                     .addPhotos(photoIds)
                     .addVideos(videoIds, groupId)
-                    .addTextWithLinks(text, textLinks)
+                    .addTextWithLinks(formattedText)
                     .addPoll(poll, pollId)
                     .addDocuments(documentIds, groupId)
                     .post((int) accountId, groupId);

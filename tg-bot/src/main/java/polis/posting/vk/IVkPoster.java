@@ -24,6 +24,9 @@ public interface IVkPoster {
                       Boolean isMultiple, Boolean isClosed, List<String> answers)
             throws VkApiException, URISyntaxException, IOException;
 
+    String getTextLinks(String text, List<MessageEntity> textLinks, String accessToken, Integer ownerId)
+            throws URISyntaxException, IOException, ApiException;
+
     IVkPost newPost(Long ownerId, String accessToken);
 
     interface IVkPost {
@@ -32,7 +35,7 @@ public interface IVkPoster {
 
         IVkPost addVideos(List<String> videoIds, long groupId);
 
-        IVkPost addTextWithLinks(String text, List<MessageEntity> textLinks) throws ApiException;
+        IVkPost addTextWithLinks(String formattedText);
 
         IVkPost addPoll(Poll poll, String pollId);
 

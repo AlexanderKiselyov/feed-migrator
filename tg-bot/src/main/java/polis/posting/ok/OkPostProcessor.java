@@ -74,11 +74,13 @@ public class OkPostProcessor extends PostProcessor {
             }
             List<String> photoIds = okPoster.uploadPhotos(files, (int) accountId, accessToken, groupId);
 
+            String formattedText = okPoster.getTextLinks(text, textLinks, accessToken);
+
             long postId = okPoster.newPost(accessToken)
                     .addVideos(videoIds)
                     .addPhotos(photoIds)
                     .addPoll(poll)
-                    .addTextWithLinks(text, textLinks)
+                    .addTextWithLinks(formattedText)
                     .post(groupId);
             return successfulPostMsg(postLink(groupId, postId));
         } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {

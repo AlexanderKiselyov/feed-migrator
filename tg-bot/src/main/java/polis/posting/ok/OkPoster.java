@@ -66,6 +66,25 @@ public class OkPoster implements IOkPoster {
     }
 
     @Override
+    public String getTextLinks(String text, List<MessageEntity> textLinks, String accessToken)
+            throws URISyntaxException, IOException, ApiException {
+        int textGlobalOffset = 0;
+        StringBuilder formattedText = new StringBuilder(text);
+        try {
+            for (MessageEntity textLink : textLinks) {
+                String shortTextLink = String.format(" (%s)",
+                        okClient.getShortLink(accessToken, textLink.getUrl()));
+                formattedText.insert(textGlobalOffset + textLink.getOffset() + textLink.getLength(),
+                        shortTextLink.toCharArray(), 0, shortTextLink.length());
+                textGlobalOffset += shortTextLink.length();
+            }
+            return formattedText.toString();
+        } catch (OkApiException e) {
+            throw new ApiException(e);
+        }
+    }
+
+    @Override
     public OkPost newPost(String accessToken) {
         return new OkPost(accessToken);
     }
@@ -103,24 +122,9 @@ public class OkPoster implements IOkPoster {
         }
 
         @Override
-        public OkPost addTextWithLinks(String text, List<MessageEntity> textLinks)
-                throws IOException, URISyntaxException, ApiException {
-            if (text != null && !text.isEmpty()) {
-                int textGlobalOffset = 0;
-                StringBuilder formattedText = new StringBuilder(text);
-                try {
-                    for (MessageEntity textLink : textLinks) {
-                        String shortTextLink = String.format(" (%s)",
-                                okClient.getShortLink(accessToken, textLink.getUrl()));
-                        formattedText.insert(textGlobalOffset + textLink.getOffset() + textLink.getLength(),
-                                shortTextLink.toCharArray(), 0, shortTextLink.length());
-                        textGlobalOffset += shortTextLink.length();
-                    }
-                } catch (OkApiException e) {
-                    throw new ApiException(e);
-                }
-
-                attachment.addMedia(new TextMedia(formattedText.toString()));
+        public OkPost addTextWithLinks(String formattedText) {
+            if (formattedText != null && !formattedText.isEmpty()) {
+                attachment.addMedia(new TextMedia(formattedText));
             }
             return this;
         }

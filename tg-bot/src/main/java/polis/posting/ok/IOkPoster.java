@@ -17,6 +17,9 @@ public interface IOkPoster {
     List<String> uploadVideos(List<File> videos, Integer userId, String accessToken, long groupId)
             throws URISyntaxException, IOException, ApiException;
 
+    String getTextLinks(String text, List<MessageEntity> textLinks, String accessToken)
+            throws URISyntaxException, IOException, ApiException;
+
     IOkPost newPost(String accessToken);
 
     interface IOkPost {
@@ -25,8 +28,7 @@ public interface IOkPoster {
 
         IOkPost addVideos(List<String> videoIds);
 
-        IOkPost addTextWithLinks(String text, List<MessageEntity> textLinks)
-                throws IOException, URISyntaxException, ApiException;
+        IOkPost addTextWithLinks(String formattedText);
 
         IOkPost addPoll(Poll poll);
 

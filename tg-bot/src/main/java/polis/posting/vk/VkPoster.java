@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
-import polis.ok.api.exceptions.OkApiException;
 import polis.posting.ApiException;
 import polis.vk.api.VkClient;
 import polis.vk.api.exceptions.VkApiException;
@@ -51,11 +50,6 @@ public class VkPoster implements IVkPoster {
     }
 
     @Override
-    public VkPost newPost(Long ownerId, String accessToken) {
-        return new VkPost(ownerId, accessToken);
-    }
-
-    @Override
     public String uploadPoll(Integer userId, String accessToken, String question, Boolean isAnonymous,
                              Boolean isMultiple, Boolean isClosed, List<String> answers)
             throws VkApiException, URISyntaxException, IOException {
@@ -66,6 +60,30 @@ public class VkPoster implements IVkPoster {
     public List<String> uploadDocuments(List<File> documents, Integer userId, String accessToken, long groupId)
             throws VkApiException {
         return vkClient.saveDocuments(documents, userId, accessToken, groupId);
+    }
+
+    @Override
+    public String getTextLinks(String text, List<MessageEntity> textLinks, String accessToken, Integer ownerId)
+            throws URISyntaxException, IOException, ApiException {
+        int textGlobalOffset = 0;
+        StringBuilder formattedText = new StringBuilder(text);
+        try {
+            for (MessageEntity textLink : textLinks) {
+                String shortTextLink = String.format(" (%s)",
+                        vkClient.getShortLink(ownerId, accessToken, textLink.getUrl()));
+                formattedText.insert(textGlobalOffset + textLink.getOffset() + textLink.getLength(),
+                        shortTextLink.toCharArray(), 0, shortTextLink.length());
+                textGlobalOffset += shortTextLink.length();
+            }
+            return formattedText.toString();
+        } catch (VkApiException e) {
+            throw new ApiException(e);
+        }
+    }
+
+    @Override
+    public VkPost newPost(Long ownerId, String accessToken) {
+        return new VkPost(ownerId, accessToken);
     }
 
     public class VkPost implements IVkPost {
@@ -104,23 +122,9 @@ public class VkPoster implements IVkPoster {
         }
 
         @Override
-        public VkPost addTextWithLinks(String text, List<MessageEntity> textLinks) throws ApiException {
-            if (text != null && !text.isEmpty()) {
-                int textGlobalOffset = 0;
-                StringBuilder formattedText = new StringBuilder(text);
-                try {
-                    for (MessageEntity textLink : textLinks) {
-                        String shortTextLink = String.format(" (%s)",
-                                vkClient.getShortLink((int) ownerId, accessToken, textLink.getUrl()));
-                        formattedText.insert(textGlobalOffset + textLink.getOffset() + textLink.getLength(),
-                                shortTextLink.toCharArray(), 0, shortTextLink.length());
-                        textGlobalOffset += shortTextLink.length();
-                    }
-                } catch (VkApiException e) {
-                    throw new ApiException(e);
-                }
-
-                message = formattedText.toString();
+        public VkPost addTextWithLinks(String formattedText) {
+            if (formattedText != null && !formattedText.isEmpty()) {
+                message = formattedText;
             }
             return this;
         }
