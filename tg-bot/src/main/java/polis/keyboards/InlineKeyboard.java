@@ -15,15 +15,15 @@ public class InlineKeyboard extends Keyboard {
     public synchronized void getKeyboard(SendMessage sendMessage, int rowsCount, List<String> commands,
                                          String... optionalButtonsValues) {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        int buttonsAtTheRow = (int) Math.ceil((double) optionalButtonsValues.length / 2 / rowsCount);
+        int buttonsAtTheRow = (int) Math.ceil((double) commands.size() / 2 / rowsCount);
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
         for (int i = 0; i < rowsCount; i++) {
             List<InlineKeyboardButton> row = new ArrayList<>();
             for (int j = 0, tmp = (i * buttonsAtTheRow + j) * 2; j < buttonsAtTheRow
-                    && tmp < optionalButtonsValues.length - 1; j++, tmp++) {
+                    && tmp < commands.size() - 1; j++, tmp++) {
                 row.add(InlineKeyboardButton.builder()
-                        .text(optionalButtonsValues[tmp])
-                        .callbackData(optionalButtonsValues[++tmp])
+                        .text(commands.get(tmp))
+                        .callbackData(commands.get(++tmp))
                         .build()
                 );
             }

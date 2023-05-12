@@ -9,12 +9,10 @@ import polis.data.domain.CurrentAccount;
 import polis.data.domain.CurrentChannel;
 import polis.data.domain.CurrentGroup;
 import polis.data.domain.UserChannels;
-import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.datacheck.OkDataCheck;
 import polis.datacheck.VkDataCheck;
@@ -27,7 +25,7 @@ import polis.vk.api.VkAuthorizator;
 
 import java.util.Objects;
 
-import static polis.commands.AddOkGroup.SAME_SOCIAL_MEDIA;
+import static polis.commands.AddOkGroup.SAME_SOCIAL_MEDIA_MSG;
 import static polis.commands.Command.GROUP_NAME_NOT_FOUND;
 
 @Component
@@ -62,12 +60,6 @@ public class NonCommand {
 
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
-
-    @Autowired
-    private CurrentStateRepository currentStateRepository;
-
-    @Autowired
-    private AccountsRepository accountsRepository;
 
     @Autowired
     private OkDataCheck okDataCheck;
@@ -120,7 +112,7 @@ public class NonCommand {
             for (ChannelGroup smg : channelGroupsRepository
                     .getGroupsForChannel(currentChannelRepository.getCurrentChannel(chatId).getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.OK) {
-                    return new AnswerPair(String.format(SAME_SOCIAL_MEDIA, SocialMedia.OK.getName()), true);
+                    return new AnswerPair(String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.OK.getName()), true);
                 }
             }
 
@@ -161,7 +153,7 @@ public class NonCommand {
             for (ChannelGroup smg : channelGroupsRepository
                     .getGroupsForChannel(currentChannelRepository.getCurrentChannel(chatId).getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.VK) {
-                    return new AnswerPair(String.format(SAME_SOCIAL_MEDIA, SocialMedia.VK.getName()), true);
+                    return new AnswerPair(String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.VK.getName()), true);
                 }
             }
 

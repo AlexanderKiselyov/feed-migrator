@@ -14,6 +14,7 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -57,6 +58,8 @@ import polis.keyboards.ReplyKeyboard;
 import polis.posting.ok.OkPostProcessor;
 import polis.posting.vk.VkPostProcessor;
 import polis.ratelim.RateLimiter;
+import polis.ratelim.Throttler;
+import polis.util.Emojis;
 import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
@@ -123,9 +126,11 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private static final String NOTIFICATIONS = "notifications";
     private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
     private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
-    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так \uD83D\uDE1F \n"
+    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
             + "Не удалось опубликовать пост в ok.ru/group/";
     private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
+    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
+            + "соответствии с Законом об авторском праве.";
     private static final String SINGLE_ITEM_POSTS = "";
 
     @Autowired
@@ -199,6 +204,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
 
     @Autowired
     private RateLimiter postingRateLimiter;
+
+    @Autowired
+    private Throttler repliesThrottler;
 
     @Lazy
     @Autowired
@@ -379,10 +387,18 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     }
 
     private void processPostItems(List<Message> postItems) {
-        long channelId = postItems.get(0).getChatId();
+        Message postItem = postItems.get(0);
+        long channelId = postItem.getChatId();
         long ownerChatId = userChannelsRepository.getUserChatId(channelId);
         if (!postingRateLimiter.allowRequest(ownerChatId)) {
-            sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG);
+            repliesThrottler.throttle(ownerChatId, () ->
+                    sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG)
+            );
+            return;
+        }
+        Chat forwardFromChat = postItem.getForwardFromChat();
+        if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
+            sendNotification(ownerChatId, channelId, AUTHOR_RIGHTS_MSG);
             return;
         }
         try {
@@ -411,7 +427,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     case VK -> message = vkPostProcessor.processPostInChannel(postItems, ownerChatId,
                             group.getGroupId(), channelId, accountId, accessToken);
                     default -> {
-                        LOGGER.error(String.format("Social media not found: %s", group.getSocialMedia()));
+                        LOGGER.error(String.format("Social media not found: %s",
+                                group.getSocialMedia()));
                         message = ERROR_POST_MSG + group.getGroupId();
                     }
                 }
@@ -703,6 +720,15 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         String tgApiFilePath = pathResponse.getFilePath();
         File file = downloadFile(tgApiFilePath);
         return TgContentManager.fileWithOrigExtension(tgApiFilePath, file);
+    }
+
+    @Override
+    public File downloadFileById(String fileId, String nameToSet) throws URISyntaxException, IOException,
+            TelegramApiException {
+        TgContentManager.GetFilePathResponse pathResponse = tgContentManager.retrieveFilePath(botToken, fileId);
+        String tgApiFilePath = pathResponse.getFilePath();
+        File file = downloadFile(tgApiFilePath);
+        return TgContentManager.fileWithOrigName(tgApiFilePath, file, nameToSet);
     }
 
     @Override

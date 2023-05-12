@@ -1,7 +1,5 @@
 package polis.commands;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -13,13 +11,9 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
-import polis.telegram.TelegramDataCheck;
 import polis.util.State;
 
 import java.util.List;
-import java.util.Objects;
-
-import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 @Component
 public class SyncGroupDescription extends Command {
@@ -30,10 +24,8 @@ public class SyncGroupDescription extends Command {
             Невозможно показать информацию по связанным Телеграм-каналу и группе.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private static final int ROWS_COUNT = 1;
-    private static final List<String> commandsForKeyboard = List.of(
-            State.Autoposting.getDescription()
-    );
-    private static final Logger LOGGER = LoggerFactory.getLogger(SyncGroupDescription.class);
+    private static final List<String> KEYBOARD_COMMANDS = List.of(State.Autoposting.getDescription());
+    private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -43,12 +35,6 @@ public class SyncGroupDescription extends Command {
 
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
-
-    @Autowired
-    private TelegramDataCheck telegramDataCheck;
-
-    @Autowired
-    private CommandUtils commandUtils;
 
     public SyncGroupDescription() {
         super(State.SyncGroupDescription.getIdentifier(), State.SyncGroupDescription.getDescription());
@@ -60,54 +46,19 @@ public class SyncGroupDescription extends Command {
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
 
-        if (currentChannel != null && currentGroup != null && currentAccount != null) {
-            String groupName = commandUtils.getGroupName(currentAccount, currentGroup);
+        boolean noErrorCondition = currentChannel != null && currentGroup != null && currentAccount != null;
+        String text = noErrorCondition
+                ? String.format(SYNC_OK_TG_DESCRIPTION, currentChannel.getChannelUsername(),
+                    currentGroup.getGroupName(), currentGroup.getSocialMedia().getName(),
+                    State.Autoposting.getIdentifier())
+                : String.format(NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP_DESCRIPTION, State.MainMenu.getIdentifier());
 
-            if (Objects.equals(groupName, null)) {
-                sendAnswer(
-                        absSender,
-                        chat.getId(),
-                        this.getCommandIdentifier(),
-                        user.getUserName(),
-                        GROUP_NAME_NOT_FOUND,
-                        super.ROWS_COUNT,
-                        super.commandsForKeyboard,
-                        null,
-                        GO_BACK_BUTTON_TEXT);
-                LOGGER.error(String.format("Error detecting group name of group: %d", currentGroup.getGroupId()));
-                return;
-            }
-
-            sendAnswer(
-                    absSender,
-                    chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
-                    String.format(
-                            SYNC_OK_TG_DESCRIPTION,
-                            telegramDataCheck.getChatParameter(currentChannel.getChannelUsername(), "title"),
-                            groupName,
-                            currentGroup.getSocialMedia().getName(),
-                            State.Autoposting.getIdentifier()
-                    ),
-                    ROWS_COUNT,
-                    commandsForKeyboard,
-                    null,
-                    GO_BACK_BUTTON_TEXT);
-        } else {
-            sendAnswer(
-                    absSender,
-                    chat.getId(),
-                    this.getCommandIdentifier(),
-                    user.getUserName(),
-                    String.format(
-                            NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP_DESCRIPTION,
-                            State.MainMenu.getIdentifier()
-                    ),
-                    super.ROWS_COUNT,
-                    super.commandsForKeyboard,
-                    null,
-                    GO_BACK_BUTTON_TEXT);
-        }
+        sendAnswerWithReplyKeyboardAndBackButton(
+                absSender,
+                chat.getId(),
+                text,
+                ROWS_COUNT,
+                noErrorCondition ? KEYBOARD_COMMANDS : KEYBOARD_COMMANDS_IN_ERROR_CASE,
+                loggingInfo(user.getUserName()));
     }
 }
