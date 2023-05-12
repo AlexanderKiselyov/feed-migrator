@@ -1,7 +1,6 @@
 package polis.commands;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -15,15 +14,21 @@ import polis.util.State;
 
 import java.util.List;
 
-@Component
-public class Notifications extends Command {
-    private static final String NOTIFICATIONS_MSG = """
-            Включите уведомления, чтобы получать информацию о публикации Ваших постов.""";
-    private static final String NOTIFICATIONS_INLINE_MSG = """
-            Включить данную функцию для Телеграм-канала <b>%s</b> и группы <b>%s (%s)</b>?""";
-    private static final String NO_CURRENT_TG_CHANNEL = """
-            Телеграм-канал не был выбран.
+import static polis.util.Emojis.HAPPY_FACE;
+
+public abstract class SyncGroupWithChannel extends Command {
+    static final String SYNC_MSG = """
+            Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";
+    static final String SYNC_INLINE_MSG = """
+            Хотите ли Вы синхронизировать их?
+                        
+            *При размещении контента на Вашем канале очень важно уважать права других авторов, в связи с чем мы не
+            осуществляем автопостинг для пересланных сообщений""" + HAPPY_FACE;
+    static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
+            Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
+    static final int ROWS_COUNT = 1;
+    static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -34,11 +39,8 @@ public class Notifications extends Command {
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
 
-    private static final int ROWS_COUNT = 1;
-    private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
-
-    public Notifications() {
-        super(State.Notifications.getIdentifier(), State.Notifications.getDescription());
+    public SyncGroupWithChannel(String commandIdentifier, String description) {
+        super(commandIdentifier, description);
     }
 
     @Override
@@ -46,36 +48,41 @@ public class Notifications extends Command {
         CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
-
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
             String groupName = currentGroup.getGroupName();
-            String notificationsEnable = String.format(NOTIFICATIONS_INLINE_MSG, currentChannel.getChannelUsername(),
-                    groupName, currentGroup.getGroupName());
             sendAnswerWithInlineKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    NOTIFICATIONS_MSG,
-                    notificationsEnable,
+                    String.format(
+                            SYNC_MSG,
+                            currentChannel.getChannelUsername(),
+                            groupName,
+                            currentGroup.getSocialMedia().getName()
+                    ),
+                    SYNC_INLINE_MSG,
                     ROWS_COUNT,
-                    getButtonsForNotificationsOptions(currentChannel.getChannelId()),
+                    getButtonsForSyncOptions(),
                     loggingInfo(user.getUserName()));
             return;
         }
         sendAnswerWithReplyKeyboardAndBackButton(
                 absSender,
                 chat.getId(),
-                String.format(NO_CURRENT_TG_CHANNEL, State.MainMenu.getIdentifier()),
+                String.format(
+                        NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP,
+                        State.MainMenu.getIdentifier()
+                ),
                 ROWS_COUNT,
                 KEYBOARD_COMMANDS_IN_ERROR_CASE,
                 loggingInfo(user.getUserName()));
     }
 
-    private static List<String> getButtonsForNotificationsOptions(Long id) {
+    private static List<String> getButtonsForSyncOptions() {
         return List.of(
                 "Да",
-                String.format("notifications %s 0", id),
+                "yesNo 0",
                 "Нет",
-                String.format("notifications %s 1", id)
+                "yesNo 1"
         );
     }
 }
