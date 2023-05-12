@@ -3,6 +3,7 @@ package polis.bot;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.text.Transliterator;
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -45,7 +46,7 @@ public class TgContentManager {
 
     public File download(Video video) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = video.getFileId();
-        return fileLoader.downloadFileById(fileId);
+        return fileLoader.downloadFileById(fileId, video.getFileName());
     }
 
     public File download(PhotoSize tgPhoto) throws URISyntaxException, IOException, TelegramApiException {
@@ -55,7 +56,7 @@ public class TgContentManager {
 
     public File download(Document document) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = document.getFileId();
-        return fileLoader.downloadFileById(fileId);
+        return fileLoader.downloadFileById(fileId, document.getFileName());
     }
 
     public static List<Video> toVideos(List<Animation> animations) {
@@ -104,6 +105,45 @@ public class TgContentManager {
             throw new RuntimeException(e);
         }
         return path.toFile();
+    }
+
+    static File fileWithOrigName(String tgApiFilePath, File file, String fileName) {
+        String tmpFileName = containsCyrillic(fileName) ? transliterationFromRusToEng(fileName) : fileName;
+        String absPath = file.getAbsolutePath();
+        int nameIndex = absPath.lastIndexOf(File.separatorChar) + 1;
+        String basePath = absPath.substring(0, nameIndex);
+        Path path = Path.of(basePath + tmpFileName);
+        int i = 0;
+        while (Files.exists(path) && Files.exists(Path.of(basePath + i + File.separator + tmpFileName))) {
+            i++;
+        }
+        try {
+            if (Files.exists(path)) {
+                Path folder = Path.of(basePath + i);
+                if (!Files.exists(folder)) {
+                    Files.createDirectory(folder);
+                }
+                path = Path.of(folder + File.separator + tmpFileName);
+            }
+            Files.move(file.toPath(), path);
+        } catch (IOException e) {
+            logger.error("Error while changing name of " + tgApiFilePath, e);
+            throw new RuntimeException(e);
+        }
+        logger.info("Successfully changed name of file \"{}\" to file with path: {}", tgApiFilePath, path);
+        return path.toFile();
+    }
+
+    private static boolean containsCyrillic(String fileName) {
+        return fileName.chars()
+                .mapToObj(Character.UnicodeBlock::of)
+                .anyMatch(b -> b.equals(Character.UnicodeBlock.CYRILLIC));
+    }
+
+    private static String transliterationFromRusToEng(String filename) {
+        String CYRILLIC_TO_LATIN = "Russian-Latin/BGN";
+        Transliterator toLatinTrans = Transliterator.getInstance(CYRILLIC_TO_LATIN);
+        return toLatinTrans.transliterate(filename);
     }
 
     private static String getFileUrl(String botToken) {
