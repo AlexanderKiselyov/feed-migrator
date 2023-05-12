@@ -2,6 +2,7 @@ package polis.posting.vk;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import polis.posting.ApiException;
 import polis.vk.api.VkClient;
@@ -49,11 +50,6 @@ public class VkPoster implements IVkPoster {
     }
 
     @Override
-    public VkPost newPost(Long ownerId) {
-        return new VkPost(ownerId);
-    }
-
-    @Override
     public String uploadPoll(Integer userId, String accessToken, String question, Boolean isAnonymous,
                              Boolean isMultiple, Boolean isClosed, List<String> answers)
             throws ApiException, URISyntaxException, IOException {
@@ -75,13 +71,39 @@ public class VkPoster implements IVkPoster {
         }
     }
 
+    @Override
+    public String getTextLinks(String text, List<MessageEntity> textLinks, String accessToken, Integer ownerId)
+            throws URISyntaxException, IOException, ApiException {
+        int textGlobalOffset = 0;
+        StringBuilder formattedText = new StringBuilder(text);
+        try {
+            for (MessageEntity textLink : textLinks) {
+                String shortTextLink = String.format(" (%s)",
+                        vkClient.getShortLink(ownerId, accessToken, textLink.getUrl()));
+                formattedText.insert(textGlobalOffset + textLink.getOffset() + textLink.getLength(),
+                        shortTextLink.toCharArray(), 0, shortTextLink.length());
+                textGlobalOffset += shortTextLink.length();
+            }
+            return formattedText.toString();
+        } catch (VkApiException e) {
+            throw new ApiException(e);
+        }
+    }
+
+    @Override
+    public VkPost newPost(Long ownerId, String accessToken) {
+        return new VkPost(ownerId, accessToken);
+    }
+
     public class VkPost implements IVkPost {
         private final List<String> attachments = new ArrayList<>();
         private String message = null;
         private final long ownerId;
+        private final String accessToken;
 
-        public VkPost(Long ownerId) {
+        public VkPost(Long ownerId, String accessToken) {
             this.ownerId = ownerId;
+            this.accessToken = accessToken;
         }
 
         @Override
@@ -109,9 +131,9 @@ public class VkPoster implements IVkPoster {
         }
 
         @Override
-        public VkPost addText(String text) {
-            if (text != null && !text.isEmpty()) {
-                message = text;
+        public VkPost addTextWithLinks(String formattedText) {
+            if (formattedText != null && !formattedText.isEmpty()) {
+                message = formattedText;
             }
             return this;
         }
@@ -139,7 +161,7 @@ public class VkPoster implements IVkPoster {
         }
 
         @Override
-        public long post(Integer userId, String accessToken, long groupId) throws ApiException {
+        public long post(Integer userId, long groupId) throws ApiException {
             try {
                 return vkClient.postMediaTopic(userId, accessToken, groupId, message,
                         String.join(",", attachments));

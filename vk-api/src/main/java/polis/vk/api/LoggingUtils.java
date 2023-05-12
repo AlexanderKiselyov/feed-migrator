@@ -12,6 +12,7 @@ import com.vk.api.sdk.objects.photos.responses.WallUploadResponse;
 import com.vk.api.sdk.objects.polls.responses.CreateResponse;
 import com.vk.api.sdk.objects.responses.VideoUploadResponse;
 import com.vk.api.sdk.objects.users.responses.GetResponse;
+import com.vk.api.sdk.objects.utils.responses.GetShortLinkResponse;
 import com.vk.api.sdk.objects.video.responses.SaveResponse;
 import com.vk.api.sdk.objects.wall.responses.PostResponse;
 import com.vk.api.sdk.queries.docs.DocsGetWallUploadServerQuery;
@@ -25,6 +26,7 @@ import com.vk.api.sdk.queries.upload.UploadDocQuery;
 import com.vk.api.sdk.queries.upload.UploadPhotoWallQuery;
 import com.vk.api.sdk.queries.upload.UploadVideoQuery;
 import com.vk.api.sdk.queries.users.UsersGetQuery;
+import com.vk.api.sdk.queries.utils.UtilsGetShortLinkQuery;
 import com.vk.api.sdk.queries.video.VideoSaveQuery;
 import com.vk.api.sdk.queries.wall.WallPostQuery;
 import org.slf4j.Logger;
@@ -207,14 +209,32 @@ public class LoggingUtils {
         }
     }
 
-    static long postMediaTopic(WallPostQuery request, Logger logger) throws VkApiException {
+    static long postMediaTopic(WallPostQuery request, long groupId, Logger logger) throws VkApiException {
         try {
             PostResponse response = request.execute();
-            return response.getPostId();
+            long postId = response.getPostId();
+            logger.info("Posted post %s to group %d".formatted(postId, groupId));
+            return postId;
         } catch (ApiException e) {
             throw wrapAndLogApiException(e, logger);
         } catch (ClientException e) {
             throw wrapAndLogClientException(e, logger);
+        }
+    }
+
+    static URI getShortLink(UtilsGetShortLinkQuery request, Logger logger) throws VkApiException {
+        try {
+            GetShortLinkResponse response = request.execute();
+            return response.getShortUrl();
+        } catch (ClientException e) {
+            logger.error(String.format("Failed to parse response: %s", e.getMessage()));
+
+            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
+                    e.getMessage()));
+        } catch (ApiException e) {
+            logger.error(String.format("Received error from VK: %s", e.getMessage()));
+
+            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
         }
     }
 

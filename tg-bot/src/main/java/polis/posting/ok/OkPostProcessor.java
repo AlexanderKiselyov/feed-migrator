@@ -3,6 +3,7 @@ package polis.posting.ok;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
@@ -47,6 +48,7 @@ public class OkPostProcessor extends PostProcessor {
             List<PhotoSize> photos,
             List<Animation> animations,
             List<Document> documents,
+            List<MessageEntity> textLinks,
             String text,
             Poll poll,
             long ownerChatId,
@@ -80,12 +82,14 @@ public class OkPostProcessor extends PostProcessor {
             }
             List<String> photoIds = okPoster.uploadPhotos(files, (int) accountId, accessToken, groupId);
 
-            long postId = okPoster.newPost()
+            String formattedText = okPoster.getTextLinks(text, textLinks, accessToken);
+
+            long postId = okPoster.newPost(accessToken)
                     .addVideos(videoIds)
                     .addPhotos(photoIds)
                     .addPoll(poll)
-                    .addText(text)
-                    .post(accessToken, groupId);
+                    .addTextWithLinks(formattedText)
+                    .post(groupId);
             if (videoIds == null || videoIds.isEmpty()) {
                 return successfulPostMsg(OK_SOCIAL_NAME, postLink(groupId, postId));
             } else {

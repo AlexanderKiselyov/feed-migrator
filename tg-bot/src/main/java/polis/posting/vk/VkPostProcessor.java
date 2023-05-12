@@ -2,6 +2,7 @@ package polis.posting.vk;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
@@ -50,6 +51,7 @@ public class VkPostProcessor extends PostProcessor {
             List<PhotoSize> photos,
             List<Animation> animations,
             List<Document> documents,
+            List<MessageEntity> textLinks,
             String text,
             Poll poll,
             long ownerChatId,
@@ -99,13 +101,15 @@ public class VkPostProcessor extends PostProcessor {
                 );
             }
 
-            long postId = vkPoster.newPost(accountId)
+            String formattedText = vkPoster.getTextLinks(text, textLinks, accessToken, (int) accountId);
+
+            long postId = vkPoster.newPost(accountId, accessToken)
                     .addPhotos(photoIds)
                     .addVideos(videoIds, groupId)
-                    .addText(text)
+                    .addTextWithLinks(formattedText)
                     .addPoll(poll, pollId)
                     .addDocuments(documentIds, groupId)
-                    .post((int) accountId, accessToken, groupId);
+                    .post((int) accountId, groupId);
             return successfulPostMsg(VK_SOCIAL_NAME, postLink(groupId, postId));
         } catch (ApiException e) {
             if (e.getCode() == DOCUMENT_POST_ERROR_CODE) {

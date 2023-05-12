@@ -1,5 +1,6 @@
 package polis.posting.ok;
 
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import polis.posting.ApiException;
 
@@ -16,7 +17,10 @@ public interface IOkPoster {
     List<String> uploadVideos(List<File> videos, Integer userId, String accessToken, long groupId)
             throws URISyntaxException, IOException, ApiException;
 
-    IOkPost newPost();
+    String getTextLinks(String text, List<MessageEntity> textLinks, String accessToken)
+            throws URISyntaxException, IOException, ApiException;
+
+    IOkPost newPost(String accessToken);
 
     interface IOkPost {
 
@@ -24,13 +28,13 @@ public interface IOkPoster {
 
         IOkPost addVideos(List<String> videoIds);
 
-        IOkPost addText(String text);
+        IOkPost addTextWithLinks(String formattedText);
 
         IOkPost addPoll(Poll poll);
 
         IOkPost addDocuments(List<String> documentIds);
 
-        long post(String accessToken, long groupId) throws URISyntaxException, IOException, ApiException;
+        long post(long groupId) throws URISyntaxException, IOException, ApiException;
     }
 }
 

@@ -1,5 +1,6 @@
 package polis.posting.vk;
 
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import polis.posting.ApiException;
 
@@ -22,7 +23,10 @@ public interface IVkPoster {
                       Boolean isMultiple, Boolean isClosed, List<String> answers)
             throws ApiException, URISyntaxException, IOException;
 
-    IVkPost newPost(Long ownerId);
+    String getTextLinks(String text, List<MessageEntity> textLinks, String accessToken, Integer ownerId)
+            throws URISyntaxException, IOException, ApiException;
+
+    IVkPost newPost(Long ownerId, String accessToken);
 
     interface IVkPost {
 
@@ -30,13 +34,13 @@ public interface IVkPoster {
 
         IVkPost addVideos(List<String> videoIds, long groupId);
 
-        IVkPost addText(String text);
+        IVkPost addTextWithLinks(String formattedText);
 
         IVkPost addPoll(Poll poll, String pollId);
 
         IVkPost addDocuments(List<String> documentIds, long groupId);
 
-        long post(Integer userId, String accessToken, long groupId)
+        long post(Integer userId, long groupId)
                 throws URISyntaxException, IOException, ApiException;
 
     }

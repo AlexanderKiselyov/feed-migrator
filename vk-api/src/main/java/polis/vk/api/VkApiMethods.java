@@ -14,6 +14,7 @@ import com.vk.api.sdk.queries.upload.UploadDocQuery;
 import com.vk.api.sdk.queries.upload.UploadPhotoWallQuery;
 import com.vk.api.sdk.queries.upload.UploadVideoQuery;
 import com.vk.api.sdk.queries.users.UsersGetQuery;
+import com.vk.api.sdk.queries.utils.UtilsGetShortLinkQuery;
 import com.vk.api.sdk.queries.video.VideoSaveQuery;
 import com.vk.api.sdk.queries.wall.WallPostQuery;
 import org.json.JSONArray;
@@ -34,6 +35,7 @@ import static polis.vk.api.LoggingUtils.getIsGroupAdmin;
 import static polis.vk.api.LoggingUtils.getPhotoId;
 import static polis.vk.api.LoggingUtils.getPhotoUploadLink;
 import static polis.vk.api.LoggingUtils.getPollId;
+import static polis.vk.api.LoggingUtils.getShortLink;
 import static polis.vk.api.LoggingUtils.getUsername;
 import static polis.vk.api.LoggingUtils.getVideoUploadLink;
 import static polis.vk.api.LoggingUtils.postMediaTopic;
@@ -180,6 +182,14 @@ public class VkApiMethods {
             request = request.attachments(attachments);
         }
 
-        return postMediaTopic(request, logger);
+        return postMediaTopic(request, groupId, logger);
+    }
+
+    public String getVkShortLink(Integer userId, String accessToken, String link) throws VkApiException {
+        UtilsGetShortLinkQuery request = vk.utils()
+                .getShortLink(new UserActor(userId, accessToken), link)
+                .privateParam(true);
+
+        return getShortLink(request, logger).toString();
     }
 }

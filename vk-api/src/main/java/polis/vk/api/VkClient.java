@@ -3,9 +3,12 @@ package polis.vk.api;
 import polis.vk.api.exceptions.VkApiException;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 public interface VkClient {
+
     long postMediaTopic(Integer userId, String accessToken, long groupId, String message, String attachments)
             throws VkApiException;
 
@@ -20,4 +23,6 @@ public interface VkClient {
 
     List<String> saveDocuments(List<File> documents, Integer userId, String accessToken, long groupId)
             throws VkApiException;
+
+    String getShortLink(Integer userId, String accessToken, String link) throws VkApiException;
 }

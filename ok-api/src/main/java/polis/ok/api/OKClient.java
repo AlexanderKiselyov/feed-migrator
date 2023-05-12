@@ -18,4 +18,6 @@ public interface OKClient {
 
     List<String> uploadPhotos(String accessToken, long groupId, List<File> photos)
             throws URISyntaxException, IOException, OkApiException;
+
+    String getShortLink(String accessToken, String link) throws IOException, URISyntaxException, OkApiException;
 }

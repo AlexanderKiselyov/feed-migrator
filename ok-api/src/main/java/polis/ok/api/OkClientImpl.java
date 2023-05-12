@@ -42,6 +42,7 @@ public class OkClientImpl implements OKClient {
     private static final String POST_MEDIA_TOPIC = "mediatopic.post";
     private static final String UPLOAD_PHOTO = "photosV2.getUploadUrl";
     private static final String UPLOAD_VIDEO = "video.getUploadUrl";
+    private static final String CREATE_SHORT_LINK = "shortlink.create";
     private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
     private final HttpClient httpClient;
     private final CloseableHttpClient apacheHttpClient;
@@ -52,6 +53,7 @@ public class OkClientImpl implements OKClient {
         this.apacheHttpClient = apacheHttpClient;
     }
 
+    @Override
     public long postMediaTopic(String accessToken, long groupId, Attachment attachment)
             throws URISyntaxException, IOException, OkApiException {
         List<NameValuePair> parameters = new ArrayList<>();
@@ -86,6 +88,7 @@ public class OkClientImpl implements OKClient {
         }
     }
 
+    @Override
     public List<String> uploadPhotos(String accessToken, long groupId, List<File> photos)
             throws URISyntaxException, IOException, OkApiException {
         PhotoUploadUrlResponse uploadUrlResponse = photoUploadUrl(accessToken, groupId, photos);
@@ -121,6 +124,7 @@ public class OkClientImpl implements OKClient {
         }
     }
 
+    @Override
     public long uploadVideo(String accessToken, long groupId, File video)
             throws URISyntaxException, IOException, OkApiException {
         VideoUploadUrlResponse uploadUrlResponse = videoUploadUrl(accessToken, groupId, video.getName(),
@@ -136,6 +140,30 @@ public class OkClientImpl implements OKClient {
         EntityUtils.consume(response.getEntity());
 
         return uploadUrlResponse.videoId;
+    }
+
+    @Override
+    public String getShortLink(String accessToken, String link) throws URISyntaxException, IOException, OkApiException {
+        URI uri = new URIBuilder(OK_METHODS_URI)
+                .addParameter("application_key", OkAppProperties.APPLICATION_KEY)
+                .addParameter("method", CREATE_SHORT_LINK)
+                .addParameter("sig", OkAuthorizator.sig(accessToken, CREATE_SHORT_LINK))
+                .addParameter("access_token", accessToken)
+                .addParameter("url", link)
+                .addParameter("hide_statistics", "true")
+                .addParameter("allow_dupes", "false")
+                .build();
+        HttpRequest getShortLinkRequest = HttpRequest.newBuilder().GET()
+                .uri(uri)
+                .build();
+        HttpResponse<String> getShortLinkResponse = sendRequest(httpClient, getShortLinkRequest, logger);
+        JSONObject responseBodyJson = parseResponse(getShortLinkResponse, logger);
+
+        try {
+            return responseBodyJson.getString("shortUrl");
+        } catch (JSONException e) {
+            throw wrapAndLog(e, getShortLinkResponse.toString(), getShortLinkResponse.body(), logger);
+        }
     }
 
     private PhotoUploadUrlResponse photoUploadUrl(String accessToken, long groupId, List<File> photos)

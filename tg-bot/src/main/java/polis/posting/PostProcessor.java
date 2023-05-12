@@ -2,7 +2,9 @@ package polis.posting;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.EntityType;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
@@ -30,6 +32,7 @@ public abstract class PostProcessor {
             List<PhotoSize> photos,
             List<Animation> animations,
             List<Document> documents,
+            List<MessageEntity> textLinks,
             String text,
             Poll poll,
             long ownerChatId,
@@ -47,6 +50,7 @@ public abstract class PostProcessor {
         Poll poll = null;
         List<Animation> animations = new ArrayList<>(1);
         List<Document> documents = new ArrayList<>(1);
+        List<MessageEntity> textLinks = new ArrayList<>(1);
         for (Message postItem : postItems) {
             if (postItem.hasPhoto()) {
                 postItem.getPhoto().stream()
@@ -58,9 +62,25 @@ public abstract class PostProcessor {
             }
             if (postItem.getCaption() != null && !postItem.getCaption().isEmpty()) {
                 text = postItem.getCaption();
+                List<MessageEntity> captionEntities = postItem.getCaptionEntities();
+                if (captionEntities != null && !captionEntities.isEmpty()) {
+                    for (MessageEntity entity : captionEntities) {
+                        if (entity.getType().equals(EntityType.TEXTLINK)) {
+                            textLinks.add(entity);
+                        }
+                    }
+                }
             }
             if (postItem.hasText() && !postItem.getText().isEmpty()) {
                 text = postItem.getText();
+                if (postItem.hasEntities()) {
+                    List<MessageEntity> entities = postItem.getEntities();
+                    for (MessageEntity entity : entities) {
+                        if (entity.getType().equals(EntityType.TEXTLINK)) {
+                            textLinks.add(entity);
+                        }
+                    }
+                }
             }
             if (postItem.hasPoll()) {
                 poll = postItem.getPoll();
@@ -72,8 +92,8 @@ public abstract class PostProcessor {
                 documents.add(postItem.getDocument());
             }
         }
-        return processPostInChannel(videos, photos, animations, documents, text, poll, userChatId, channelId, groupId,
-                accountId, accessToken);
+        return processPostInChannel(videos, photos, animations, documents, textLinks, text, poll, userChatId,
+                channelId, groupId, accountId, accessToken);
     }
 
     protected static String successfulPostMsg(String social, String what) {
