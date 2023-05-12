@@ -446,7 +446,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         StringBuilder stringBuilder = new StringBuilder();
         for (String message : messagesToChannelOwner) {
             stringBuilder.append(message);
-            stringBuilder.append("\n");
+            stringBuilder.append("\n\n");
         }
         return stringBuilder.toString();
     }
