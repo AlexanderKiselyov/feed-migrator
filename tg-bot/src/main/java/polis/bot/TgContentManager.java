@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
@@ -36,48 +37,54 @@ public class TgContentManager {
     private static final Logger logger = LoggerFactory.getLogger(TgContentManager.class);
 
     private final TgFileLoader fileLoader;
-    private final HttpClient client = HttpClient.newHttpClient();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final String tgApiToken;
+    private final HttpClient client;
+    private final ObjectMapper mapper;
 
     @Autowired
-    public TgContentManager(@Qualifier("Bot") TgFileLoader fileLoader) {
+    public TgContentManager(
+            @Qualifier("Bot") TgFileLoader fileLoader,
+            @Value("${bot.token}") String tgApiToken,
+            HttpClient client,
+            ObjectMapper mapper
+    ) {
         this.fileLoader = fileLoader;
+        this.tgApiToken = tgApiToken;
+        this.client = client;
+        this.mapper = mapper;
     }
 
     public File download(Video video) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = video.getFileId();
-        return fileLoader.downloadFileById(fileId, video.getFileName());
+        return downloadFileById(fileId, video.getFileName());
     }
 
     public File download(PhotoSize tgPhoto) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = tgPhoto.getFileId();
-        return fileLoader.downloadFileById(fileId);
+        return downloadFileById(fileId);
     }
 
     public File download(Document document) throws URISyntaxException, IOException, TelegramApiException {
         String fileId = document.getFileId();
-        return fileLoader.downloadFileById(fileId, document.getFileName());
+        return downloadFileById(fileId, document.getFileName());
     }
 
-    public static List<Video> toVideos(List<Animation> animations) {
-        List<Video> videos = new ArrayList<>(1);
-        for (Animation animation : animations) {
-            Video video = new Video();
-            video.setDuration(animation.getDuration());
-            video.setFileId(animation.getFileId());
-            video.setFileName(animation.getFileName());
-            video.setHeight(animation.getHeight());
-            video.setThumb(animation.getThumb());
-            video.setFileSize(animation.getFileSize());
-            video.setFileUniqueId(animation.getFileUniqueId());
-            video.setMimeType(animation.getMimetype());
-            video.setWidth(animation.getWidth());
-            videos.add(video);
-        }
-        return videos;
+    private File downloadFileById(String fileId) throws URISyntaxException, IOException, TelegramApiException {
+        TgContentManager.GetFilePathResponse pathResponse = retrieveFilePath(tgApiToken, fileId);
+        String tgApiFilePath = pathResponse.getFilePath();
+        File file = fileLoader.downloadFile(tgApiFilePath);
+        return TgContentManager.fileWithOrigExtension(tgApiFilePath, file);
     }
 
-    GetFilePathResponse retrieveFilePath(String botToken, String fileId) throws URISyntaxException, IOException {
+    private File downloadFileById(String fileId, String nameToSet) throws URISyntaxException, IOException,
+            TelegramApiException {
+        TgContentManager.GetFilePathResponse pathResponse = retrieveFilePath(tgApiToken, fileId);
+        String tgApiFilePath = pathResponse.getFilePath();
+        File file = fileLoader.downloadFile(tgApiFilePath);
+        return TgContentManager.fileWithOrigName(tgApiFilePath, file, nameToSet);
+    }
+
+    private GetFilePathResponse retrieveFilePath(String botToken, String fileId) throws URISyntaxException, IOException {
         //https://api.telegram.org/bot<bot_token>/getFile?file_id=the_file_id
         URI uri = new URIBuilder(getFileUrl(botToken))
                 .addParameter("file_id", fileId)
@@ -93,7 +100,7 @@ public class TgContentManager {
         return mapper.readValue(object.getJSONObject("result").toString(), GetFilePathResponse.class);
     }
 
-    static File fileWithOrigExtension(String tgApiFilePath, File file) {
+    private static File fileWithOrigExtension(String tgApiFilePath, File file) {
         String origExtension = tgApiFilePath.substring(tgApiFilePath.lastIndexOf('.'));
         String absPath = file.getAbsolutePath();
         int dotIndex = absPath.lastIndexOf('.');
@@ -107,7 +114,7 @@ public class TgContentManager {
         return path.toFile();
     }
 
-    static File fileWithOrigName(String tgApiFilePath, File file, String fileName) {
+    private static File fileWithOrigName(String tgApiFilePath, File file, String fileName) {
         String tmpFileName = containsCyrillic(fileName) ? transliterationFromRusToEng(fileName) : fileName;
         String absPath = file.getAbsolutePath();
         int nameIndex = absPath.lastIndexOf(File.separatorChar) + 1;
@@ -134,6 +141,24 @@ public class TgContentManager {
         return path.toFile();
     }
 
+    public static List<Video> toVideos(List<Animation> animations) {
+        List<Video> videos = new ArrayList<>(1);
+        for (Animation animation : animations) {
+            Video video = new Video();
+            video.setDuration(animation.getDuration());
+            video.setFileId(animation.getFileId());
+            video.setFileName(animation.getFileName());
+            video.setHeight(animation.getHeight());
+            video.setThumb(animation.getThumb());
+            video.setFileSize(animation.getFileSize());
+            video.setFileUniqueId(animation.getFileUniqueId());
+            video.setMimeType(animation.getMimetype());
+            video.setWidth(animation.getWidth());
+            videos.add(video);
+        }
+        return videos;
+    }
+
     private static boolean containsCyrillic(String fileName) {
         return fileName.chars()
                 .mapToObj(Character.UnicodeBlock::of)
@@ -151,7 +176,7 @@ public class TgContentManager {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static class GetFilePathResponse {
+    private static class GetFilePathResponse {
         @JsonProperty("file_id")
         private String fileId;
 
