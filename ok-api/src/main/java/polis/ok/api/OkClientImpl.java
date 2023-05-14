@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import static polis.ok.api.LoggingUtils.apacheResponseBody;
+import static polis.ok.api.LoggingUtils.checkForApiErrors;
 import static polis.ok.api.LoggingUtils.parseResponse;
 import static polis.ok.api.LoggingUtils.sendRequest;
 import static polis.ok.api.LoggingUtils.wrapAndLog;
@@ -83,7 +84,7 @@ public class OkClientImpl implements OKClient {
             logger.info("Posted post %s to group %d".formatted(postId, groupId));
             return Long.parseLong(postId);
         } else {
-            parseResponse(body, statusLine, logger);
+            checkForApiErrors(body, statusLine, logger, new JSONObject(body));
             return Long.MAX_VALUE;
         }
     }
