@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -175,6 +176,7 @@ public class TgContentManager {
         @JsonProperty("description")
         private String description;
 
+        @Nullable //in case not ok response
         @JsonProperty("result")
         private FileInfo result;
 
