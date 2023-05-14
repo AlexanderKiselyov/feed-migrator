@@ -105,12 +105,10 @@ public class PostsProcessor implements IPostsProcessor {
         PostProcessor.Post post;
         try {
             post = downloadPost(postItems);
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (TelegramApiException | URISyntaxException | IOException e) {
+            LOGGER.error("Error when downloading post from " + channelId, e);
+            tgNotificator.sendNotification(ownerChatId, "Ошибка при загрузке поста из телеграмма: " + e);
+            return;
         }
 
         try {
