@@ -16,6 +16,8 @@ import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.ok.api.OkAppProperties;
 import polis.ok.api.OkAuthorizator;
+import polis.ok.api.exceptions.CodeExpiredException;
+import polis.ok.api.exceptions.OkApiException;
 import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
@@ -52,6 +54,9 @@ public class OkDataCheck {
     public static final String USER_HAS_NO_RIGHTS = """
             Пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
+    private static final String CODE_EXPIRED_MSG = "Время действия кода авторизации истекло." +
+            " Пройдите по ссылке для авторизации ещё раз и получите новый код";
+
     private static final String OK_SOCIAL_NAME = SocialMedia.OK.getName();
 
     @Autowired
@@ -71,62 +76,67 @@ public class OkDataCheck {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OkDataCheck.class);
 
-    public NonCommand.AnswerPair getOKAuthCode(String text, Long chatId) {
+    public NonCommand.AnswerPair getOKAuthCode(String code, Long chatId) {
         OkAuthorizator.TokenPair pair;
         try {
-            pair = okAuthorizator.getToken(text);
-            if (pair.accessToken() == null) {
-                return new NonCommand.AnswerPair(OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER, true);
-            }
-
-            Long userId = getOKUserId(pair.accessToken());
-
-            if (userId == null) {
-                return new NonCommand.AnswerPair(USER_ID_NOT_FOUND,true);
-            }
-
-            if (accountsRepository.getUserAccount(chatId, userId, OK_SOCIAL_NAME) != null) {
-                return new NonCommand.AnswerPair(SAME_OK_ACCOUNT, true);
-            }
-
-            String username = getOKUsername(pair.accessToken());
-
-            if (Objects.equals(username, "")) {
-                return new NonCommand.AnswerPair(USERNAME_NOT_FOUND, true);
-            }
-
-            Account newAccount = new Account(
-                    chatId,
-                    OK_SOCIAL_NAME,
-                    userId,
-                    username,
-                    pair.accessToken(),
-                    pair.refreshToken()
-            );
-
-            currentAccountRepository.insertCurrentAccount(
-                    new CurrentAccount(
-                            chatId,
-                            newAccount.getSocialMedia().getName(),
-                            newAccount.getAccountId(),
-                            newAccount.getUserFullName(),
-                            newAccount.getAccessToken(),
-                            newAccount.getRefreshToken()
-                    )
-            );
-
-            accountsRepository.insertNewAccount(newAccount);
-
-            currentStateRepository.insertCurrentState(new CurrentState(chatId,
-                    Substate.nextSubstate(State.OkAccountDescription).getIdentifier()));
-
-            return new NonCommand.AnswerPair(
-                    String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
-                    false);
-        } catch (Exception e) {
-            LOGGER.error(String.format("Unknown error: %s", e.getMessage()));
+            pair = okAuthorizator.getToken(code);
+        } catch (IOException | URISyntaxException e) {
             return new NonCommand.AnswerPair(OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, true);
+        } catch (CodeExpiredException e) {
+            return new NonCommand.AnswerPair(CODE_EXPIRED_MSG, true);
+        } catch (OkApiException e) {
+            return new NonCommand.AnswerPair(e.getMessage(), true);
         }
+
+        if (pair.accessToken() == null) {
+            return new NonCommand.AnswerPair(OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER, true);
+        }
+
+        Long userId = getOKUserId(pair.accessToken());
+
+        if (userId == null) {
+            return new NonCommand.AnswerPair(USER_ID_NOT_FOUND, true);
+        }
+
+        if (accountsRepository.getUserAccount(chatId, userId, OK_SOCIAL_NAME) != null) {
+            return new NonCommand.AnswerPair(SAME_OK_ACCOUNT, true);
+        }
+
+        String username = getOKUsername(pair.accessToken());
+
+        if (Objects.equals(username, "")) {
+            return new NonCommand.AnswerPair(USERNAME_NOT_FOUND, true);
+        }
+
+        Account newAccount = new Account(
+                chatId,
+                OK_SOCIAL_NAME,
+                userId,
+                username,
+                pair.accessToken(),
+                pair.refreshToken()
+        );
+
+        currentAccountRepository.insertCurrentAccount(
+                new CurrentAccount(
+                        chatId,
+                        newAccount.getSocialMedia().getName(),
+                        newAccount.getAccountId(),
+                        newAccount.getUserFullName(),
+                        newAccount.getAccessToken(),
+                        newAccount.getRefreshToken()
+                )
+        );
+
+        accountsRepository.insertNewAccount(newAccount);
+
+        currentStateRepository.insertCurrentState(new CurrentState(chatId,
+                Substate.nextSubstate(State.OkAccountDescription).getIdentifier()));
+
+        return new NonCommand.AnswerPair(
+                String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
+                false
+        );
     }
 
     public NonCommand.AnswerPair checkOKGroupAdminRights(String accessToken, Long groupId) {
