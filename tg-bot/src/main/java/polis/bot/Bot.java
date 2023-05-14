@@ -14,7 +14,6 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -56,10 +55,6 @@ import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.posting.IPostsProcessor;
-import polis.posting.ok.OkPostProcessor;
-import polis.posting.vk.VkPostProcessor;
-import polis.ratelim.RateLimiter;
-import polis.ratelim.Throttler;
 import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
@@ -68,28 +63,16 @@ import polis.util.Substate;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static polis.commands.NonCommand.VK_GROUP_ADDED;
-import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_ANSWER;
-import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
-import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
-import static polis.datacheck.OkDataCheck.OK_GROUP_ADDED;
-import static polis.datacheck.OkDataCheck.SAME_OK_ACCOUNT;
-import static polis.datacheck.OkDataCheck.USER_HAS_NO_RIGHTS;
-import static polis.datacheck.OkDataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
-import static polis.datacheck.VkDataCheck.SAME_VK_ACCOUNT;
-import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_ANSWER;
-import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
+import static polis.datacheck.OkDataCheck.*;
+import static polis.datacheck.VkDataCheck.*;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
-import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
-import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
-import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
+import static polis.telegram.TelegramDataCheck.*;
 
 @Configuration
 @Component("Bot")
@@ -119,7 +102,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     List.of(State.VkAccountDescription.getDescription())),
             Map.entry(String.format(VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()),
                     List.of(State.SyncVkTg.getDescription())
-    ));
+            ));
     private final String botName;
     private final String botToken;
     private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
@@ -252,6 +235,19 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         register(syncVkTg);
     }
 
+    @Override
+    public void onUpdatesReceived(List<Update> overallUpdates) {
+        Map<Boolean, List<Update>> updates = overallUpdates.stream()
+                .collect(Collectors.partitioningBy(Update::hasChannelPost));
+        boolean channelPosts = true;
+
+        updates.get(!channelPosts).forEach(this::processNonCommandUpdate);
+        updates.get(channelPosts).stream()
+                .map(Update::getChannelPost)
+                .collect(Collectors.groupingBy(Message::getChatId))
+                .forEach((channelId, posts) -> postsProcessor.processPostsInChannel(channelId, posts));
+    }
+
     /**
      * Устанавливает бота в определенное состояние в зависимости от введенной пользователем команды.
      *
@@ -346,19 +342,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     Substate.nextSubstate(currState).getIdentifier()));
         }
         sendAnswer(chatId, getUserName(msg), answer.getAnswer());
-    }
-
-    @Override
-    public void onUpdatesReceived(List<Update> overallUpdates) {
-        Map<Boolean, List<Update>> updates = overallUpdates.stream()
-                .collect(Collectors.partitioningBy(Update::hasChannelPost));
-        boolean channelPosts = true;
-
-        updates.get(!channelPosts).forEach(this::processNonCommandUpdate);
-        updates.get(channelPosts).stream()
-                .map(Update::getChannelPost)
-                .collect(Collectors.groupingBy(Message::getChatId))
-                .forEach((channelId, posts) -> postsProcessor.processPostsInChannel(channelId, posts));
     }
 
     private String getUserName(Message msg) {
