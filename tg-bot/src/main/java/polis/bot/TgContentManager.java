@@ -1,11 +1,10 @@
 package polis.bot;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.text.Transliterator;
-import org.apache.http.client.utils.URIBuilder;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +32,8 @@ import java.util.List;
 
 @Component
 public class TgContentManager {
-    private static final String TELEGRAM_API_URL = "https://api.telegram.org";
     private static final Logger logger = LoggerFactory.getLogger(TgContentManager.class);
+    private static final String TELEGRAM_API_URL = "https://api.telegram.org/bot%s/getFile?file_id=%s";
 
     private final TgFileLoader fileLoader;
     private final String tgApiToken;
@@ -54,12 +53,12 @@ public class TgContentManager {
         this.mapper = mapper;
     }
 
-    public File download(Video video) throws URISyntaxException, IOException, TelegramApiException {
+    public File download(Video video) throws IOException, TelegramApiException {
         String fileId = video.getFileId();
         return downloadFileById(fileId, video.getFileName());
     }
 
-    public File download(PhotoSize tgPhoto) throws URISyntaxException, IOException, TelegramApiException {
+    public File download(PhotoSize tgPhoto) throws IOException, TelegramApiException {
         String fileId = tgPhoto.getFileId();
         return downloadFileById(fileId);
     }
@@ -69,26 +68,23 @@ public class TgContentManager {
         return downloadFileById(fileId, document.getFileName());
     }
 
-    private File downloadFileById(String fileId) throws URISyntaxException, IOException, TelegramApiException {
-        TgContentManager.GetFilePathResponse pathResponse = retrieveFilePath(tgApiToken, fileId);
+    private File downloadFileById(String fileId) throws IOException, TelegramApiException {
+        FileInfo pathResponse = retrieveFilePath(tgApiToken, fileId);
         String tgApiFilePath = pathResponse.getFilePath();
         File file = fileLoader.downloadFile(tgApiFilePath);
         return TgContentManager.fileWithOrigExtension(tgApiFilePath, file);
     }
 
-    private File downloadFileById(String fileId, String nameToSet) throws URISyntaxException, IOException,
+    private File downloadFileById(String fileId, String nameToSet) throws IOException,
             TelegramApiException {
-        TgContentManager.GetFilePathResponse pathResponse = retrieveFilePath(tgApiToken, fileId);
+        FileInfo pathResponse = retrieveFilePath(tgApiToken, fileId);
         String tgApiFilePath = pathResponse.getFilePath();
         File file = fileLoader.downloadFile(tgApiFilePath);
         return TgContentManager.fileWithOrigName(tgApiFilePath, file, nameToSet);
     }
 
-    private GetFilePathResponse retrieveFilePath(String botToken, String fileId) throws URISyntaxException, IOException {
-        //https://api.telegram.org/bot<bot_token>/getFile?file_id=the_file_id
-        URI uri = new URIBuilder(getFileUrl(botToken))
-                .addParameter("file_id", fileId)
-                .build();
+    private FileInfo retrieveFilePath(String botToken, String fileId) throws IOException {
+        URI uri = URI.create(TELEGRAM_API_URL.formatted(botToken, fileId));
         HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
         HttpResponse<String> response;
         try {
