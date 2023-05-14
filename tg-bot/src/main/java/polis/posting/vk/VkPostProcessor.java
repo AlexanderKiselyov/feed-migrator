@@ -1,28 +1,18 @@
 package polis.posting.vk;
 
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Document;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.Video;
-import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.bot.TgContentManager;
 import polis.posting.ApiException;
 import polis.posting.PostProcessor;
 import polis.util.SocialMedia;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Component
-public class VkPostProcessor extends PostProcessor {
+public class VkPostProcessor implements PostProcessor {
     private static final String VK_GROUP_URL = "vk.com/club";
     private static final String GROUP_POSTFIX = "?w=wall-";
     private static final String POST_PREFIX = "_";
@@ -40,20 +30,13 @@ public class VkPostProcessor extends PostProcessor {
     private static final String VK_SOCIAL_NAME = SocialMedia.VK.getName();
     private final VkPoster vkPoster;
 
-    public VkPostProcessor(TgContentManager tgContentManager, VkPoster vkPoster) {
-        super(tgContentManager);
+    public VkPostProcessor(VkPoster vkPoster) {
         this.vkPoster = vkPoster;
     }
 
     @Override
-    protected String processPostInChannel(
-            List<Video> videos,
-            List<PhotoSize> photos,
-            List<Animation> animations,
-            List<Document> documents,
-            List<MessageEntity> textLinks,
-            String text,
-            Poll poll,
+    public String processPostInChannel(
+            Post post,
             long ownerChatId,
             long channelId,
             long groupId,
@@ -61,47 +44,23 @@ public class VkPostProcessor extends PostProcessor {
             String accessToken
     ) {
         try {
-            int maxListSize = Collections.max(List.of(photos.size(), animations.size() + videos.size(),
-                    documents.size()));
-            List<File> files = new ArrayList<>(maxListSize);
-            for (Video video : videos) {
-                File file = tgContentManager.download(video);
-                files.add(file);
-            }
-            for (Video animation : TgContentManager.toVideos(animations)) {
-                File file = tgContentManager.download(animation);
-                files.add(file);
-            }
-            List<String> videoIds = vkPoster.uploadVideos(files, (int) accountId, accessToken, groupId);
-            files.clear();
-
-            for (PhotoSize photo : photos) {
-                File file = tgContentManager.download(photo);
-                files.add(file);
-            }
-            List<String> photoIds = vkPoster.uploadPhotos(files, (int) accountId, accessToken, groupId);
-            files.clear();
-
-            for (Document document : documents) {
-                File file = tgContentManager.download(document);
-                files.add(file);
-            }
-            List<String> documentIds = vkPoster.uploadDocuments(files, (int) accountId, accessToken, groupId);
-
             String pollId = null;
+            Poll poll = post.poll();
             if (poll != null) {
-                 pollId = vkPoster.uploadPoll(
-                         (int) accountId,
-                         accessToken,
-                         poll.getQuestion(),
-                         poll.getIsAnonymous(),
-                         poll.getAllowMultipleAnswers(),
-                         poll.getIsClosed(),
-                         poll.getOptions().stream().map(PollOption::getText).toList()
+                pollId = vkPoster.uploadPoll(
+                        (int) accountId,
+                        accessToken,
+                        poll.getQuestion(),
+                        poll.getIsAnonymous(),
+                        poll.getAllowMultipleAnswers(),
+                        poll.getIsClosed(),
+                        poll.getOptions().stream().map(PollOption::getText).toList()
                 );
             }
-
-            String formattedText = vkPoster.getTextLinks(text, textLinks, accessToken, (int) accountId);
+            List<String> documentIds = vkPoster.uploadDocuments(post.documents(), (int) accountId, accessToken, groupId);
+            List<String> videoIds = vkPoster.uploadVideos(post.videos(), (int) accountId, accessToken, groupId);
+            List<String> photoIds = vkPoster.uploadPhotos(post.photos(), (int) accountId, accessToken, groupId);
+            String formattedText = vkPoster.getTextLinks(post.text(), post.textLinks(), accessToken, (int) accountId);
 
             long postId = vkPoster.newPost(accountId, accessToken)
                     .addPhotos(photoIds)
@@ -110,15 +69,15 @@ public class VkPostProcessor extends PostProcessor {
                     .addPoll(poll, pollId)
                     .addDocuments(documentIds, groupId)
                     .post((int) accountId, groupId);
-            return successfulPostMsg(VK_SOCIAL_NAME, postLink(groupId, postId));
+            return PostProcessor.successfulPostMsg(VK_SOCIAL_NAME, postLink(groupId, postId));
         } catch (ApiException e) {
             if (e.getCode() == DOCUMENT_POST_ERROR_CODE) {
-                return failPostToGroupMsg(VK_SOCIAL_NAME, groupLinkWithDocumentWarning(groupId));
+                return PostProcessor.failPostToGroupMsg(VK_SOCIAL_NAME, groupLinkWithDocumentWarning(groupId));
             } else {
-                return failPostToGroupMsg(VK_SOCIAL_NAME, groupLink(groupId));
+                return PostProcessor.failPostToGroupMsg(VK_SOCIAL_NAME, groupLink(groupId));
             }
-        } catch (URISyntaxException | IOException | TelegramApiException e) {
-            return failPostToGroupMsg(VK_SOCIAL_NAME, groupLink(groupId));
+        } catch (URISyntaxException | IOException e) {
+            return PostProcessor.failPostToGroupMsg(VK_SOCIAL_NAME, groupLink(groupId));
         }
     }
 
