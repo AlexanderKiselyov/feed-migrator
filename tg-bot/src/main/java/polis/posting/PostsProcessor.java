@@ -151,6 +151,7 @@ public class PostsProcessor implements IPostsProcessor {
         }
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent") //checked with postItem.hasPhoto()
     private PostProcessor.Post downloadPost(List<Message> postItems) throws TelegramApiException, URISyntaxException, IOException {
         List<File> videos = new ArrayList<>();
         List<File> photos = new ArrayList<>();

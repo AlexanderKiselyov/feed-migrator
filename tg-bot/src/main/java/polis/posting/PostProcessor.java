@@ -14,6 +14,11 @@ public interface PostProcessor {
     String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
             + "Не удалось опубликовать пост в социальной сети %s";
 
+    /**
+     * Занимается логикой обработки и публикации поста в социальную сеть
+     * @param post Загруженный из телеграмма пост
+     * @return Сообщение об успешности публикации поста или текст ошибки
+     */
     String processPostInChannel(
             Post post,
             long ownerChatId,
