@@ -12,29 +12,18 @@ import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import polis.bot.TgContentManager;
 import polis.util.Emojis;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public abstract class PostProcessor {
-    private static final String SUCCESS_POST_MSG = "Успешно опубликовал пост в социальной сети %s";
-    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
+public interface PostProcessor {
+    static final String SUCCESS_POST_MSG = "Успешно опубликовал пост в социальной сети %s";
+    static final String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
             + "Не удалось опубликовать пост в социальной сети %s";
-    protected final TgContentManager tgContentManager;
 
-    @Autowired
-    public PostProcessor(TgContentManager tgContentManager) {
-        this.tgContentManager = tgContentManager;
-    }
-
-    protected abstract String processPostInChannel(
-            List<Video> videos,
-            List<PhotoSize> photos,
-            List<Animation> animations,
-            List<Document> documents,
-            List<MessageEntity> textLinks,
-            String text,
-            Poll poll,
+    String processPostInChannel(
+            Post post,
             long ownerChatId,
             long channelId,
             long groupId,
@@ -42,65 +31,23 @@ public abstract class PostProcessor {
             String accessToken
     );
 
-    public String processPostInChannel(List<Message> postItems, long userChatId, long groupId, long channelId,
-                                       long accountId,String accessToken) {
-        List<PhotoSize> photos = new ArrayList<>(1);
-        List<Video> videos = new ArrayList<>(1);
-        String text = null;
-        Poll poll = null;
-        List<Animation> animations = new ArrayList<>(1);
-        List<Document> documents = new ArrayList<>(1);
-        List<MessageEntity> textLinks = new ArrayList<>(1);
-        for (Message postItem : postItems) {
-            if (postItem.hasPhoto()) {
-                postItem.getPhoto().stream()
-                        .max(Comparator.comparingInt(PhotoSize::getFileSize))
-                        .ifPresent(photos::add);
-            }
-            if (postItem.hasVideo()) {
-                videos.add(postItem.getVideo());
-            }
-            if (postItem.getCaption() != null && !postItem.getCaption().isEmpty()) {
-                text = postItem.getCaption();
-                List<MessageEntity> captionEntities = postItem.getCaptionEntities();
-                if (captionEntities != null && !captionEntities.isEmpty()) {
-                    for (MessageEntity entity : captionEntities) {
-                        if (entity.getType().equals(EntityType.TEXTLINK)) {
-                            textLinks.add(entity);
-                        }
-                    }
-                }
-            }
-            if (postItem.hasText() && !postItem.getText().isEmpty()) {
-                text = postItem.getText();
-                if (postItem.hasEntities()) {
-                    List<MessageEntity> entities = postItem.getEntities();
-                    for (MessageEntity entity : entities) {
-                        if (entity.getType().equals(EntityType.TEXTLINK)) {
-                            textLinks.add(entity);
-                        }
-                    }
-                }
-            }
-            if (postItem.hasPoll()) {
-                poll = postItem.getPoll();
-            }
-            if (postItem.hasAnimation()) {
-                animations.add(postItem.getAnimation());
-            }
-            if (postItem.hasDocument() && !postItem.hasAnimation()) {
-                documents.add(postItem.getDocument());
-            }
-        }
-        return processPostInChannel(videos, photos, animations, documents, textLinks, text, poll, userChatId,
-                channelId, groupId, accountId, accessToken);
-    }
-
-    protected static String successfulPostMsg(String social, String what) {
+    static String successfulPostMsg(String social, String what) {
         return String.format(SUCCESS_POST_MSG, social) + " " + what;
     }
 
-    protected static String failPostToGroupMsg(String social, String where) {
+    static String failPostToGroupMsg(String social, String where) {
         return String.format(ERROR_POST_MSG, social) + " " + where;
+    }
+
+    record Post(
+            List<File> videos,
+            List<File> photos,
+            List<File> animations,
+            List<File> documents,
+            List<MessageEntity> textLinks,
+            String text,
+            Poll poll
+    ) {
+
     }
 }

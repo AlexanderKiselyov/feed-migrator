@@ -6,8 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.objects.polls.Poll;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.TgContentManager;
 import polis.bot.TgNotificator;
 import polis.data.domain.ChannelGroup;
@@ -20,8 +21,12 @@ import polis.ratelim.RateLimiter;
 import polis.ratelim.Throttler;
 import polis.util.Emojis;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -94,10 +99,21 @@ public class PostsProcessor implements IPostsProcessor {
             tgNotificator.sendNotification(ownerChatId, AUTHOR_RIGHTS_MSG);
             return;
         }
+        if (!userChannelsRepository.isSetAutoposting(ownerChatId, channelId)) {
+            return;
+        }
+        PostProcessor.Post post;
         try {
-            if (!userChannelsRepository.isSetAutoposting(ownerChatId, channelId)) {
-                return;
-            }
+            post = downloadPost(postItems);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
             long userChatId = userChannelsRepository.getUserChatId(channelId);
             UserChannels tgChannel = userChannelsRepository.getUserChannel(channelId, userChatId);
             if (tgChannel == null || !tgChannel.isAutoposting()) {
@@ -115,9 +131,9 @@ public class PostsProcessor implements IPostsProcessor {
 
                 String message;
                 switch (group.getSocialMedia()) {
-                    case OK -> message = okPostProcessor.processPostInChannel(postItems, ownerChatId,
+                    case OK -> message = okPostProcessor.processPostInChannel(post, ownerChatId,
                             group.getGroupId(), channelId, accountId, accessToken);
-                    case VK -> message = vkPostProcessor.processPostInChannel(postItems, ownerChatId,
+                    case VK -> message = vkPostProcessor.processPostInChannel(post, ownerChatId,
                             group.getGroupId(), channelId, accountId, accessToken);
                     default -> {
                         LOGGER.error(String.format("Social media not found: %s",
@@ -133,6 +149,65 @@ public class PostsProcessor implements IPostsProcessor {
             LOGGER.error("Error when handling post in " + channelId, e);
             tgNotificator.sendNotification(ownerChatId, "Произошла непредвиденная ошибка при обработке поста " + e);
         }
+    }
+
+    private PostProcessor.Post downloadPost(List<Message> postItems) throws TelegramApiException, URISyntaxException, IOException {
+        List<File> videos = new ArrayList<>();
+        List<File> photos = new ArrayList<>();
+        List<File> animations = new ArrayList<>();
+        List<File> documents = new ArrayList<>();
+        List<MessageEntity> textLinks = new ArrayList<>();
+        String text = null;
+        Poll poll = null;
+
+        for (Message postItem : postItems) {
+            if (postItem.hasPhoto()) {
+                PhotoSize photoSize = postItem.getPhoto().stream()
+                        .max(Comparator.comparingInt(PhotoSize::getFileSize)).get();
+                File file = tgContentManager.download(photoSize);
+                photos.add(file);
+            }
+            if (postItem.hasVideo()) {
+                File file = tgContentManager.download(postItem.getVideo());
+                videos.add(file);
+            }
+            if (postItem.hasAnimation()) {
+                Video animation = TgContentManager.toVideo(postItem.getAnimation());
+                File file = tgContentManager.download(animation);
+                animations.add(file);
+            }
+            if (postItem.hasDocument()) {
+                File file = tgContentManager.download(postItem.getDocument());
+                documents.add(file);
+            }
+            if (postItem.hasPoll()) {
+                poll = postItem.getPoll();
+            }
+            if (postItem.getCaption() != null && !postItem.getCaption().isEmpty()) {
+                text = postItem.getCaption();
+                List<MessageEntity> captionEntities = postItem.getCaptionEntities();
+                if (captionEntities != null && !captionEntities.isEmpty()) {
+                    for (MessageEntity entity : captionEntities) {
+                        if (entity.getType().equals(EntityType.TEXTLINK)) {
+                            textLinks.add(entity);
+                        }
+                    }
+                }
+            }
+            if (postItem.hasText() && !postItem.getText().isEmpty()) {
+                text = postItem.getText();
+                if (postItem.hasEntities()) {
+                    List<MessageEntity> entities = postItem.getEntities();
+                    for (MessageEntity entity : entities) {
+                        if (entity.getType().equals(EntityType.TEXTLINK)) {
+                            textLinks.add(entity);
+                        }
+                    }
+                }
+            }
+        }
+
+        return new PostProcessor.Post(videos, photos, animations, documents, textLinks, text, poll);
     }
 
     private static String aggregateMessages(List<String> messagesToChannelOwner) {
