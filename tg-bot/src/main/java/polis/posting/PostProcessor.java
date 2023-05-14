@@ -22,7 +22,6 @@ public interface PostProcessor {
     String processPostInChannel(
             Post post,
             long ownerChatId,
-            long channelId,
             long groupId,
             long accountId,
             String accessToken

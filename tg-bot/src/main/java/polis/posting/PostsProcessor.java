@@ -6,7 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.EntityType;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.TgContentManager;
@@ -130,9 +135,9 @@ public class PostsProcessor implements IPostsProcessor {
                 String message;
                 switch (group.getSocialMedia()) {
                     case OK -> message = okPostProcessor.processPostInChannel(post, ownerChatId,
-                            group.getGroupId(), channelId, accountId, accessToken);
+                            group.getGroupId(), accountId, accessToken);
                     case VK -> message = vkPostProcessor.processPostInChannel(post, ownerChatId,
-                            group.getGroupId(), channelId, accountId, accessToken);
+                            group.getGroupId(), accountId, accessToken);
                     default -> {
                         LOGGER.error(String.format("Social media not found: %s",
                                 group.getSocialMedia()));

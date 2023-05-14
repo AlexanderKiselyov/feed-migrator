@@ -38,7 +38,6 @@ public class VkPostProcessor implements PostProcessor {
     public String processPostInChannel(
             Post post,
             long ownerChatId,
-            long channelId,
             long groupId,
             long accountId,
             String accessToken
