@@ -32,8 +32,10 @@ import java.util.List;
 
 @Component
 public class TgContentManager {
+    public static final int FILE_SIZE_LIMIT_MB = 20; //todo increase
     private static final Logger logger = LoggerFactory.getLogger(TgContentManager.class);
     private static final String TELEGRAM_API_URL = "https://api.telegram.org/bot%s/getFile?file_id=%s";
+    private static final String FILE_IS_TOO_BIG_API_DESC = "file is too big";
 
     private final TgFileLoader fileLoader;
     private final String tgApiToken;
@@ -96,6 +98,9 @@ public class TgContentManager {
             return getFileResponse.getResult();
         }
         logger.error("Not ok response when loading file:\n\t" + getFileResponse);
+        if (getFileResponse.description.contains(FILE_IS_TOO_BIG_API_DESC)) {
+            throw new FileIsTooBigException();
+        }
         throw new TelegramApiException("Error when loading file %s due %s:%s"
                 .formatted(fileId, getFileResponse.getErrorCode(), getFileResponse.getDescription()));
     }
