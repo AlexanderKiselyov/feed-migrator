@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 class LoggingUtils {
-    private static final String CODE_EXPIRED_ERROR_CODE = "102";
+    private static final String CODE_EXPIRED_API_MSG = "Expired code";
     private static final String ERROR_DESCRIPTION = "error_description";
     private static final String ERROR = "error";
     private static final String ERROR_MSG = "error_msg";
@@ -80,7 +80,7 @@ class LoggingUtils {
                 .formatted(errorCode, errorDesc, responseStatus, responseBody)
         );
 
-        if (errorCode.equals(CODE_EXPIRED_ERROR_CODE)) {
+        if (errorDesc.contains(CODE_EXPIRED_API_MSG)) {
             throw new CodeExpiredException();
         }
 
