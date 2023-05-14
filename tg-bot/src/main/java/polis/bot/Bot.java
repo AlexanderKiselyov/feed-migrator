@@ -55,11 +55,11 @@ import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
+import polis.posting.IPostsProcessor;
 import polis.posting.ok.OkPostProcessor;
 import polis.posting.vk.VkPostProcessor;
 import polis.ratelim.RateLimiter;
 import polis.ratelim.Throttler;
-import polis.util.Emojis;
 import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
@@ -99,7 +99,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
     private static final String AUTOPOSTING_ENABLE_AND_NOTIFICATIONS = "Функция автопостинга включена."
             + TURN_ON_NOTIFICATIONS_MSG;
-    private static final String CHANNEL_INFO_ERROR = "Ошибка получения информации по каналу.";
     private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.ofEntries(
             Map.entry(String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
                     List.of(State.OkAccountDescription.getDescription())),
@@ -132,12 +131,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private static final String NOTIFICATIONS = "notifications";
     private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
     private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
-    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
-            + "Не удалось опубликовать пост в ok.ru/group/";
-    private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
-    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
-            + "соответствии с Законом об авторском праве.";
-    private static final String SINGLE_ITEM_POSTS = "";
 
     @Autowired
     private AccountsRepository accountsRepository;
@@ -209,18 +202,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private SyncVkTg syncVkTg;
 
     @Autowired
-    private RateLimiter postingRateLimiter;
-
-    @Autowired
-    private Throttler repliesThrottler;
-
-    @Lazy
-    @Autowired
-    private OkPostProcessor okPostProcessor;
-
-    @Lazy
-    @Autowired
-    private VkPostProcessor vkPostProcessor;
+    IPostsProcessor postsProcessor;
 
     @Lazy
     @Autowired
@@ -376,91 +358,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         updates.get(channelPosts).stream()
                 .map(Update::getChannelPost)
                 .collect(Collectors.groupingBy(Message::getChatId))
-                .values()
-                .forEach(this::processPostsInChannel);
-    }
-
-    private void processPostsInChannel(List<Message> channelPosts) {
-        Map<String, List<Message>> posts = channelPosts.stream().collect(
-                Collectors.groupingBy(
-                        post -> post.getMediaGroupId() == null ? SINGLE_ITEM_POSTS : post.getMediaGroupId(),
-                        Collectors.toList()
-                ));
-        posts.getOrDefault(SINGLE_ITEM_POSTS, Collections.emptyList())
-                .forEach(post -> processPostItems(Collections.singletonList(post)));
-        posts.remove(SINGLE_ITEM_POSTS); // :)
-        posts.values().forEach(this::processPostItems);
-    }
-
-    private void processPostItems(List<Message> postItems) {
-        Message postItem = postItems.get(0);
-        long channelId = postItem.getChatId();
-        long ownerChatId = userChannelsRepository.getUserChatId(channelId);
-        if (!postingRateLimiter.allowRequest(ownerChatId)) {
-            repliesThrottler.throttle(ownerChatId, () ->
-                    sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG)
-            );
-            return;
-        }
-        Chat forwardFromChat = postItem.getForwardFromChat();
-        if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
-            sendNotification(ownerChatId, channelId, AUTHOR_RIGHTS_MSG);
-            return;
-        }
-        try {
-            if (!userChannelsRepository.isSetAutoposting(ownerChatId, channelId)) {
-                return;
-            }
-            long userChatId = userChannelsRepository.getUserChatId(channelId);
-            UserChannels tgChannel = userChannelsRepository.getUserChannel(channelId, userChatId);
-            if (tgChannel == null || !tgChannel.isAutoposting()) {
-                return;
-            }
-            List<String> messagesToChannelOwner = new ArrayList<>();
-            for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
-                String accessToken = group.getAccessToken();
-                long accountId = group.getAccountId();
-
-                if (accessToken == null) {
-                    checkAndSendNotification(ownerChatId, channelId, CHANNEL_INFO_ERROR);
-                    continue;
-                }
-
-                String message;
-                switch (group.getSocialMedia()) {
-                    case OK -> message = okPostProcessor.processPostInChannel(postItems, ownerChatId,
-                            group.getGroupId(), channelId, accountId, accessToken);
-                    case VK -> message = vkPostProcessor.processPostInChannel(postItems, ownerChatId,
-                            group.getGroupId(), channelId, accountId, accessToken);
-                    default -> {
-                        LOGGER.error(String.format("Social media not found: %s",
-                                group.getSocialMedia()));
-                        message = ERROR_POST_MSG + group.getGroupId();
-                    }
-                }
-                messagesToChannelOwner.add(message);
-            }
-            String aggregatedMessages = aggregateMessages(messagesToChannelOwner);
-            checkAndSendNotification(ownerChatId, channelId, aggregatedMessages);
-        } catch (RuntimeException e) {
-            LOGGER.error("Error when handling post in " + channelId, e);
-            sendAnswer(ownerChatId, "Произошла непредвиденная ошибка при обработке поста " + e);
-        }
-    }
-
-    private static String aggregateMessages(List<String> messagesToChannelOwner) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (String message : messagesToChannelOwner) {
-            stringBuilder.append(message);
-            stringBuilder.append("\n\n");
-        }
-        return stringBuilder.toString();
-    }
-
-    private void checkAndSendNotification(long userChatId, long channelId, String message) {
-        if (userChannelsRepository.isSetNotification(userChatId, channelId)) {
-            sendAnswer(userChatId, message);
-        }
+                .forEach((channelId, posts) -> postsProcessor.processPostsInChannel(channelId, posts));
     }
 
     private String getUserName(Message msg) {
@@ -738,8 +636,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     }
 
     @Override
-    public void sendNotification(long userChatId, long channelId, String message) {
-        checkAndSendNotification(userChatId, channelId, message);
+    public void sendNotification(long userChatId, String message) {
+        sendAnswer(userChatId, message);
     }
 
     private static String messageDebugInfo(Message message) {
