@@ -75,15 +75,14 @@ public class TgContentManager {
         return TgContentManager.fileWithOrigExtension(tgApiFilePath, file);
     }
 
-    private File downloadFileById(String fileId, String nameToSet) throws IOException,
-            TelegramApiException {
+    private File downloadFileById(String fileId, String nameToSet) throws IOException, TelegramApiException {
         FileInfo pathResponse = retrieveFilePath(tgApiToken, fileId);
         String tgApiFilePath = pathResponse.getFilePath();
         File file = fileLoader.downloadFile(tgApiFilePath);
         return TgContentManager.fileWithOrigName(tgApiFilePath, file, nameToSet);
     }
 
-    private FileInfo retrieveFilePath(String botToken, String fileId) throws IOException {
+    private FileInfo retrieveFilePath(String botToken, String fileId) throws IOException, TelegramApiException {
         URI uri = URI.create(TELEGRAM_API_URL.formatted(botToken, fileId));
         HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
         HttpResponse<String> response;
@@ -92,8 +91,13 @@ public class TgContentManager {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        JSONObject object = new JSONObject(response.body());
-        return mapper.readValue(object.getJSONObject("result").toString(), GetFilePathResponse.class);
+        GetFileResponse getFileResponse = mapper.readValue(response.body(), GetFileResponse.class);
+        if (getFileResponse.isOk()) {
+            return getFileResponse.getResult();
+        }
+        logger.error("Not ok response when loading file:\n\t" + getFileResponse);
+        throw new TelegramApiException("Error when loading file %s due %s:%s"
+                .formatted(fileId, getFileResponse.getErrorCode(), getFileResponse.getDescription()));
     }
 
     private static File fileWithOrigExtension(String tgApiFilePath, File file) {
@@ -167,12 +171,50 @@ public class TgContentManager {
         return toLatinTrans.transliterate(filename);
     }
 
-    private static String getFileUrl(String botToken) {
-        return TELEGRAM_API_URL + "/bot" + botToken + "/getFile";
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static class GetFileResponse {
+        @JsonProperty("ok")
+        private boolean ok;
+
+        @JsonProperty("error_code")
+        private int errorCode;
+
+        @JsonProperty("description")
+        private String description;
+
+        @JsonProperty("result")
+        private FileInfo result;
+
+        public boolean isOk() {
+            return ok;
+        }
+
+        public int getErrorCode() {
+            return errorCode;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public FileInfo getResult() {
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "GetFileResponse{" +
+                    "ok=" + ok +
+                    ", errorCode=" + errorCode +
+                    ", description='" + description + '\'' +
+                    ", result=" + result +
+                    '}';
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class GetFilePathResponse {
+    private static class FileInfo {
         @JsonProperty("file_id")
         private String fileId;
 
