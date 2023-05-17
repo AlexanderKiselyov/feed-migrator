@@ -50,7 +50,7 @@ function copyToClipboard(text) {
 
 }
 
-copyButton.addEventListener("click", code => {
+copyButton.addEventListener("click", () => {
     if (code !== null && code.length !== 0) {
         copyToClipboard(code);
         alert("Код был успешно скопирован!");
