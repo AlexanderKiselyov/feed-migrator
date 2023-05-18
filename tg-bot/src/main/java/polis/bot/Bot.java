@@ -96,19 +96,11 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private static final String NOTIFICATIONS = "notifications";
     private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
     private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
-    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
-            + "Не удалось опубликовать пост в ok.ru/group/";
-    private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
-    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
-            + "соответствии с Законом об авторском праве.";
-    private static final String SINGLE_ITEM_POSTS = "";
-    private static final String UNHANDLED_ERROR = "Произошла непредвиденная ошибка при обработке поста ";
     private static final List<String> EMPTY_LIST = List.of();
     private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в "
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
     private static final String AUTOPOSTING_ENABLE_AND_NOTIFICATIONS = "Функция автопостинга включена."
             + TURN_ON_NOTIFICATIONS_MSG;
-    private static final String CHANNEL_INFO_ERROR = "Ошибка получения информации по каналу.";
     private static final String AUTOPOSTING_FUNCTION_ENABLED = "включена";
     private static final String AUTOPOSTING_FUNCTION_DISABLED = "выключена";
     private static final String NOTIFICATIONS_TEXT = "Уведомления %s.";
@@ -134,8 +126,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             Map.entry(String.format(VK_AUTH_STATE_ANSWER, State.VkAccountDescription.getIdentifier()),
                     List.of(State.VkAccountDescription.getDescription())),
             Map.entry(String.format(VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()),
-                    List.of(State.SyncVkTg.getDescription())
-    ));
+                    List.of(State.SyncVkTg.getDescription()))
+    );
 
     private final String botName;
     private final String botToken;
