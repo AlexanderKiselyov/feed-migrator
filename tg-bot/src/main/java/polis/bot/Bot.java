@@ -80,7 +80,9 @@ import static polis.datacheck.VkDataCheck.SAME_VK_ACCOUNT;
 import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_ANSWER;
 import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
-import static polis.telegram.TelegramDataCheck.*;
+import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
+import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
+import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
 
 @Configuration
 @Component("Bot")
