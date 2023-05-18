@@ -46,6 +46,8 @@ public class PostsProcessor implements IPostsProcessor {
     private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
             + "соответствии с Законом об авторском праве.";
     private static final Logger LOGGER = LoggerFactory.getLogger(PostsProcessor.class);
+    public static final String TG_LOAD_POST_ERROR_MGS = "Ошибка при загрузке поста из телеграмма: ";
+    public static final String UNEXPECTED_ERROR_MSG = "Произошла непредвиденная ошибка при обработке поста ";
 
     @Autowired
     private RateLimiter postingRateLimiter;
@@ -112,7 +114,7 @@ public class PostsProcessor implements IPostsProcessor {
             post = downloadPost(postItems);
         } catch (TelegramApiException | URISyntaxException | IOException e) {
             LOGGER.error("Error when downloading post from " + channelId, e);
-            tgNotificator.sendNotification(ownerChatId, "Ошибка при загрузке поста из телеграмма: " + e);
+            tgNotificator.sendNotification(ownerChatId, TG_LOAD_POST_ERROR_MGS + e);
             return;
         }
 
@@ -150,7 +152,7 @@ public class PostsProcessor implements IPostsProcessor {
             sendNotificationIfEnabled(ownerChatId, channelId, aggregatedMessages);
         } catch (RuntimeException e) {
             LOGGER.error("Error when handling post in " + channelId, e);
-            tgNotificator.sendNotification(ownerChatId, "Произошла непредвиденная ошибка при обработке поста " + e);
+            tgNotificator.sendNotification(ownerChatId, UNEXPECTED_ERROR_MSG + e);
         }
     }
 
