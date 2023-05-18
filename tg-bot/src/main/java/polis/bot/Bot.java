@@ -87,11 +87,34 @@ import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
 @Configuration
 @Component("Bot")
 public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, TgNotificator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
+    private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
+    private static final String GROUP_CALLBACK_TEXT = "group";
+    private static final String ACCOUNT_CALLBACK_TEXT = "account";
+    private static final String YES_NO_CALLBACK_TEXT = "yesNo";
+    private static final String AUTOPOSTING = "autoposting";
+    private static final String NOTIFICATIONS = "notifications";
+    private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
+    private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
+    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
+            + "Не удалось опубликовать пост в ok.ru/group/";
+    private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
+    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
+            + "соответствии с Законом об авторском праве.";
+    private static final String SINGLE_ITEM_POSTS = "";
+    private static final String UNHANDLED_ERROR = "Произошла непредвиденная ошибка при обработке поста ";
     private static final List<String> EMPTY_LIST = List.of();
     private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в "
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
     private static final String AUTOPOSTING_ENABLE_AND_NOTIFICATIONS = "Функция автопостинга включена."
             + TURN_ON_NOTIFICATIONS_MSG;
+    private static final String CHANNEL_INFO_ERROR = "Ошибка получения информации по каналу.";
+    private static final String AUTOPOSTING_FUNCTION_ENABLED = "включена";
+    private static final String AUTOPOSTING_FUNCTION_DISABLED = "выключена";
+    private static final String NOTIFICATIONS_TEXT = "Уведомления %s.";
+    private static final String NOTIFICATIONS_ENABLED = "включены";
+    private static final String NOTIFICATIONS_DISABLED = "выключены";
+    private static final String DEBUG_INFO_TEXT = "Update from ";
     private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.ofEntries(
             Map.entry(String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
                     List.of(State.OkAccountDescription.getDescription())),
@@ -112,18 +135,10 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     List.of(State.VkAccountDescription.getDescription())),
             Map.entry(String.format(VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()),
                     List.of(State.SyncVkTg.getDescription())
-            ));
+    ));
+
     private final String botName;
     private final String botToken;
-    private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
-    private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
-    private static final String GROUP_CALLBACK_TEXT = "group";
-    private static final String ACCOUNT_CALLBACK_TEXT = "account";
-    private static final String YES_NO_CALLBACK_TEXT = "yesNo";
-    private static final String AUTOPOSTING = "autoposting";
-    private static final String NOTIFICATIONS = "notifications";
-    private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
-    private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
 
     @Autowired
     private AccountsRepository accountsRepository;
@@ -328,8 +343,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             return;
         }
 
-        if (messageText.equals(GO_BACK_BUTTON_TEXT)) {
-            IState previousState = State.getPrevState(currentStateRepository.getCurrentState(chatId).getState());
+        CurrentState currentState = currentStateRepository.getCurrentState(chatId);
+        if (messageText.equals(GO_BACK_BUTTON_TEXT) && currentState != null) {
+            IState previousState = State.getPrevState(currentState.getState());
             if (previousState == null) {
                 LOGGER.error("Previous state = null, tmp state = {}", currentStateRepository.getCurrentState(chatId)
                         .getState().getIdentifier());
@@ -340,18 +356,20 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             return;
         }
 
-        IState currState = currentStateRepository.getCurrentState(chatId).getState();
-        if (currState instanceof State) {
-            currState = Substate.nextSubstate(currState);
-            currentStateRepository.insertCurrentState(new CurrentState(chatId, currState.getIdentifier()));
-        }
+        if (currentState != null) {
+            IState currState = currentState.getState();
+            if (currState instanceof State) {
+                currState = Substate.nextSubstate(currState);
+                currentStateRepository.insertCurrentState(new CurrentState(chatId, currState.getIdentifier()));
+            }
 
-        NonCommand.AnswerPair answer = nonCommand.nonCommandExecute(messageText, chatId, currState);
-        if (!answer.getError()) {
-            currentStateRepository.insertCurrentState(new CurrentState(chatId,
-                    Substate.nextSubstate(currState).getIdentifier()));
+            NonCommand.AnswerPair answer = nonCommand.nonCommandExecute(messageText, chatId, currState);
+            if (!answer.getError()) {
+                currentStateRepository.insertCurrentState(new CurrentState(chatId,
+                        Substate.nextSubstate(currState).getIdentifier()));
+            }
+            sendAnswer(chatId, getUserName(msg), answer.getAnswer());
         }
-        sendAnswer(chatId, getUserName(msg), answer.getAnswer());
     }
 
     private String getUserName(Message msg) {
@@ -394,7 +412,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         String[] dataParts = data.split(" ");
         switch (dataParts[0]) {
             case TG_CHANNEL_CALLBACK_TEXT -> {
-                if (isJustCkick(dataParts)) {
+                if (isJustClicked(dataParts)) {
                     UserChannels currentTelegramChannel = null;
                     List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(chatId);
                     for (UserChannels ch : tgChannels) {
@@ -434,7 +452,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     LOGGER.error(String.format("Wrong group-callback data: %s", data));
                     return;
                 }
-                if (isJustCkick(dataParts)) {
+                if (isJustClicked(dataParts)) {
                     changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.GroupDescription);
                 } else if (isDeletionRequested(dataParts)) {
                     CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chatId);
@@ -504,16 +522,16 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 }
             }
             case AUTOPOSTING -> {
-                String enable = "включена";
+                String enable = AUTOPOSTING_FUNCTION_ENABLED;
                 if (!wasClickedYesButton(dataParts, 3)) {
                     userChannelsRepository.setAutoposting(chatId, Long.parseLong(dataParts[2]), false);
-                    enable = "выключена";
+                    enable = AUTOPOSTING_FUNCTION_DISABLED;
                 } else {
                     userChannelsRepository.setAutoposting(chatId, Long.parseLong(dataParts[2]), true);
                 }
                 deleteLastMessage(msg, chatId);
                 String text = String.format(AUTOPOSTING_ENABLE, enable);
-                if ("включена".equals(enable)) {
+                if (AUTOPOSTING_FUNCTION_ENABLED.equals(enable)) {
                     text += TURN_ON_NOTIFICATIONS_MSG;
                 }
                 sendAnswer(chatId, text);
@@ -521,7 +539,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             case NOTIFICATIONS -> {
                 boolean areEnable = wasClickedYesButton(dataParts, 2);
                 userChannelsRepository.setNotification(chatId, Long.parseLong(dataParts[1]), areEnable);
-                sendAnswer(chatId, String.format("Уведомления %s.", (areEnable ? "включены" : "выключены")));
+                sendAnswer(chatId, String.format(NOTIFICATIONS_TEXT,
+                        (areEnable ? NOTIFICATIONS_ENABLED : NOTIFICATIONS_DISABLED)));
                 deleteLastMessage(msg, chatId);
                 currentStateRepository.insertCurrentState(new CurrentState(
                         chatId,
@@ -538,7 +557,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         return Objects.equals(dataParts[2], "1");
     }
 
-    private static boolean isJustCkick(String[] dataParts) {
+    private static boolean isJustClicked(String[] dataParts) {
         return Objects.equals(dataParts[2], "0");
     }
 
@@ -635,6 +654,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
 
     private static String messageDebugInfo(Message message) {
         String debugInfo = new ReflectionToStringBuilder(message).toString();
-        return "Update from " + message.getChatId() + "\n" + debugInfo;
+        return DEBUG_INFO_TEXT + message.getChatId() + "\n" + debugInfo;
     }
 }

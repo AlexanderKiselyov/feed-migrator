@@ -17,18 +17,20 @@ import java.util.List;
 import static polis.util.Emojis.HAPPY_FACE;
 
 public abstract class SyncGroupWithChannel extends Command {
-    static final String SYNC_MSG = """
+    private static final String SYNC_MSG = """
             Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";
-    static final String SYNC_INLINE_MSG = """
+    private static final String SYNC_INLINE_MSG = """
             Хотите ли Вы синхронизировать их?
                         
             *При размещении контента на Вашем канале очень важно уважать права других авторов, в связи с чем мы не
             осуществляем автопостинг для пересланных сообщений""" + HAPPY_FACE;
-    static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
+    private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
             Невозможно связать Телеграм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
-    static final int ROWS_COUNT = 1;
-    static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
+    private static final String ENABLE_SYNC = "yesNo 0";
+    private static final String DISABLE_SYNC = "yesNo 1";
+    private static final int ROWS_COUNT = 1;
+    private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -79,10 +81,10 @@ public abstract class SyncGroupWithChannel extends Command {
 
     private static List<String> getButtonsForSyncOptions() {
         return List.of(
-                "Да",
-                "yesNo 0",
-                "Нет",
-                "yesNo 1"
+                YES_ANSWER,
+                ENABLE_SYNC,
+                NO_ANSWER,
+                DISABLE_SYNC
         );
     }
 }

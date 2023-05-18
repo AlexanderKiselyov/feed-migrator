@@ -16,6 +16,9 @@ import java.util.List;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 public abstract class Command extends BotCommand {
+    static final String YES_ANSWER = "Да";
+    static final String NO_ANSWER = "Нет";
+    static final String DELETE_MESSAGE = " Удалить";
     public static final String USER_ID_NOT_FOUND = "Не удалось найти id пользователя. Попробуйте еще раз.";
     public static final String USERNAME_NOT_FOUND = "Не удалось найти имя пользователя. Попробуйте еще раз.";
     public static final String GROUP_NAME_NOT_FOUND = "Не удалось найти название группы. Попробуйте еще раз.";

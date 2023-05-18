@@ -24,6 +24,8 @@ public class Notifications extends Command {
     private static final String NO_CURRENT_TG_CHANNEL = """
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
+    private static final String ENABLE_NOTIFICATIONS = "notifications %s 0";
+    private static final String DISABLE_NOTIFICATIONS = "notifications %s 1";
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -72,10 +74,10 @@ public class Notifications extends Command {
 
     private static List<String> getButtonsForNotificationsOptions(Long id) {
         return List.of(
-                "Да",
-                String.format("notifications %s 0", id),
-                "Нет",
-                String.format("notifications %s 1", id)
+                YES_ANSWER,
+                String.format(ENABLE_NOTIFICATIONS, id),
+                NO_ANSWER,
+                String.format(DISABLE_NOTIFICATIONS, id)
         );
     }
 }
