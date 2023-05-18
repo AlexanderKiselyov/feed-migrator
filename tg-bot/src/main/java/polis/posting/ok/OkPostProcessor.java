@@ -2,7 +2,7 @@ package polis.posting.ok;
 
 import org.springframework.stereotype.Component;
 import polis.posting.ApiException;
-import polis.posting.PostProcessor;
+import polis.posting.IPostProcessor;
 import polis.util.SocialMedia;
 
 import java.io.IOException;
@@ -10,7 +10,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 @Component
-public class OkPostProcessor implements PostProcessor {
+public class OkPostProcessor implements IPostProcessor {
     private static final String DOCUMENTS_ARENT_SUPPORTED =
             "Тип файла 'Документ' не поддерживается в социальной сети Одноклассники";
     private static final String GROUPS_LINK = "ok.ru/group/";
@@ -54,12 +54,12 @@ public class OkPostProcessor implements PostProcessor {
                     .addTextWithLinks(formattedText)
                     .post(groupId);
             if (videoIds == null || videoIds.isEmpty()) {
-                return PostProcessor.successfulPostMsg(OK_SOCIAL_NAME, postLink(groupId, postId));
+                return IPostProcessor.successfulPostMsg(OK_SOCIAL_NAME, postLink(groupId, postId));
             } else {
-                return PostProcessor.successfulPostMsg(OK_SOCIAL_NAME, postLinkWithVideoWarning(groupId, postId));
+                return IPostProcessor.successfulPostMsg(OK_SOCIAL_NAME, postLinkWithVideoWarning(groupId, postId));
             }
         } catch (URISyntaxException | IOException | ApiException e) {
-            return PostProcessor.failPostToGroupMsg(OK_SOCIAL_NAME, groupLink(groupId));
+            return IPostProcessor.failPostToGroupMsg(OK_SOCIAL_NAME, groupLink(groupId));
         }
 
     }

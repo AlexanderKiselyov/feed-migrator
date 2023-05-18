@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.util.List;
 
-public interface PostProcessor {
+public interface IPostProcessor {
     String SUCCESS_POST_MSG = "Успешно опубликовал пост в социальной сети %s";
     String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
             + "Не удалось опубликовать пост в социальной сети %s";

@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
 import polis.posting.ApiException;
-import polis.posting.PostProcessor;
+import polis.posting.IPostProcessor;
 import polis.util.SocialMedia;
 
 import java.io.IOException;
@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 @Component
-public class VkPostProcessor implements PostProcessor {
+public class VkPostProcessor implements IPostProcessor {
     private static final String VK_GROUP_URL = "vk.com/club";
     private static final String GROUP_POSTFIX = "?w=wall-";
     private static final String POST_PREFIX = "_";
@@ -68,15 +68,15 @@ public class VkPostProcessor implements PostProcessor {
                     .addPoll(poll, pollId)
                     .addDocuments(documentIds, groupId)
                     .post((int) accountId, groupId);
-            return PostProcessor.successfulPostMsg(VK_SOCIAL_NAME, postLink(groupId, postId));
+            return IPostProcessor.successfulPostMsg(VK_SOCIAL_NAME, postLink(groupId, postId));
         } catch (ApiException e) {
             if (e.getCode() == DOCUMENT_POST_ERROR_CODE) {
-                return PostProcessor.failPostToGroupMsg(VK_SOCIAL_NAME, groupLinkWithDocumentWarning(groupId));
+                return IPostProcessor.failPostToGroupMsg(VK_SOCIAL_NAME, groupLinkWithDocumentWarning(groupId));
             } else {
-                return PostProcessor.failPostToGroupMsg(VK_SOCIAL_NAME, groupLink(groupId));
+                return IPostProcessor.failPostToGroupMsg(VK_SOCIAL_NAME, groupLink(groupId));
             }
         } catch (URISyntaxException | IOException e) {
-            return PostProcessor.failPostToGroupMsg(VK_SOCIAL_NAME, groupLink(groupId));
+            return IPostProcessor.failPostToGroupMsg(VK_SOCIAL_NAME, groupLink(groupId));
         }
     }
 

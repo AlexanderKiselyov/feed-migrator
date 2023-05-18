@@ -107,7 +107,7 @@ public class PostsProcessor implements IPostsProcessor {
         if (!userChannelsRepository.isSetAutoposting(ownerChatId, channelId)) {
             return;
         }
-        PostProcessor.Post post;
+        IPostProcessor.Post post;
         try {
             post = downloadPost(postItems);
         } catch (TelegramApiException | URISyntaxException | IOException e) {
@@ -128,7 +128,7 @@ public class PostsProcessor implements IPostsProcessor {
                 long accountId = group.getAccountId();
 
                 if (accessToken == null) {
-                    sendNotificationIfEnabled(ownerChatId, channelId, CHANNEL_INFO_ERROR);
+                    tgNotificator.sendNotification(ownerChatId, CHANNEL_INFO_ERROR);
                     continue;
                 }
 
@@ -155,7 +155,7 @@ public class PostsProcessor implements IPostsProcessor {
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent") //checked with postItem.hasPhoto()
-    private PostProcessor.Post downloadPost(List<Message> postItems) throws TelegramApiException, URISyntaxException, IOException {
+    private IPostProcessor.Post downloadPost(List<Message> postItems) throws TelegramApiException, URISyntaxException, IOException {
         List<File> videos = new ArrayList<>();
         List<File> photos = new ArrayList<>();
         List<File> animations = new ArrayList<>();
@@ -211,7 +211,7 @@ public class PostsProcessor implements IPostsProcessor {
             }
         }
 
-        return new PostProcessor.Post(videos, photos, animations, documents, textLinks, text, poll);
+        return new IPostProcessor.Post(videos, photos, animations, documents, textLinks, text, poll);
     }
 
     private static String aggregateMessages(List<String> messagesToChannelOwner) {
