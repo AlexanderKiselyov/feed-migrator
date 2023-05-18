@@ -14,7 +14,6 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -55,11 +54,7 @@ import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
-import polis.posting.ok.OkPostProcessor;
-import polis.posting.vk.VkPostProcessor;
-import polis.ratelim.RateLimiter;
-import polis.ratelim.Throttler;
-import polis.util.Emojis;
+import polis.posting.IPostsProcessor;
 import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
@@ -68,8 +63,6 @@ import polis.util.Substate;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -94,12 +87,26 @@ import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
 @Configuration
 @Component("Bot")
 public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, TgNotificator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
+    private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
+    private static final String GROUP_CALLBACK_TEXT = "group";
+    private static final String ACCOUNT_CALLBACK_TEXT = "account";
+    private static final String YES_NO_CALLBACK_TEXT = "yesNo";
+    private static final String AUTOPOSTING = "autoposting";
+    private static final String NOTIFICATIONS = "notifications";
+    private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
+    private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
     private static final List<String> EMPTY_LIST = List.of();
     private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в "
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
     private static final String AUTOPOSTING_ENABLE_AND_NOTIFICATIONS = "Функция автопостинга включена."
             + TURN_ON_NOTIFICATIONS_MSG;
-    private static final String CHANNEL_INFO_ERROR = "Ошибка получения информации по каналу.";
+    private static final String AUTOPOSTING_FUNCTION_ENABLED = "включена";
+    private static final String AUTOPOSTING_FUNCTION_DISABLED = "выключена";
+    private static final String NOTIFICATIONS_TEXT = "Уведомления %s.";
+    private static final String NOTIFICATIONS_ENABLED = "включены";
+    private static final String NOTIFICATIONS_DISABLED = "выключены";
+    private static final String DEBUG_INFO_TEXT = "Update from ";
     private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.ofEntries(
             Map.entry(String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
                     List.of(State.OkAccountDescription.getDescription())),
@@ -119,25 +126,11 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             Map.entry(String.format(VK_AUTH_STATE_ANSWER, State.VkAccountDescription.getIdentifier()),
                     List.of(State.VkAccountDescription.getDescription())),
             Map.entry(String.format(VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()),
-                    List.of(State.SyncVkTg.getDescription())
-    ));
+                    List.of(State.SyncVkTg.getDescription()))
+    );
+
     private final String botName;
     private final String botToken;
-    private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
-    private static final String TG_CHANNEL_CALLBACK_TEXT = "tg_channel";
-    private static final String GROUP_CALLBACK_TEXT = "group";
-    private static final String ACCOUNT_CALLBACK_TEXT = "account";
-    private static final String YES_NO_CALLBACK_TEXT = "yesNo";
-    private static final String AUTOPOSTING = "autoposting";
-    private static final String NOTIFICATIONS = "notifications";
-    private static final String NO_CALLBACK_TEXT = "NO_CALLBACK_TEXT";
-    private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
-    private static final String ERROR_POST_MSG = "Упс, что-то пошло не так " + Emojis.SAD_FACE + " \n"
-            + "Не удалось опубликовать пост в ok.ru/group/";
-    private static final String TOO_MANY_API_REQUESTS_MSG = "Превышено количество публикаций в единицу времени";
-    private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
-            + "соответствии с Законом об авторском праве.";
-    private static final String SINGLE_ITEM_POSTS = "";
 
     @Autowired
     private AccountsRepository accountsRepository;
@@ -209,18 +202,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private SyncVkTg syncVkTg;
 
     @Autowired
-    private RateLimiter postingRateLimiter;
-
-    @Autowired
-    private Throttler repliesThrottler;
-
-    @Lazy
-    @Autowired
-    private OkPostProcessor okPostProcessor;
-
-    @Lazy
-    @Autowired
-    private VkPostProcessor vkPostProcessor;
+    IPostsProcessor postsProcessor;
 
     @Lazy
     @Autowired
@@ -268,6 +250,19 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         register(vkAccountDescription);
         register(addVkGroup);
         register(syncVkTg);
+    }
+
+    @Override
+    public void onUpdatesReceived(List<Update> overallUpdates) {
+        Map<Boolean, List<Update>> updates = overallUpdates.stream()
+                .collect(Collectors.partitioningBy(Update::hasChannelPost));
+        boolean channelPosts = true;
+
+        updates.get(!channelPosts).forEach(this::processNonCommandUpdate);
+        updates.get(channelPosts).stream()
+                .map(Update::getChannelPost)
+                .collect(Collectors.groupingBy(Message::getChatId))
+                .forEach((channelId, posts) -> postsProcessor.processPostsInChannel(channelId, posts));
     }
 
     /**
@@ -340,8 +335,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             return;
         }
 
-        if (messageText.equals(GO_BACK_BUTTON_TEXT)) {
-            IState previousState = State.getPrevState(currentStateRepository.getCurrentState(chatId).getState());
+        CurrentState currentState = currentStateRepository.getCurrentState(chatId);
+        if (messageText.equals(GO_BACK_BUTTON_TEXT) && currentState != null) {
+            IState previousState = State.getPrevState(currentState.getState());
             if (previousState == null) {
                 LOGGER.error("Previous state = null, tmp state = {}", currentStateRepository.getCurrentState(chatId)
                         .getState().getIdentifier());
@@ -352,114 +348,19 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             return;
         }
 
-        IState currState = currentStateRepository.getCurrentState(chatId).getState();
-        if (currState instanceof State) {
-            currState = Substate.nextSubstate(currState);
-            currentStateRepository.insertCurrentState(new CurrentState(chatId, currState.getIdentifier()));
-        }
-
-        NonCommand.AnswerPair answer = nonCommand.nonCommandExecute(messageText, chatId, currState);
-        if (!answer.getError()) {
-            currentStateRepository.insertCurrentState(new CurrentState(chatId,
-                    Substate.nextSubstate(currState).getIdentifier()));
-        }
-        sendAnswer(chatId, getUserName(msg), answer.getAnswer());
-    }
-
-    @Override
-    public void onUpdatesReceived(List<Update> overallUpdates) {
-        Map<Boolean, List<Update>> updates = overallUpdates.stream()
-                .collect(Collectors.partitioningBy(Update::hasChannelPost));
-        boolean channelPosts = true;
-
-        updates.get(!channelPosts).forEach(this::processNonCommandUpdate);
-        updates.get(channelPosts).stream()
-                .map(Update::getChannelPost)
-                .collect(Collectors.groupingBy(Message::getChatId))
-                .values()
-                .forEach(this::processPostsInChannel);
-    }
-
-    private void processPostsInChannel(List<Message> channelPosts) {
-        Map<String, List<Message>> posts = channelPosts.stream().collect(
-                Collectors.groupingBy(
-                        post -> post.getMediaGroupId() == null ? SINGLE_ITEM_POSTS : post.getMediaGroupId(),
-                        Collectors.toList()
-                ));
-        posts.getOrDefault(SINGLE_ITEM_POSTS, Collections.emptyList())
-                .forEach(post -> processPostItems(Collections.singletonList(post)));
-        posts.remove(SINGLE_ITEM_POSTS); // :)
-        posts.values().forEach(this::processPostItems);
-    }
-
-    private void processPostItems(List<Message> postItems) {
-        Message postItem = postItems.get(0);
-        long channelId = postItem.getChatId();
-        long ownerChatId = userChannelsRepository.getUserChatId(channelId);
-        if (!postingRateLimiter.allowRequest(ownerChatId)) {
-            repliesThrottler.throttle(ownerChatId, () ->
-                    sendNotification(ownerChatId, channelId, TOO_MANY_API_REQUESTS_MSG)
-            );
-            return;
-        }
-        Chat forwardFromChat = postItem.getForwardFromChat();
-        if (forwardFromChat != null && forwardFromChat.getId() != channelId) {
-            sendNotification(ownerChatId, channelId, AUTHOR_RIGHTS_MSG);
-            return;
-        }
-        try {
-            if (!userChannelsRepository.isSetAutoposting(ownerChatId, channelId)) {
-                return;
+        if (currentState != null) {
+            IState currState = currentState.getState();
+            if (currState instanceof State) {
+                currState = Substate.nextSubstate(currState);
+                currentStateRepository.insertCurrentState(new CurrentState(chatId, currState.getIdentifier()));
             }
-            long userChatId = userChannelsRepository.getUserChatId(channelId);
-            UserChannels tgChannel = userChannelsRepository.getUserChannel(channelId, userChatId);
-            if (tgChannel == null || !tgChannel.isAutoposting()) {
-                return;
+
+            NonCommand.AnswerPair answer = nonCommand.nonCommandExecute(messageText, chatId, currState);
+            if (!answer.getError()) {
+                currentStateRepository.insertCurrentState(new CurrentState(chatId,
+                        Substate.nextSubstate(currState).getIdentifier()));
             }
-            List<String> messagesToChannelOwner = new ArrayList<>();
-            for (ChannelGroup group : channelGroupsRepository.getGroupsForChannel(tgChannel.getChannelId())) {
-                String accessToken = group.getAccessToken();
-                long accountId = group.getAccountId();
-
-                if (accessToken == null) {
-                    checkAndSendNotification(ownerChatId, channelId, CHANNEL_INFO_ERROR);
-                    continue;
-                }
-
-                String message;
-                switch (group.getSocialMedia()) {
-                    case OK -> message = okPostProcessor.processPostInChannel(postItems, ownerChatId,
-                            group.getGroupId(), channelId, accountId, accessToken);
-                    case VK -> message = vkPostProcessor.processPostInChannel(postItems, ownerChatId,
-                            group.getGroupId(), channelId, accountId, accessToken);
-                    default -> {
-                        LOGGER.error(String.format("Social media not found: %s",
-                                group.getSocialMedia()));
-                        message = ERROR_POST_MSG + group.getGroupId();
-                    }
-                }
-                messagesToChannelOwner.add(message);
-            }
-            String aggregatedMessages = aggregateMessages(messagesToChannelOwner);
-            checkAndSendNotification(ownerChatId, channelId, aggregatedMessages);
-        } catch (RuntimeException e) {
-            LOGGER.error("Error when handling post in " + channelId, e);
-            sendAnswer(ownerChatId, "Произошла непредвиденная ошибка при обработке поста " + e);
-        }
-    }
-
-    private static String aggregateMessages(List<String> messagesToChannelOwner) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (String message : messagesToChannelOwner) {
-            stringBuilder.append(message);
-            stringBuilder.append("\n\n");
-        }
-        return stringBuilder.toString();
-    }
-
-    private void checkAndSendNotification(long userChatId, long channelId, String message) {
-        if (userChannelsRepository.isSetNotification(userChatId, channelId)) {
-            sendAnswer(userChatId, message);
+            sendAnswer(chatId, getUserName(msg), answer.getAnswer());
         }
     }
 
@@ -503,7 +404,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         String[] dataParts = data.split(" ");
         switch (dataParts[0]) {
             case TG_CHANNEL_CALLBACK_TEXT -> {
-                if (isJustCkick(dataParts)) {
+                if (isJustClicked(dataParts)) {
                     UserChannels currentTelegramChannel = null;
                     List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(chatId);
                     for (UserChannels ch : tgChannels) {
@@ -543,7 +444,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     LOGGER.error(String.format("Wrong group-callback data: %s", data));
                     return;
                 }
-                if (isJustCkick(dataParts)) {
+                if (isJustClicked(dataParts)) {
                     changeCurrentSocialMediaGroupAndExecuteCommand(chatId, dataParts, msg, State.GroupDescription);
                 } else if (isDeletionRequested(dataParts)) {
                     CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chatId);
@@ -613,16 +514,16 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 }
             }
             case AUTOPOSTING -> {
-                String enable = "включена";
+                String enable = AUTOPOSTING_FUNCTION_ENABLED;
                 if (!wasClickedYesButton(dataParts, 3)) {
                     userChannelsRepository.setAutoposting(chatId, Long.parseLong(dataParts[2]), false);
-                    enable = "выключена";
+                    enable = AUTOPOSTING_FUNCTION_DISABLED;
                 } else {
                     userChannelsRepository.setAutoposting(chatId, Long.parseLong(dataParts[2]), true);
                 }
                 deleteLastMessage(msg, chatId);
                 String text = String.format(AUTOPOSTING_ENABLE, enable);
-                if ("включена".equals(enable)) {
+                if (AUTOPOSTING_FUNCTION_ENABLED.equals(enable)) {
                     text += TURN_ON_NOTIFICATIONS_MSG;
                 }
                 sendAnswer(chatId, text);
@@ -630,7 +531,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             case NOTIFICATIONS -> {
                 boolean areEnable = wasClickedYesButton(dataParts, 2);
                 userChannelsRepository.setNotification(chatId, Long.parseLong(dataParts[1]), areEnable);
-                sendAnswer(chatId, String.format("Уведомления %s.", (areEnable ? "включены" : "выключены")));
+                sendAnswer(chatId, String.format(NOTIFICATIONS_TEXT,
+                        (areEnable ? NOTIFICATIONS_ENABLED : NOTIFICATIONS_DISABLED)));
                 deleteLastMessage(msg, chatId);
                 currentStateRepository.insertCurrentState(new CurrentState(
                         chatId,
@@ -647,7 +549,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         return Objects.equals(dataParts[2], "1");
     }
 
-    private static boolean isJustCkick(String[] dataParts) {
+    private static boolean isJustClicked(String[] dataParts) {
         return Objects.equals(dataParts[2], "0");
     }
 
@@ -721,12 +623,12 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     }
 
     @Override
-    public void sendNotification(long userChatId, long channelId, String message) {
-        checkAndSendNotification(userChatId, channelId, message);
+    public void sendNotification(long userChatId, String message) {
+        sendAnswer(userChatId, message);
     }
 
     private static String messageDebugInfo(Message message) {
         String debugInfo = new ReflectionToStringBuilder(message).toString();
-        return "Update from " + message.getChatId() + "\n" + debugInfo;
+        return DEBUG_INFO_TEXT + message.getChatId() + "\n" + debugInfo;
     }
 }

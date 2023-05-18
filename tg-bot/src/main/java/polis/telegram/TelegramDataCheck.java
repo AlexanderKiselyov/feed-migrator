@@ -32,6 +32,19 @@ public class TelegramDataCheck {
             Посмотреть информацию по телеграм-каналу можно по команде /%s""",
             State.TgChannelDescription.getIdentifier());
     private static final String GET_CHAT = "https://api.telegram.org/bot%s/getChat";
+    private static final String RESULT_FIELD = "result";
+    private static final String STATUS_FIELD = "status";
+    private static final String TITLE_FIELD = "title";
+    private static final String NOT_SUCCESS_CODE = """
+                                Not 200 code of the response.
+                                Request URI: %s
+                                Request headers: %s
+                                Response: %s""";
+    private static final String FIELD_ABSENCE = """
+                                Response doesn't contain '%s' field.
+                                Request URI: %s
+                                Request headers: %s
+                                Response: %s""";
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramDataCheck.class);
 
     @Autowired
@@ -56,42 +69,26 @@ public class TelegramDataCheck {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            String errorMessage;
             if (response.statusCode() != 200) {
-                errorMessage = """
-                                Not 200 code of the response.
-                                Request URI: %s
-                                Request headers: %s
-                                Response: %s""";
-                logError(request, response, errorMessage);
+                logNotSuccessCode(request, response);
                 return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
             }
 
             JSONObject object = new JSONObject(response.body());
 
-            if (!object.has("result")) {
-                errorMessage = """
-                                Response doesn't contain 'result' field.
-                                Request URI: %s
-                                Request headers: %s
-                                Response: %s""";
-                logError(request, response, errorMessage);
+            if (!object.has(RESULT_FIELD)) {
+                logFieldAbsence(request, response, RESULT_FIELD);
                 return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
             }
 
-            JSONObject result = object.getJSONObject("result");
+            JSONObject result = object.getJSONObject(RESULT_FIELD);
 
-            if (!result.has("status")) {
-                errorMessage = """
-                                Response doesn't contain 'status' field.
-                                Request URI: %s
-                                Request headers: %s
-                                Response: %s""";
-                logError(request, response, errorMessage);
+            if (!result.has(STATUS_FIELD)) {
+                logFieldAbsence(request, response, STATUS_FIELD);
                 return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
             }
 
-            String status = result.getString("status");
+            String status = result.getString(STATUS_FIELD);
             if (Objects.equals(status, "administrator")) {
                 return new NonCommand.AnswerPair(RIGHT_LINK, false);
             } else {
@@ -117,39 +114,23 @@ public class TelegramDataCheck {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            String errorMessage;
             if (response.statusCode() != 200) {
-                errorMessage = """
-                                Not 200 code of the response.
-                                Request URI: %s
-                                Request headers: %s
-                                Response: %s""";
-                logError(request, response, errorMessage);
+                logNotSuccessCode(request, response);
                 return null;
             }
 
             JSONObject object = new JSONObject(response.body());
 
-            if (!object.has("result")) {
-                errorMessage = """
-                                Response doesn't contain 'result' field.
-                                Request URI: %s
-                                Request headers: %s
-                                Response: %s""";
-                logError(request, response, errorMessage);
+            if (!object.has(RESULT_FIELD)) {
+                logFieldAbsence(request, response, RESULT_FIELD);
                 return null;
 
             }
 
-            JSONObject result = object.getJSONObject("result");
+            JSONObject result = object.getJSONObject(RESULT_FIELD);
 
             if (!result.has(parameter)) {
-                errorMessage = """
-                                Response doesn't contain 'title' field.
-                                Request URI: %s
-                                Request headers: %s
-                                Response: %s""";
-                logError(request, response, errorMessage);
+                logFieldAbsence(request, response, TITLE_FIELD);
                 return null;
             }
 
@@ -160,7 +141,11 @@ public class TelegramDataCheck {
         }
     }
 
-    private void logError(HttpRequest request, HttpResponse<String> response, String errorMessage) {
-        LOGGER.error(String.format(errorMessage, request.uri(), request.headers().toString(), response.body()));
+    private void logNotSuccessCode(HttpRequest request, HttpResponse<String> response) {
+        LOGGER.error(String.format(NOT_SUCCESS_CODE, request.uri(), request.headers().toString(), response.body()));
+    }
+
+    private void logFieldAbsence(HttpRequest request, HttpResponse<String> response, String field) {
+        LOGGER.error(String.format(FIELD_ABSENCE, field, request.uri(), request.headers().toString(), response.body()));
     }
 }

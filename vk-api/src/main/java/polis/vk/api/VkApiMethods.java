@@ -17,7 +17,6 @@ import com.vk.api.sdk.queries.users.UsersGetQuery;
 import com.vk.api.sdk.queries.utils.UtilsGetShortLinkQuery;
 import com.vk.api.sdk.queries.video.VideoSaveQuery;
 import com.vk.api.sdk.queries.wall.WallPostQuery;
-import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import polis.vk.api.exceptions.VkApiException;

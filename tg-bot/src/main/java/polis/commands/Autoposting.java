@@ -24,6 +24,8 @@ public class Autoposting extends Command {
     private static final String NO_CURRENT_TG_CHANNEL_MSG = """
             Телеграм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
+    private static final String ENABLE_AUTOPOSTING = "autoposting %d %d 0";
+    private static final String DISABLE_AUTOPOSTING = "autoposting %d %d 1";
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -71,10 +73,10 @@ public class Autoposting extends Command {
 
     private static List<String> getButtonsForAutopostingOptions(long chatId, long channelId) {
         return List.of(
-                "Да",
-                String.format("autoposting %d %d 0", chatId, channelId),
-                "Нет",
-                String.format("autoposting %d %d 1", chatId, channelId)
+                YES_ANSWER,
+                String.format(ENABLE_AUTOPOSTING, chatId, channelId),
+                NO_ANSWER,
+                String.format(DISABLE_AUTOPOSTING, chatId, channelId)
         );
     }
 }

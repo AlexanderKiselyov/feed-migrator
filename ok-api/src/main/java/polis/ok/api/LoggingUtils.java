@@ -23,6 +23,8 @@ class LoggingUtils {
     private static final String ERROR = "error";
     private static final String ERROR_MSG = "error_msg";
     private static final String ERROR_CODE = "error_code";
+    private static final String INCORRECT_FORMAT_ERROR = "Сервер Одноклассников ответил в некорректном формате";
+    private static final String SERVER_ERROR = "Получена ошибка от сервера Одноклассников ";
 
     static HttpResponse<String> sendRequest(HttpClient client, HttpRequest request, Logger logger) throws IOException {
         try {
@@ -58,7 +60,7 @@ class LoggingUtils {
     static OkApiException wrapAndLog(JSONException e, String responseStatus, String responseBody, Logger logger) {
         logger.error("Failed to parse response. " + e.getMessage() + "\nResponse: \n" + responseStatus + "\n"
                 + responseBody + '\n');
-        return new OkApiException("Сервер Одноклассников ответил в некорректном формате", e);
+        return new OkApiException(INCORRECT_FORMAT_ERROR, e);
     }
 
     static OkApiException formExceptionAndLog(String errorCode, String errorDescription, String responseStatus,
@@ -66,7 +68,7 @@ class LoggingUtils {
         String logMsg = "Received error from OK. %s: %s\nResponse: \n%s\n%s\n".formatted(errorCode, errorDescription,
                 responseStatus, responseBody);
         logger.error(logMsg);
-        return new OkApiException("Получена ошибка от сервера Одноклассников " + errorCode + ": " + errorDescription);
+        return new OkApiException(SERVER_ERROR + errorCode + ": " + errorDescription);
     }
 
     static JSONObject parseResponse(String responseBody, String responseStatus, Logger logger)
