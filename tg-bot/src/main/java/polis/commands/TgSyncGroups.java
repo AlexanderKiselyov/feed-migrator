@@ -26,6 +26,9 @@ public class TgSyncGroups extends Command {
     private static final String NO_SYNC_GROUPS = """
             Список синхронизированных групп пуст.
             Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и добавьте хотя бы одну группу.""";
+    private static final String GROUP_INFO = "%s (%s)";
+    private static final String GET_GROUP = "group %s %d %s";
+    private static final String DELETE_GROUP = "group %s %d %s";
     private static final int ROWS_COUNT = 1;
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(
             State.TgChannelDescription.getDescription());
@@ -74,10 +77,10 @@ public class TgSyncGroups extends Command {
         for (ChannelGroup group : groups) {
             String socialMediaName = group.getSocialMedia().getName();
             long groupId = group.getGroupId();
-            buttons.add(String.format("%s (%s)", group.getGroupName(), socialMediaName));
-            buttons.add(String.format("group %s %d %s", groupId, 0, socialMediaName));
-            buttons.add(Emojis.TRASH + " Удалить");
-            buttons.add(String.format("group %s %d %s", groupId, 1, socialMediaName));
+            buttons.add(String.format(GROUP_INFO, group.getGroupName(), socialMediaName));
+            buttons.add(String.format(GET_GROUP, groupId, 0, socialMediaName));
+            buttons.add(Emojis.TRASH + DELETE_MESSAGE);
+            buttons.add(String.format(DELETE_GROUP, groupId, 1, socialMediaName));
         }
         return buttons;
     }

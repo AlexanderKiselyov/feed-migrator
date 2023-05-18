@@ -16,6 +16,10 @@ import java.util.List;
 
 @Component
 public class VkPoster implements IVkPoster {
+    private static final String PHOTO_ATTACHMENT = "photo%d_%s";
+    private static final String VIDEO_ATTACHMENT = "video-%d_%s";
+    private static final String POLL_ATTACHMENT = "poll%d_%s";
+    private static final String DOCUMENT_ATTACHMENT = "doc-%d_%s";
     private final VkClient vkClient;
 
     @Autowired
@@ -116,7 +120,7 @@ public class VkPoster implements IVkPoster {
             }
 
             for (String photoId : photoIds) {
-                attachments.add(String.format("photo%d_%s", ownerId, photoId));
+                attachments.add(String.format(PHOTO_ATTACHMENT, ownerId, photoId));
             }
             return this;
         }
@@ -128,7 +132,7 @@ public class VkPoster implements IVkPoster {
             }
 
             for (String videoId : videoIds) {
-                attachments.add(String.format("video-%d_%s", groupId, videoId));
+                attachments.add(String.format(VIDEO_ATTACHMENT, groupId, videoId));
             }
             return this;
         }
@@ -147,7 +151,7 @@ public class VkPoster implements IVkPoster {
                 return this;
             }
 
-            attachments.add(String.format("poll%d_%s", ownerId, pollId));
+            attachments.add(String.format(POLL_ATTACHMENT, ownerId, pollId));
             return this;
         }
 
@@ -158,7 +162,7 @@ public class VkPoster implements IVkPoster {
             }
 
             for (String documentId : documentIds) {
-                attachments.add(String.format("doc-%d_%s", groupId, documentId));
+                attachments.add(String.format(DOCUMENT_ATTACHMENT, groupId, documentId));
             }
             return this;
         }

@@ -23,6 +23,8 @@ public class TgChannelsList extends Command {
     private static final String NO_TG_CHANNELS = """
             Список добавленных Телеграм-каналов пуст.
             Пожалуйста, добавьте хотя бы один канал.""";
+    private static final String GET_TELEGRAM_CHANNEL = "tg_channel %s %d";
+    private static final String DELETE_TELEGRAM_CHANNEL = "tg_channel %s %d";
     private static final int ROWS_COUNT = 2;
     private static final List<String> KEYBOARD_COMMANDS = List.of(
             State.AddTgChannel.getDescription(),
@@ -65,9 +67,9 @@ public class TgChannelsList extends Command {
             String telegramChannelUsername = channel.getChannelUsername();
             Long telegramChannelId = channel.getChannelId();
             buttons.add(telegramChannelUsername);
-            buttons.add(String.format("tg_channel %s %d", telegramChannelId, 0));
-            buttons.add(Emojis.TRASH + " Удалить");
-            buttons.add(String.format("tg_channel %s %d", telegramChannelId, 1));
+            buttons.add(String.format(GET_TELEGRAM_CHANNEL, telegramChannelId, 0));
+            buttons.add(Emojis.TRASH + DELETE_MESSAGE);
+            buttons.add(String.format(DELETE_TELEGRAM_CHANNEL, telegramChannelId, 1));
         }
         return buttons;
     }
