@@ -69,8 +69,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static polis.commands.NonCommand.VK_GROUP_ADDED;
-import static polis.datacheck.OkDataCheck.*;
-import static polis.datacheck.VkDataCheck.*;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_GROUP_ADDED;
+import static polis.datacheck.OkDataCheck.SAME_OK_ACCOUNT;
+import static polis.datacheck.OkDataCheck.USER_HAS_NO_RIGHTS;
+import static polis.datacheck.OkDataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
+import static polis.datacheck.VkDataCheck.SAME_VK_ACCOUNT;
+import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_ANSWER;
+import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 import static polis.telegram.TelegramDataCheck.*;
 
