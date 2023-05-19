@@ -14,11 +14,11 @@ import java.util.List;
 @Component
 public class TgChannelDescription extends Command {
     private static final String TELEGRAM_CHANNEL_DESCRIPTION = """
-            Текущий выбранный Телеграм-канал <b>%s</b>.
+            Текущий выбранный Телеграмм-канал <b>%s</b>.
             Вы можете посмотреть синхронизированные с каналом группы по команде /%s.
             Добавить новую группу можно по команде /%s.""";
     private static final String NOT_VALID_CHANNEL = String.format("""
-                    Телеграм-канал не был выбран.
+                    Телеграмм-канал не был выбран.
                     Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""",
             State.MainMenu.getIdentifier());
     private static final int ROWS_COUNT = 3;

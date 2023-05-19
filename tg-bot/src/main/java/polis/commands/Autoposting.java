@@ -18,11 +18,11 @@ import java.util.List;
 @Component
 public class Autoposting extends Command {
     private static final String AUTOPOSTING_MSG = """
-            Функция автопостинга позволяет автоматически публиковать новый пост из Телеграм-канала в группу.""";
+            Функция автопостинга позволяет автоматически публиковать новый пост из Телеграмм-канала в группу.""";
     private static final String AUTOPOSTING_INLINE_MSG = """
-            Включить данную функцию для Телеграм-канала <b>%s</b> и группы <b>%s (%s)</b>?""";
+            Включить данную функцию для Телеграмм-канала <b>%s</b> и группы <b>%s (%s)</b>?""";
     private static final String NO_CURRENT_TG_CHANNEL_MSG = """
-            Телеграм-канал не был выбран.
+            Телеграмм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private static final String ENABLE_AUTOPOSTING = "autoposting %d %d 0";
     private static final String DISABLE_AUTOPOSTING = "autoposting %d %d 1";

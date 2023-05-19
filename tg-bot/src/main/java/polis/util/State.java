@@ -6,6 +6,7 @@ import java.util.Objects;
 public enum State implements IState {
     Start("start", Emojis.HELLO_HAND + " Старт"),
     AddTgChannel("add_tg_channel", Emojis.PLUS + " Добавление Телеграм-канала"),
+    Help("help", Emojis.HELP + " Справка по боту"),
     MainMenu("main_menu", Emojis.COMPASS + " Главное меню"),
     TgChannelDescription("tg_channel_description", Emojis.PAPER_LIST
             + " Информация по Телеграм-каналу"),
@@ -35,26 +36,28 @@ public enum State implements IState {
     private final String description;
     private static final Map<IState, IState> prevStates = Map.ofEntries(
             Map.entry(Start, Start),
-            Map.entry(Substate.AddOkAccount_AuthCode, AddGroup),
-            Map.entry(Substate.AddOkGroup_AddGroup, AddOkGroup),
-            Map.entry(SyncOkTg, OkAccountDescription),
+            Map.entry(AddTgChannel, MainMenu),
+            Map.entry(Help, MainMenu),
+            Map.entry(TgChannelsList, MainMenu),
             Map.entry(TgSyncGroups, TgChannelDescription),
             Map.entry(GroupDescription, TgChannelDescription),
-            Map.entry(AddOkAccount, AddGroup),
             Map.entry(AddGroup, TgChannelDescription),
-            Map.entry(AccountsList, AddGroup),
+            Map.entry(AddOkAccount, AddGroup),
             Map.entry(OkAccountDescription, AddGroup),
+            Map.entry(AccountsList, AddGroup),
             Map.entry(AddOkGroup, OkAccountDescription),
             Map.entry(SyncGroupDescription, OkAccountDescription),
+            Map.entry(SyncOkTg, OkAccountDescription),
             Map.entry(Autoposting, GroupDescription),
-            Map.entry(AddTgChannel, MainMenu),
             Map.entry(Notifications, GroupDescription),
             Map.entry(AddVkAccount, AddGroup),
-            Map.entry(Substate.AddVkAccount_AuthCode, AddGroup),
             Map.entry(VkAccountDescription, AddGroup),
             Map.entry(AddVkGroup, VkAccountDescription),
-            Map.entry(Substate.AddVkGroup_AddGroup, AddVkGroup),
-            Map.entry(SyncVkTg, VkAccountDescription)
+            Map.entry(SyncVkTg, VkAccountDescription),
+            Map.entry(Substate.AddOkAccount_AuthCode, AddGroup),
+            Map.entry(Substate.AddOkGroup_AddGroup, AddOkGroup),
+            Map.entry(Substate.AddVkAccount_AuthCode, AddGroup),
+            Map.entry(Substate.AddVkGroup_AddGroup, AddVkGroup)
     );
 
     State(String identifier, String description) {

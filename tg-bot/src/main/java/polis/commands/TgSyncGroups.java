@@ -25,7 +25,7 @@ public class TgSyncGroups extends Command {
             Для удаления группы нажмите 'Удалить' справа от группы.""";
     private static final String NO_SYNC_GROUPS = """
             Список синхронизированных групп пуст.
-            Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и добавьте хотя бы одну группу.""";
+            Пожалуйста, вернитесь в описание Телеграмм-канала (/%s) и добавьте хотя бы одну группу.""";
     private static final String GROUP_INFO = "%s (%s)";
     private static final String GET_GROUP = "group %s %d %s";
     private static final String DELETE_GROUP = "group %s %d %s";

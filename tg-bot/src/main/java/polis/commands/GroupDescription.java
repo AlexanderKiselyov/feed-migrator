@@ -20,11 +20,11 @@ import java.util.List;
 public class GroupDescription extends Command {
     private static final String GROUP_DESCRIPTION_MSG = """
             Выбрана группа <b>%s</b> из социальной сети %s.
-            Вы можете выбрать команду /autoposting для настройки автопостинга.""";
+            Вы можете выбрать команду /%s для настройки автопостинга.""";
     private static final String GROUP_DESCRIPTION_EXTENDED_MSG = """
             Выбрана группа <b>%s</b> из социальной сети %s.
-            Вы можете выбрать команду /autoposting для настройки автопостинга.
-            Настроить уведомления об автоматически опубликованных постах можно с помощью команды /notifications.""";
+            Вы можете выбрать команду /%s для настройки автопостинга.
+            Настроить уведомления об автоматически опубликованных постах можно с помощью команды /%s.""";
     private static final String NO_VALID_GROUP_MSG = """
             Ошибка выбора группы.
             Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и выберите нужную группу.""";
@@ -58,7 +58,11 @@ public class GroupDescription extends Command {
             String groupName = currentGroup.getGroupName();
             long channelId = currentChannelRepository.getCurrentChannel(chat.getId()).getChannelId();
             boolean isAutopostingEnable = userChannelsRepository.isSetAutoposting(chat.getId(), channelId);
-            String msgToSend = isAutopostingEnable ? GROUP_DESCRIPTION_EXTENDED_MSG : GROUP_DESCRIPTION_MSG;
+            String msgToSend = isAutopostingEnable
+                    ? String.format(GROUP_DESCRIPTION_EXTENDED_MSG, groupName, currentGroup.getSocialMedia().getName(),
+                            State.Autoposting.getIdentifier(), State.Notifications.getIdentifier())
+                    : String.format(GROUP_DESCRIPTION_MSG, groupName, currentGroup.getSocialMedia().getName(),
+                            State.Autoposting.getIdentifier());
             if (isAutopostingEnable && !commandsForKeyboard.contains(State.Notifications.getDescription())) {
                 commandsForKeyboard.add(State.Notifications.getDescription());
                 rowsCount++;
@@ -70,7 +74,7 @@ public class GroupDescription extends Command {
             sendAnswerWithReplyKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    String.format(msgToSend, groupName, currentGroup.getSocialMedia().getName()),
+                    msgToSend,
                     rowsCount,
                     commandsForKeyboard,
                     loggingInfo(user.getUserName()));

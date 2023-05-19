@@ -4,6 +4,7 @@ public class Emojis {
 
     public static final String HELLO_HAND = "\uD83D\uDC4B";
     public static final String PLUS = "➕";
+    public static final String HELP = "ℹ️";
     public static final String COMPASS = "\uD83E\uDDED";
     public static final String CHECKBOX = "✅";
     public static final String PAPER_LIST = "\uD83D\uDCC3";
@@ -17,4 +18,6 @@ public class Emojis {
     public static final String TRASH = "\uD83D\uDDD1";
     public static final String SAD_FACE = "\uD83D\uDE1F";
     public static final String HAPPY_FACE = "🙂";
+    public static final String EIGHTEEN_PLUS = "\uD83D\uDD1E";
+    public static final String STOP_PROFANITY = "\uD83E\uDD2C";
 }
