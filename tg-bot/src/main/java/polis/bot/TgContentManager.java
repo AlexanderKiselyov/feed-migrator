@@ -33,6 +33,7 @@ import java.util.List;
 @Component
 public class TgContentManager {
     private static final String TELEGRAM_API_URL = "https://api.telegram.org";
+    private static final String CYRILLIC_TO_LATIN = "Russian-Latin/BGN";
     private static final Logger logger = LoggerFactory.getLogger(TgContentManager.class);
 
     private final TgFileLoader fileLoader;
@@ -141,7 +142,6 @@ public class TgContentManager {
     }
 
     private static String transliterationFromRusToEng(String filename) {
-        String CYRILLIC_TO_LATIN = "Russian-Latin/BGN";
         Transliterator toLatinTrans = Transliterator.getInstance(CYRILLIC_TO_LATIN);
         return toLatinTrans.transliterate(filename);
     }
