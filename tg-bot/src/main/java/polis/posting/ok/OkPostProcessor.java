@@ -73,6 +73,6 @@ public class OkPostProcessor implements IPostProcessor {
     }
 
     private static String postLinkWithVideoWarning(long groupId, long postId) {
-        return postLink(groupId, postId) + "\n" + VIDEO_WARNING;
+        return postLink(groupId, postId) + "\n\n" + VIDEO_WARNING;
     }
 }
