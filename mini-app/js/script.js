@@ -8,9 +8,23 @@ const custom_args = new Proxy(new URLSearchParams(params.custom_args), {
 
 const code = custom_args.code;
 
-document.getElementById("code").textContent = code
+const codeField = document.getElementsByClassName("main-code")[0];
+codeField.textContent = code
 
-const copyButton = document.getElementById("copyButton");
+const copyButton = document.getElementsByClassName("main-copyButton")[0];
+
+if (code === null || code.length === 0) {
+    copyButton.style.visibility = "hidden";
+    codeField.style.visibility = "hidden";
+    const main = document.getElementsByClassName("main")[0];
+
+    const element = document.createElement("a");
+    element.classList.add("main-bot_redirect");
+    element.href = "https://t.me/FeedMigratorBot";
+    element.innerHTML =
+        `<button class="main-bot_redirect-button">Feed Migrator Bot</button>`;
+    main.appendChild(element);
+}
 
 function copyToClipboard(text) {
     if (window.clipboardData && window.clipboardData.setData) {
@@ -36,7 +50,13 @@ function copyToClipboard(text) {
 
 }
 
-copyButton.addEventListener("click", event => {
-    copyToClipboard(code)
+copyButton.addEventListener("click", () => {
+    if (code !== null && code.length !== 0) {
+        copyToClipboard(code);
+        alert("Код был успешно скопирован!");
+    } else {
+        console.error('Code is empty and cannot be copied.');
+        alert("Что-то пошло не так, пожалуйста, попробуйте вернуться и открыть страницу заново.");
+    }
 })
 
