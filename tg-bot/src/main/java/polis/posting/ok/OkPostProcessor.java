@@ -1,27 +1,16 @@
 package polis.posting.ok;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Document;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.Video;
-import org.telegram.telegrambots.meta.api.objects.games.Animation;
-import org.telegram.telegrambots.meta.api.objects.polls.Poll;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.bot.TgContentManager;
 import polis.posting.ApiException;
-import polis.posting.PostProcessor;
+import polis.posting.IPostProcessor;
 import polis.util.SocialMedia;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class OkPostProcessor extends PostProcessor {
+public class OkPostProcessor implements IPostProcessor {
     private static final String DOCUMENTS_ARENT_SUPPORTED =
             "Тип файла 'Документ' не поддерживается в социальной сети Одноклассники";
     private static final String GROUPS_LINK = "ok.ru/group/";
@@ -36,67 +25,41 @@ public class OkPostProcessor extends PostProcessor {
 
     private final OkPoster okPoster;
 
-    @Autowired
-    public OkPostProcessor(TgContentManager tgContentManager, OkPoster okPoster) {
-        super(tgContentManager);
+    public OkPostProcessor(OkPoster okPoster) {
         this.okPoster = okPoster;
     }
 
     @Override
     public String processPostInChannel(
-            List<Video> videos,
-            List<PhotoSize> photos,
-            List<Animation> animations,
-            List<Document> documents,
-            List<MessageEntity> textLinks,
-            String text,
-            Poll poll,
+            Post post,
             long ownerChatId,
-            long channelId,
             long groupId,
             long accountId,
             String accessToken
     ) {
         //Здесь можно будет сделать маленькие трайи, чтобы пользователю писать более конкретную ошибку
         try {
-            if (!documents.isEmpty() && animations.isEmpty()) {
+            if (!post.documents().isEmpty() && post.animations().isEmpty()) {
                 return DOCUMENTS_ARENT_SUPPORTED;
             }
 
-            int maxListSize = Math.max(photos.size(), animations.size() + videos.size());
-            List<File> files = new ArrayList<>(maxListSize);
-            for (Video video : videos) {
-                File file = tgContentManager.download(video);
-                files.add(file);
-            }
-            for (Video animation : TgContentManager.toVideos(animations)) {
-                File file = tgContentManager.download(animation);
-                files.add(file);
-            }
-            List<String> videoIds = okPoster.uploadVideos(files, (int) accountId, accessToken, groupId);
-            files.clear();
-
-            for (PhotoSize photo : photos) {
-                File file = tgContentManager.download(photo);
-                files.add(file);
-            }
-            List<String> photoIds = okPoster.uploadPhotos(files, (int) accountId, accessToken, groupId);
-
-            String formattedText = okPoster.getTextLinks(text, textLinks, accessToken);
+            List<String> videoIds = okPoster.uploadVideos(post.videos(), (int) accountId, accessToken, groupId);
+            List<String> photoIds = okPoster.uploadPhotos(post.photos(), (int) accountId, accessToken, groupId);
+            String formattedText = okPoster.getTextLinks(post.text(), post.textLinks(), accessToken);
 
             long postId = okPoster.newPost(accessToken)
                     .addVideos(videoIds)
                     .addPhotos(photoIds)
-                    .addPoll(poll)
+                    .addPoll(post.poll())
                     .addTextWithLinks(formattedText)
                     .post(groupId);
             if (videoIds == null || videoIds.isEmpty()) {
-                return successfulPostMsg(OK_SOCIAL_NAME, postLink(groupId, postId));
+                return IPostProcessor.successfulPostMsg(OK_SOCIAL_NAME, postLink(groupId, postId));
             } else {
-                return successfulPostMsg(OK_SOCIAL_NAME, postLinkWithVideoWarning(groupId, postId));
+                return IPostProcessor.successfulPostMsg(OK_SOCIAL_NAME, postLinkWithVideoWarning(groupId, postId));
             }
-        } catch (URISyntaxException | IOException | ApiException | TelegramApiException e) {
-            return failPostToGroupMsg(OK_SOCIAL_NAME, groupLink(groupId));
+        } catch (URISyntaxException | IOException | ApiException e) {
+            return IPostProcessor.failPostToGroupMsg(OK_SOCIAL_NAME, groupLink(groupId));
         }
 
     }

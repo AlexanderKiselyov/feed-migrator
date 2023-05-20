@@ -27,8 +27,6 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class TgContentManager {
@@ -59,22 +57,18 @@ public class TgContentManager {
         return fileLoader.downloadFileById(fileId, document.getFileName());
     }
 
-    public static List<Video> toVideos(List<Animation> animations) {
-        List<Video> videos = new ArrayList<>(1);
-        for (Animation animation : animations) {
-            Video video = new Video();
-            video.setDuration(animation.getDuration());
-            video.setFileId(animation.getFileId());
-            video.setFileName(animation.getFileName());
-            video.setHeight(animation.getHeight());
-            video.setThumb(animation.getThumb());
-            video.setFileSize(animation.getFileSize());
-            video.setFileUniqueId(animation.getFileUniqueId());
-            video.setMimeType(animation.getMimetype());
-            video.setWidth(animation.getWidth());
-            videos.add(video);
-        }
-        return videos;
+    public static Video toVideo(Animation animation) {
+        Video video = new Video();
+        video.setDuration(animation.getDuration());
+        video.setFileId(animation.getFileId());
+        video.setFileName(animation.getFileName());
+        video.setHeight(animation.getHeight());
+        video.setThumb(animation.getThumb());
+        video.setFileSize(animation.getFileSize());
+        video.setFileUniqueId(animation.getFileUniqueId());
+        video.setMimeType(animation.getMimetype());
+        video.setWidth(animation.getWidth());
+        return video;
     }
 
     GetFilePathResponse retrieveFilePath(String botToken, String fileId) throws URISyntaxException, IOException {
