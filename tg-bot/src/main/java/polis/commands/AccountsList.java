@@ -20,6 +20,9 @@ public class AccountsList extends Command {
     private static final String NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST_MSG = """
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
+    private static final String ACCOUNT_INFO = "%s (%s)";
+    private static final String GET_ACCOUNT = "account %d 0 %s";
+    private static final String DELETE_ACCOUNT = "account %d 1 %s";
     private static final int ROWS_COUNT = 1;
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.AddGroup.getDescription());
 
@@ -61,10 +64,10 @@ public class AccountsList extends Command {
             String socialMediaName = account.getSocialMedia().getName();
             long accountId = account.getAccountId();
 
-            buttons.add(String.format("%s (%s)", accountUsername, socialMediaName));
-            buttons.add(String.format("account %d 0 %s", accountId, socialMediaName));
-            buttons.add(Emojis.TRASH + " Удалить");
-            buttons.add(String.format("account %d 1 %s", accountId, socialMediaName));
+            buttons.add(String.format(ACCOUNT_INFO, accountUsername, socialMediaName));
+            buttons.add(String.format(GET_ACCOUNT, accountId, socialMediaName));
+            buttons.add(Emojis.TRASH + DELETE_MESSAGE);
+            buttons.add(String.format(DELETE_ACCOUNT, accountId, socialMediaName));
         }
         return buttons;
     }

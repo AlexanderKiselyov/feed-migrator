@@ -36,6 +36,8 @@ import java.net.URI;
 import java.util.List;
 
 public class LoggingUtils {
+    private static final String SERVER_INCORRECT_ANSWER = "Сервер ВКонтакте ответил в некорректном формате: %s";
+    private static final String SERVER_ERROR = "Получена ошибка от сервера ВКонтакте: %s";
 
     static VkAuthorizator.TokenWithId getAccessToken(OAuthUserAuthorizationCodeFlowQuery request, Logger logger)
             throws VkApiException {
@@ -229,12 +231,12 @@ public class LoggingUtils {
         } catch (ClientException e) {
             logger.error(String.format("Failed to parse response: %s", e.getMessage()));
 
-            throw new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s",
+            throw new VkApiException(String.format(SERVER_INCORRECT_ANSWER,
                     e.getMessage()));
         } catch (ApiException e) {
             logger.error(String.format("Received error from VK: %s", e.getMessage()));
 
-            throw new VkApiException(String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+            throw new VkApiException(String.format(SERVER_ERROR, e.getMessage()));
         }
     }
 
@@ -245,13 +247,12 @@ public class LoggingUtils {
     private static VkApiException wrapAndLogApiException(ApiException e, Logger logger) {
         logger.error(String.format("Received error from VK: %s", e.getMessage()));
 
-        return new VkApiException(e.getCode(),
-                String.format("Получена ошибка от сервера ВКонтакте: %s", e.getMessage()));
+        return new VkApiException(e.getCode(), String.format(SERVER_ERROR, e.getMessage()));
     }
 
     private static VkApiException wrapAndLogClientException(ClientException e, Logger logger) {
         logger.error(String.format("Failed to parse response: %s", e.getMessage()));
 
-        return new VkApiException(String.format("Сервер ВКонтакте ответил в некорректном формате: %s", e.getMessage()));
+        return new VkApiException(String.format(SERVER_INCORRECT_ANSWER, e.getMessage()));
     }
 }
