@@ -83,20 +83,6 @@ public class TgContentManager {
         return TgContentManager.fileWithOrigName(tgApiFilePath, file, nameToSet);
     }
 
-    public static Video toVideo(Animation animation) {
-        Video video = new Video();
-        video.setDuration(animation.getDuration());
-        video.setFileId(animation.getFileId());
-        video.setFileName(animation.getFileName());
-        video.setHeight(animation.getHeight());
-        video.setThumb(animation.getThumb());
-        video.setFileSize(animation.getFileSize());
-        video.setFileUniqueId(animation.getFileUniqueId());
-        video.setMimeType(animation.getMimetype());
-        video.setWidth(animation.getWidth());
-        return video;
-    }
-
     private FileInfo retrieveFilePath(String botToken, String fileId) throws IOException, TelegramApiException {
         URI uri = URI.create(TELEGRAM_API_URL.formatted(botToken, fileId));
         HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
