@@ -14,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Video;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import polis.bot.FileIsTooBigException;
 import polis.bot.TgContentManager;
 import polis.bot.TgNotificator;
 import polis.data.domain.ChannelGroup;
@@ -46,8 +47,10 @@ public class PostsProcessor implements IPostsProcessor {
     private static final String AUTHOR_RIGHTS_MSG = "Пересланный из другого канала пост не может быть опубликован в "
             + "соответствии с Законом об авторском праве.";
     private static final Logger LOGGER = LoggerFactory.getLogger(PostsProcessor.class);
-    public static final String TG_LOAD_POST_ERROR_MGS = "Ошибка при загрузке поста из телеграмма: ";
-    public static final String UNEXPECTED_ERROR_MSG = "Произошла непредвиденная ошибка при обработке поста ";
+    private static final String TG_LOAD_POST_ERROR_MGS = "Ошибка при загрузке поста из телеграмма";
+    private static final String TG_FILE_IS_TOO_BIG_MGS = "%s: Размер файла не может превышать %d Мб"
+            .formatted(TG_LOAD_POST_ERROR_MGS, TgContentManager.FILE_SIZE_LIMIT_MB);
+    private static final String UNEXPECTED_ERROR_MSG = "Произошла непредвиденная ошибка при обработке поста ";
 
     @Autowired
     private RateLimiter postingRateLimiter;
@@ -112,9 +115,12 @@ public class PostsProcessor implements IPostsProcessor {
         IPostProcessor.Post post;
         try {
             post = downloadPost(postItems);
+        } catch (FileIsTooBigException e) {
+            tgNotificator.sendNotification(ownerChatId, TG_FILE_IS_TOO_BIG_MGS);
+            return;
         } catch (TelegramApiException | URISyntaxException | IOException e) {
             LOGGER.error("Error when downloading post from " + channelId, e);
-            tgNotificator.sendNotification(ownerChatId, TG_LOAD_POST_ERROR_MGS + e);
+            tgNotificator.sendNotification(ownerChatId, TG_LOAD_POST_ERROR_MGS);
             return;
         }
 
