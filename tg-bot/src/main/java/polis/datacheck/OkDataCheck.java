@@ -54,8 +54,9 @@ public class OkDataCheck {
     public static final String USER_HAS_NO_RIGHTS = """
             Пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
-    private static final String CODE_EXPIRED_MSG = "Время действия кода авторизации истекло." +
-            " Пройдите по ссылке для авторизации ещё раз и получите новый код";
+    private static final String CODE_EXPIRED_MSG = """
+            Время действия кода авторизации истекло.
+            Пройдите по ссылке для авторизации еще раз и получите новый код.""";
 
     private static final String OK_SOCIAL_NAME = SocialMedia.OK.getName();
 

@@ -192,12 +192,12 @@ public class TgContentManager {
 
         @Override
         public String toString() {
-            return "GetFileResponse{" +
-                    "ok=" + ok +
-                    ", errorCode=" + errorCode +
-                    ", description='" + description + '\'' +
-                    ", result=" + result +
-                    '}';
+            return "GetFileResponse{"
+                    + "ok=" + ok
+                    + ", errorCode=" + errorCode
+                    + ", description='" + description + '\''
+                    + ", result=" + result
+                    + "}";
         }
     }
 

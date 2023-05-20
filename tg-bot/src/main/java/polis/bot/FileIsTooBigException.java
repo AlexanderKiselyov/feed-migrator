@@ -18,7 +18,8 @@ public class FileIsTooBigException extends TelegramApiException {
         super(cause);
     }
 
-    public FileIsTooBigException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public FileIsTooBigException(String message, Throwable cause, boolean enableSuppression,
+                                 boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

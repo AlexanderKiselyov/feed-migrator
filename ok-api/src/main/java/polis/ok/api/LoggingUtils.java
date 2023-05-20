@@ -62,7 +62,8 @@ class LoggingUtils {
         return new OkApiException("Сервер Одноклассников ответил в некорректном формате", e);
     }
 
-    static void checkForApiErrors(String responseBody, String responseStatus, Logger logger, JSONObject jsonResponse) throws OkApiException {
+    static void checkForApiErrors(String responseBody, String responseStatus, Logger logger, JSONObject jsonResponse)
+            throws OkApiException {
         String errorCode;
         String errorDesc;
 
