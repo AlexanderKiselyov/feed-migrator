@@ -5,15 +5,15 @@ import java.util.Objects;
 
 public enum State implements IState {
     Start("start", Emojis.HELLO_HAND + " Старт"),
-    AddTgChannel("add_tg_channel", Emojis.PLUS + " Добавление Телеграм-канала"),
+    AddTgChannel("add_tg_channel", Emojis.PLUS + " Добавление Телеграмм-канала"),
     Help("help", Emojis.HELP + " Справка по боту"),
     MainMenu("main_menu", Emojis.COMPASS + " Главное меню"),
     TgChannelDescription("tg_channel_description", Emojis.PAPER_LIST
-            + " Информация по Телеграм-каналу"),
+            + " Информация по Телеграмм-каналу"),
     TgChannelsList("tg_channels_list", Emojis.CHECKBOX + Emojis.PAPER_LIST_2
-            + " Список добавленных Телеграм-каналов"),
+            + " Список добавленных Телеграмм-каналов"),
     TgSyncGroups("tg_sync_groups", Emojis.TARGET + Emojis.PAPER_LIST_2
-            + " Список синхронизованных с Телеграм-каналов групп"),
+            + " Список синхронизованных с Телеграмм-каналов групп"),
     GroupDescription("group_description", Emojis.PAPER_LIST_3 + " Описание группы"),
     AddGroup("add_group", Emojis.PLUS + " Добавление новой группы"),
     AddOkAccount("add_ok_account", Emojis.WORLD + " Добавление аккаунта Одноклассников"),
@@ -22,15 +22,15 @@ public enum State implements IState {
     AccountsList("accounts_list", Emojis.PAPER_LIST_2 + " Список добавленных аккаунтов"),
     AddOkGroup("add_ok_group_and_sync", Emojis.PLUS + " Добавление группы Одноклассников"),
     SyncGroupDescription("group_description",
-            Emojis.PAPER_LIST_3 + " Описание синрхронизованной с Телеграм-каналом группы Одноклассников"),
-    SyncOkTg("sync_ok_tg", Emojis.SYNC + " Синхронизация группы Одноклассников с Телеграм-каналом"),
+            Emojis.PAPER_LIST_3 + " Описание синрхронизованной с Телеграмм-каналом группы Одноклассников"),
+    SyncOkTg("sync_ok_tg", Emojis.SYNC + " Синхронизация группы Одноклассников с Телеграмм-каналом"),
     Autoposting("autoposting", Emojis.SYNC + " Настройка функции автопостинга"),
     Notifications("notifications", Emojis.BELL + " Настройка уведомлений о публикации"),
     AddVkAccount("add_vk_account", Emojis.WORLD + " Добавление аккаунта ВКонтакте"),
     VkAccountDescription("vk_account_description", Emojis.PAPER_LIST_3
             + " Информация по аккаунту ВКонтакте"),
     AddVkGroup("add_vk_group", Emojis.PLUS + " Добавление группы ВКонтакте"),
-    SyncVkTg("sync_vk_tg", Emojis.SYNC + " Синхронизация группы ВКонтакте с Телеграм-каналом");
+    SyncVkTg("sync_vk_tg", Emojis.SYNC + " Синхронизация группы ВКонтакте с Телеграмм-каналом");
 
     private final String identifier;
     private final String description;

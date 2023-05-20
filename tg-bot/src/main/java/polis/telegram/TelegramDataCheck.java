@@ -28,7 +28,7 @@ public class TelegramDataCheck {
             Бот не был добавлен в администраторы канала.
             Пожалуйста, добавьте бота в администраторы канала и введите ссылку еще раз.""";
     public static final String RIGHT_LINK = String.format("""
-            Телеграм-канал успешно добавлен.
+            Телеграмм-канал успешно добавлен.
             Посмотреть информацию по телеграм-каналу можно по команде /%s""",
             State.TgChannelDescription.getIdentifier());
     private static final String GET_CHAT = "https://api.telegram.org/bot%s/getChat";

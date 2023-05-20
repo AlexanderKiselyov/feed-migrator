@@ -27,7 +27,7 @@ public class GroupDescription extends Command {
             Настроить уведомления об автоматически опубликованных постах можно с помощью команды /%s.""";
     private static final String NO_VALID_GROUP_MSG = """
             Ошибка выбора группы.
-            Пожалуйста, вернитесь в описание Телеграм-канала (/%s) и выберите нужную группу.""";
+            Пожалуйста, вернитесь в описание Телеграмм-канала (/%s) и выберите нужную группу.""";
 
     private int rowsCount = 1;
     private final List<String> commandsForKeyboard = new ArrayList<>();
