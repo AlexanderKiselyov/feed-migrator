@@ -35,7 +35,7 @@ public class TgContentManager {
     private static final String CYRILLIC_TO_LATIN = "Russian-Latin/BGN";
     private static final String TELEGRAM_API_URL = "https://api.telegram.org/bot%s/getFile?file_id=%s";
     private static final String FILE_IS_TOO_BIG_API_DESC = "file is too big";
-    private static final Logger logger = LoggerFactory.getLogger(TgContentManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TgContentManager.class);
 
     private final TgFileLoader fileLoader;
     private final String tgApiToken;
@@ -97,7 +97,7 @@ public class TgContentManager {
         if (getFileResponse.isOk()) {
             return getFileResponse.getResult();
         }
-        logger.error("Not ok response when loading file:\n\t" + getFileResponse);
+        LOGGER.error("Not ok response when loading file:\n\t" + getFileResponse);
         if (getFileResponse.description.contains(FILE_IS_TOO_BIG_API_DESC)) {
             throw new FileIsTooBigException();
         }
@@ -113,7 +113,7 @@ public class TgContentManager {
         try {
             Files.move(file.toPath(), path);
         } catch (IOException e) {
-            logger.error("Error while changing extension of " + tgApiFilePath, e);
+            LOGGER.error("Error while changing extension of " + tgApiFilePath, e);
             throw new RuntimeException(e);
         }
         return path.toFile();
@@ -126,10 +126,10 @@ public class TgContentManager {
             Path tempDir = Files.createTempDirectory("bot-tmp");
             res = Files.move(file.toPath(), tempDir.resolve(tmpFileName));
         } catch (IOException e) {
-            logger.error("Error while changing name of " + tgApiFilePath, e);
+            LOGGER.error("Error while changing name of " + tgApiFilePath, e);
             throw new RuntimeException(e);
         }
-        logger.info("Successfully changed name of file \"{}\" to file with path: {}", tgApiFilePath, res);
+        LOGGER.info("Successfully changed name of file \"{}\" to file with path: {}", tgApiFilePath, res);
         return res.toFile();
     }
 

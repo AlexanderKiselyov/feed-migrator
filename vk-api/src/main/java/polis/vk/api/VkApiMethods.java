@@ -45,7 +45,7 @@ import static polis.vk.api.LoggingUtils.uploadVideo;
 public class VkApiMethods {
     TransportClient transportClient = HttpTransportClient.getInstance();
     VkApiClient vk = new VkApiClient(transportClient);
-    private static final Logger logger = LoggerFactory.getLogger(VkApiMethods.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(VkApiMethods.class);
 
     public Boolean getIsVkGroupAdmin(VkAuthorizator.TokenWithId tokenWithId, String groupLink) throws VkApiException {
         String[] groupLinkParts = groupLink.split("/");
@@ -55,7 +55,7 @@ public class VkApiMethods {
                 .groupIds(groupLinkParts[groupLinkParts.length - 1])
                 .fields();
 
-        return getIsGroupAdmin(request, logger);
+        return getIsGroupAdmin(request, LOGGER);
     }
 
     public String getVkUsername(VkAuthorizator.TokenWithId tokenWithId) throws VkApiException {
@@ -63,7 +63,7 @@ public class VkApiMethods {
                 .get(new UserActor(tokenWithId.userId(), tokenWithId.accessToken()))
                 .fields();
 
-        return getUsername(request, logger);
+        return getUsername(request, LOGGER);
     }
 
     public Integer getVkGroupId(VkAuthorizator.TokenWithId tokenWithId, String groupLink) throws VkApiException {
@@ -74,7 +74,7 @@ public class VkApiMethods {
                 .groupIds(groupLinkParts[groupLinkParts.length - 1])
                 .fields();
 
-        return getGroupId(request, logger);
+        return getGroupId(request, LOGGER);
     }
 
     public String getVkGroupName(VkAuthorizator.TokenWithId tokenWithId, Integer groupId) throws VkApiException {
@@ -83,7 +83,7 @@ public class VkApiMethods {
                 .groupIds(String.valueOf(groupId))
                 .fields();
 
-        return getGroupName(request, logger);
+        return getGroupName(request, LOGGER);
     }
 
     public URI getVkVideoUploadLink(Integer userId, String accessToken, long groupId)
@@ -92,14 +92,14 @@ public class VkApiMethods {
                 .save(new UserActor(userId, accessToken))
                 .groupId((int) groupId);
 
-        return getVideoUploadLink(request, logger);
+        return getVideoUploadLink(request, LOGGER);
     }
 
     public Integer uploadVkVideo(String uploadUrl, File video) throws VkApiException {
         UploadVideoQuery request = vk.upload()
                 .video(uploadUrl, video);
 
-        return uploadVideo(request, logger);
+        return uploadVideo(request, LOGGER);
     }
 
     public URI getVkPhotoUploadLink(Integer userId, String accessToken, long groupId) throws VkApiException {
@@ -107,14 +107,14 @@ public class VkApiMethods {
                 .getWallUploadServer(new UserActor(userId, accessToken))
                 .groupId((int) groupId);
 
-        return getPhotoUploadLink(request, logger);
+        return getPhotoUploadLink(request, LOGGER);
     }
 
     public LoggingUtils.ServerPhoto uploadVkPhotos(String uploadUrl, File photo) throws VkApiException {
         UploadPhotoWallQuery request = vk.upload()
                 .photoWall(uploadUrl, photo);
 
-        return uploadPhoto(request, logger);
+        return uploadPhoto(request, LOGGER);
     }
 
     public Integer getVkPhotoId(Integer userId, long groupId, String accessToken,
@@ -125,7 +125,7 @@ public class VkApiMethods {
                 .hash(serverPhoto.hash())
                 .groupId((int) groupId);
 
-        return getPhotoId(request, logger);
+        return getPhotoId(request, LOGGER);
     }
 
     public Integer getVkPollId(Integer userId, String accessToken, String question, Boolean isAnonymous,
@@ -142,7 +142,7 @@ public class VkApiMethods {
                 .disableUnvote(isClosed)
                 .addAnswers("[\"".concat(String.join("\",\"", allAnswers)).concat("\"]"));
 
-        return getPollId(request, logger);
+        return getPollId(request, LOGGER);
     }
 
     public URI getVkDocumentUploadLink(Integer userId, String accessToken, long groupId) throws VkApiException {
@@ -150,21 +150,21 @@ public class VkApiMethods {
                 .getWallUploadServer(new UserActor(userId, accessToken))
                 .groupId((int) groupId);
 
-        return getDocumentUploadLink(request, logger);
+        return getDocumentUploadLink(request, LOGGER);
     }
 
     public String uploadVkDocument(String uploadUrl, File document) throws VkApiException {
         UploadDocQuery response = vk.upload()
                 .doc(uploadUrl, document);
 
-        return uploadDocument(response, logger);
+        return uploadDocument(response, LOGGER);
     }
 
     public Integer getVkDocumentId(Integer userId, String accessToken, String file) throws VkApiException {
         DocsSaveQuery request = vk.docs()
                 .save(new UserActor(userId, accessToken), file);
 
-        return getDocumentId(request, logger);
+        return getDocumentId(request, LOGGER);
     }
 
     public long postVkMediaTopic(Integer userId, String accessToken, long groupId, String message, String attachments)
@@ -181,7 +181,7 @@ public class VkApiMethods {
             request = request.attachments(attachments);
         }
 
-        return postMediaTopic(request, groupId, logger);
+        return postMediaTopic(request, groupId, LOGGER);
     }
 
     public String getVkShortLink(Integer userId, String accessToken, String link) throws VkApiException {
@@ -189,6 +189,6 @@ public class VkApiMethods {
                 .getShortLink(new UserActor(userId, accessToken), link)
                 .privateParam(true);
 
-        return getShortLink(request, logger).toString();
+        return getShortLink(request, LOGGER).toString();
     }
 }

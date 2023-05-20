@@ -24,7 +24,7 @@ public final class OkAuthorizator {
     private static final String APP_SCOPE =
             "VALUABLE_ACCESS;LONG_ACCESS_TOKEN;PHOTO_CONTENT;GROUP_CONTENT;VIDEO_CONTENT";
 
-    private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OkAuthorizator.class);
     private final HttpClient httpClient;
 
     public OkAuthorizator(HttpClient httpClient) {
@@ -42,8 +42,8 @@ public final class OkAuthorizator {
         HttpRequest request = HttpRequest.newBuilder().POST(HttpRequest.BodyPublishers.ofByteArray(new byte[]{}))
                 .uri(uri)
                 .build();
-        HttpResponse<String> response = sendRequest(httpClient, request, logger);
-        JSONObject responseJson = parseResponse(response, logger);
+        HttpResponse<String> response = sendRequest(httpClient, request, LOGGER);
+        JSONObject responseJson = parseResponse(response, LOGGER);
 
         try {
             return new TokenPair(
@@ -51,7 +51,7 @@ public final class OkAuthorizator {
                     responseJson.getString("refresh_token")
             );
         } catch (JSONException e) {
-            throw LoggingUtils.wrapAndLog(e, response.toString(), response.body(), logger);
+            throw LoggingUtils.wrapAndLog(e, response.toString(), response.body(), LOGGER);
         }
     }
 
