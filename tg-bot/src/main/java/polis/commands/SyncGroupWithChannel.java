@@ -14,18 +14,25 @@ import polis.util.State;
 
 import java.util.List;
 
+import static polis.util.Emojis.EIGHTEEN_PLUS;
 import static polis.util.Emojis.HAPPY_FACE;
+import static polis.util.Emojis.STOP_PROFANITY;
 
 public abstract class SyncGroupWithChannel extends Command {
     private static final String SYNC_MSG = """
-            Вы выбрали Телеграм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";
-    private static final String SYNC_INLINE_MSG = """
+            Вы выбрали Телеграмм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";
+    private static final String SYNC_INLINE_MSG = String.format("""
             Хотите ли Вы синхронизировать их?
                         
-            *При размещении контента на Вашем канале очень важно уважать права других авторов, в связи с чем мы не
-            осуществляем автопостинг для пересланных сообщений""" + HAPPY_FACE;
+            <b>* При размещении контента на Вашем канале очень важно уважать права других авторов, в связи с чем"""
+            + """
+             автопостинг для пересланных сообщений не осуществляется %s
+            * Запрещается публиковать контент, нарущающий законодательство РФ (ненормативная лексика, контент 18+ и\s"""
+            + """
+            др.) %s %s</b>""",
+            HAPPY_FACE, STOP_PROFANITY, EIGHTEEN_PLUS);
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
-            Невозможно связать Телеграм-канал и группу.
+            Невозможно связать Телеграмм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private static final String ENABLE_SYNC = "yesNo 0";
     private static final String DISABLE_SYNC = "yesNo 1";

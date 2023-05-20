@@ -20,12 +20,18 @@ public class VkPostProcessor implements IPostProcessor {
             Возможно, Вы пытались опубликовать пост с прикрепленными к нему документами.
             В таком случае выполните следующие действия:
             1. Переведите страницу в группу (публикация документов на страницах не доступна):
-            1.1. Проверьте, что адрес в строке поиска начинается со слова 'club' (для групп), а не 'public' (для страниц)
-            1.2. Если адрес начинается со слова 'public', то на странице сообщества необходимо выбрать 'Ещё' и далее 'Перевести в группу'
+            1.1. Проверьте, что адрес в строке поиска начинается со слова 'club' (для групп), а не 'public'"""
+            + """
+             (для страниц)
+            1.2. Если адрес начинается со слова 'public', то на странице сообщества необходимо выбрать 'Ещё' и далее"""
+            + """
+             'Перевести в группу'
             2. Включите раздел 'Файлы':
             2.1. Зайдите в раздел 'Управление'
             2.1. Выберите подраздел 'Настройки' и далее 'Разделы'
-            2.2. Откройте доступ к разделу 'Файлы' - либо сделайте его открытым для всех пользователей, либо ограниченным и доступным только для администраторов и редакторов сообщества""";
+            2.2. Откройте доступ к разделу 'Файлы' - либо сделайте его открытым для всех пользователей, либо\s"""
+            + """
+            ограниченным и доступным только для администраторов и редакторов сообщества""";
     private static final int DOCUMENT_POST_ERROR_CODE = 15;
     private static final String VK_SOCIAL_NAME = SocialMedia.VK.getName();
     private final VkPoster vkPoster;
@@ -56,7 +62,8 @@ public class VkPostProcessor implements IPostProcessor {
                         poll.getOptions().stream().map(PollOption::getText).toList()
                 );
             }
-            List<String> documentIds = vkPoster.uploadDocuments(post.documents(), (int) accountId, accessToken, groupId);
+            List<String> documentIds = vkPoster.uploadDocuments(post.documents(), (int) accountId, accessToken,
+                    groupId);
             List<String> videoIds = vkPoster.uploadVideos(post.videos(), (int) accountId, accessToken, groupId);
             List<String> photoIds = vkPoster.uploadPhotos(post.photos(), (int) accountId, accessToken, groupId);
             String formattedText = vkPoster.getTextLinks(post.text(), post.textLinks(), accessToken, (int) accountId);

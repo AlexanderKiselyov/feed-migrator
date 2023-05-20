@@ -45,7 +45,7 @@ public class OkDataCheck {
             Пожалуйста, проверьте данные авторизации и попробуйте еще раз.""";
     public static final String OK_GROUP_ADDED = """
             Группа была успешно добавлена.
-            Синхронизируйте группу с Телеграм-каналом по команде /%s.""";
+            Синхронизируйте группу с Телеграмм-каналом по команде /%s.""";
     private static final String OK_METHOD_DO = "https://api.ok.ru/fb.do";
     public static final String SAME_OK_ACCOUNT = "Данный аккаунт в социальной сети Одноклассники уже был добавлен.";
     public static final String WRONG_LINK_OR_USER_HAS_NO_RIGHTS = """
@@ -54,8 +54,9 @@ public class OkDataCheck {
     public static final String USER_HAS_NO_RIGHTS = """
             Пользователь не является администратором или модератором группы.
             Пожалуйста, проверьте, что пользователь - администратор или модератор группы и введите ссылку еще раз.""";
-    private static final String CODE_EXPIRED_MSG = "Время действия кода авторизации истекло." +
-            " Пройдите по ссылке для авторизации ещё раз и получите новый код";
+    private static final String CODE_EXPIRED_MSG = """
+            Время действия кода авторизации истекло.
+            Пройдите по ссылке для авторизации еще раз и получите новый код.""";
 
     private static final String OK_SOCIAL_NAME = SocialMedia.OK.getName();
 

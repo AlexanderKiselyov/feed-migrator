@@ -14,13 +14,13 @@ public final class OkAppProperties {
     public static final String REDIRECT_URI;
 
     private static final Properties properties = new Properties();
-    private static final Logger logger = LoggerFactory.getLogger(OkAppProperties.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OkAppProperties.class);
 
     static {
         try {
             properties.load(new FileReader("application.properties"));
         } catch (IOException e) {
-            logger.error("Cannot load file application.properties: " + e.getMessage());
+            LOGGER.error("Cannot load file application.properties: " + e.getMessage());
             throw new IllegalStateException("Failed to read api keys from application.properties", e);
         }
         APPLICATION_ID = properties.getProperty("okapp.id");

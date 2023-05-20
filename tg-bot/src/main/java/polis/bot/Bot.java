@@ -27,6 +27,7 @@ import polis.commands.AddVkAccount;
 import polis.commands.AddVkGroup;
 import polis.commands.Autoposting;
 import polis.commands.GroupDescription;
+import polis.commands.Help;
 import polis.commands.MainMenu;
 import polis.commands.NonCommand;
 import polis.commands.Notifications;
@@ -232,6 +233,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         super.onRegister();
         register(new StartCommand());
         register(new AddTgChannel());
+        register(new Help());
         register(new MainMenu());
         register(tgChannelDescription);
         register(tgChannelsList);

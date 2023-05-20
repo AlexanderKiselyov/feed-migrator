@@ -14,9 +14,9 @@ import java.util.List;
 @Component
 public class AddGroup extends Command {
     private static final String ADD_GROUP_MSG = """
-            Меню добавления групп для Телеграм-канала <b>%s</b>.""";
+            Меню добавления групп для Телеграмм-канала <b>%s</b>.""";
     private static final String NOT_VALID_TG_CHANNEL_MSG = """
-            Невозможно получить информацию по текущему телеграм-каналу.
+            Невозможно получить информацию по текущему Телеграмм-каналу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
     private static final int ROWS_COUNT = 2;
     private static final List<String> KEYBOARD_COMMANDS = List.of(

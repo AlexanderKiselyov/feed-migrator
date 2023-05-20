@@ -20,7 +20,7 @@ public class AddVkGroup extends Command {
             https://vk.com/lentach
             https://vk.com/club1234567890""";
     static final String SAME_SOCIAL_MEDIA_MSG = """
-            Социальная сеть %s уже была синхронизирована с текущим Телеграм-каналом.
+            Социальная сеть %s уже была синхронизирована с текущим Телеграмм-каналом.
             Пожалуйста, выберите другую социальную сеть и попробуйте снова.""";
 
     @Autowired

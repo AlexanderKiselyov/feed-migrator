@@ -16,12 +16,12 @@ import java.util.List;
 @Component
 public class TgChannelsList extends Command {
     private static final String TG_CHANNELS_LIST_MSG = """
-            Список добавленных Телеграм-каналов.""";
+            Список добавленных Телеграмм-каналов.""";
     private static final String TG_CHANNELS_LIST_INLINE_MSG = """
-            Нажмите на Телеграм-канал, чтобы выбрать определенный.
-            Для удаления Телеграм-канала нажмите 'Удалить' справа от канала.""";
+            Нажмите на Телеграмм-канал, чтобы выбрать определенный.
+            Для удаления Телеграмм-канала нажмите 'Удалить' справа от канала.""";
     private static final String NO_TG_CHANNELS = """
-            Список добавленных Телеграм-каналов пуст.
+            Список добавленных Телеграмм-каналов пуст.
             Пожалуйста, добавьте хотя бы один канал.""";
     private static final String GET_TELEGRAM_CHANNEL = "tg_channel %s %d";
     private static final String DELETE_TELEGRAM_CHANNEL = "tg_channel %s %d";

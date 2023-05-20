@@ -44,7 +44,7 @@ public class OkClientImpl implements OKClient {
     private static final String UPLOAD_PHOTO = "photosV2.getUploadUrl";
     private static final String UPLOAD_VIDEO = "video.getUploadUrl";
     private static final String CREATE_SHORT_LINK = "shortlink.create";
-    private static final Logger logger = LoggerFactory.getLogger(OkAuthorizator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OkAuthorizator.class);
     private final HttpClient httpClient;
     private final CloseableHttpClient apacheHttpClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -71,7 +71,7 @@ public class OkClientImpl implements OKClient {
         request.addHeader("Content-Type", "application/x-www-form-urlencoded");
         request.setEntity(new UrlEncodedFormEntity(parameters, StandardCharsets.UTF_8));
 
-        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, request, logger);
+        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, request, LOGGER);
 
         String statusLine = response.getStatusLine().toString();
         String body = apacheResponseBody(response);
@@ -81,10 +81,10 @@ public class OkClientImpl implements OKClient {
         Matcher matcher = Pattern.compile("\"(\\d+)\"").matcher(body);
         if (matcher.matches()) {
             String postId = matcher.group(1);
-            logger.info("Posted post %s to group %d".formatted(postId, groupId));
+            LOGGER.info("Posted post %s to group %d".formatted(postId, groupId));
             return Long.parseLong(postId);
         } else {
-            checkForApiErrors(body, statusLine, logger, new JSONObject(body));
+            checkForApiErrors(body, statusLine, LOGGER, new JSONObject(body));
             return Long.MAX_VALUE;
         }
     }
@@ -102,8 +102,8 @@ public class OkClientImpl implements OKClient {
         }
         httpPost.setEntity(multipartEntityBuilder.build());
 
-        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, httpPost, logger);
-        JSONObject responseJson = parseResponse(response, logger);
+        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, httpPost, LOGGER);
+        JSONObject responseJson = parseResponse(response, LOGGER);
 
         EntityUtils.consume(response.getEntity());
 
@@ -119,7 +119,7 @@ public class OkClientImpl implements OKClient {
         } catch (JSONException e) {
             String statusLine = response.getStatusLine().toString();
             String body = apacheResponseBody(response);
-            throw wrapAndLog(e, statusLine, body, logger);
+            throw wrapAndLog(e, statusLine, body, LOGGER);
         } catch (IndexOutOfBoundsException e) {
             throw new OkApiException(e);
         }
@@ -136,7 +136,7 @@ public class OkClientImpl implements OKClient {
         multipartEntityBuilder.addPart("video", new FileBody(video));
         httpPost.setEntity(multipartEntityBuilder.build());
 
-        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, httpPost, logger);
+        org.apache.http.HttpResponse response = sendRequest(apacheHttpClient, httpPost, LOGGER);
 
         EntityUtils.consume(response.getEntity());
 
@@ -157,13 +157,13 @@ public class OkClientImpl implements OKClient {
         HttpRequest getShortLinkRequest = HttpRequest.newBuilder().GET()
                 .uri(uri)
                 .build();
-        HttpResponse<String> getShortLinkResponse = sendRequest(httpClient, getShortLinkRequest, logger);
-        JSONObject responseBodyJson = parseResponse(getShortLinkResponse, logger);
+        HttpResponse<String> getShortLinkResponse = sendRequest(httpClient, getShortLinkRequest, LOGGER);
+        JSONObject responseBodyJson = parseResponse(getShortLinkResponse, LOGGER);
 
         try {
             return responseBodyJson.getString("shortUrl");
         } catch (JSONException e) {
-            throw wrapAndLog(e, getShortLinkResponse.toString(), getShortLinkResponse.body(), logger);
+            throw wrapAndLog(e, getShortLinkResponse.toString(), getShortLinkResponse.body(), LOGGER);
         }
     }
 
@@ -181,8 +181,8 @@ public class OkClientImpl implements OKClient {
         HttpRequest getUploadUrlRequest = HttpRequest.newBuilder().GET()
                 .uri(uri)
                 .build();
-        HttpResponse<String> uploadUrlResponse = sendRequest(httpClient, getUploadUrlRequest, logger);
-        JSONObject responseBodyJson = parseResponse(uploadUrlResponse, logger);
+        HttpResponse<String> uploadUrlResponse = sendRequest(httpClient, getUploadUrlRequest, LOGGER);
+        JSONObject responseBodyJson = parseResponse(uploadUrlResponse, LOGGER);
 
         try {
             JSONArray photoTokensJsonList = responseBodyJson.getJSONArray("photo_ids");
@@ -193,7 +193,7 @@ public class OkClientImpl implements OKClient {
                     .toList();
             return new PhotoUploadUrlResponse(uploadUrl, photoTokens);
         } catch (JSONException e) {
-            throw wrapAndLog(e, uploadUrlResponse.toString(), uploadUrlResponse.body(), logger);
+            throw wrapAndLog(e, uploadUrlResponse.toString(), uploadUrlResponse.body(), LOGGER);
         }
     }
 
@@ -213,8 +213,8 @@ public class OkClientImpl implements OKClient {
         HttpRequest getUploadUrlRequest = HttpRequest.newBuilder().GET()
                 .uri(uri)
                 .build();
-        HttpResponse<String> uploadUrlResponse = sendRequest(httpClient, getUploadUrlRequest, logger);
-        JSONObject object = parseResponse(uploadUrlResponse, logger);
+        HttpResponse<String> uploadUrlResponse = sendRequest(httpClient, getUploadUrlRequest, LOGGER);
+        JSONObject object = parseResponse(uploadUrlResponse, LOGGER);
 
         try {
             return new VideoUploadUrlResponse(
@@ -222,7 +222,7 @@ public class OkClientImpl implements OKClient {
                     object.getLong("video_id")
             );
         } catch (JSONException e) {
-            throw wrapAndLog(e, uploadUrlResponse.toString(), uploadUrlResponse.body(), logger);
+            throw wrapAndLog(e, uploadUrlResponse.toString(), uploadUrlResponse.body(), LOGGER);
         }
     }
 

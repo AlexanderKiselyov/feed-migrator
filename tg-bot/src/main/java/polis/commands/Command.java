@@ -63,9 +63,13 @@ public abstract class Command extends BotCommand {
         setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }
 
-    static void sendAnswerWithInlineKeyboardAndBackButton(AbsSender absSender, Long chatId, String textReply,
-                                                          String textInline, int rowsCount,
-                                                          List<String> inlineKeyboardCommands, LoggingInfo loggingInfo) {
+    static void sendAnswerWithInlineKeyboardAndBackButton(AbsSender absSender,
+                                                          Long chatId,
+                                                          String textReply,
+                                                          String textInline,
+                                                          int rowsCount,
+                                                          List<String> inlineKeyboardCommands,
+                                                          LoggingInfo loggingInfo) {
         sendAnswerWithOnlyBackButton(absSender, chatId, textReply, loggingInfo);
         sendAnswerWithInlineKeyboard(absSender, chatId, textInline, rowsCount, inlineKeyboardCommands, loggingInfo);
     }

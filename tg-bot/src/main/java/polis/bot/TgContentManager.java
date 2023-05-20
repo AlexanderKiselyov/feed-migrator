@@ -32,9 +32,10 @@ import java.nio.file.Path;
 @Component
 public class TgContentManager {
     public static final int FILE_SIZE_LIMIT_MB = 20; //todo increase
-    private static final Logger logger = LoggerFactory.getLogger(TgContentManager.class);
+    private static final String CYRILLIC_TO_LATIN = "Russian-Latin/BGN";
     private static final String TELEGRAM_API_URL = "https://api.telegram.org/bot%s/getFile?file_id=%s";
     private static final String FILE_IS_TOO_BIG_API_DESC = "file is too big";
+    private static final Logger LOGGER = LoggerFactory.getLogger(TgContentManager.class);
 
     private final TgFileLoader fileLoader;
     private final String tgApiToken;
@@ -96,7 +97,7 @@ public class TgContentManager {
         if (getFileResponse.isOk()) {
             return getFileResponse.getResult();
         }
-        logger.error("Not ok response when loading file:\n\t" + getFileResponse);
+        LOGGER.error("Not ok response when loading file:\n\t" + getFileResponse);
         if (getFileResponse.description.contains(FILE_IS_TOO_BIG_API_DESC)) {
             throw new FileIsTooBigException();
         }
@@ -112,7 +113,7 @@ public class TgContentManager {
         try {
             Files.move(file.toPath(), path);
         } catch (IOException e) {
-            logger.error("Error while changing extension of " + tgApiFilePath, e);
+            LOGGER.error("Error while changing extension of " + tgApiFilePath, e);
             throw new RuntimeException(e);
         }
         return path.toFile();
@@ -125,10 +126,10 @@ public class TgContentManager {
             Path tempDir = Files.createTempDirectory("bot-tmp");
             res = Files.move(file.toPath(), tempDir.resolve(tmpFileName));
         } catch (IOException e) {
-            logger.error("Error while changing name of " + tgApiFilePath, e);
+            LOGGER.error("Error while changing name of " + tgApiFilePath, e);
             throw new RuntimeException(e);
         }
-        logger.info("Successfully changed name of file \"{}\" to file with path: {}", tgApiFilePath, res);
+        LOGGER.info("Successfully changed name of file \"{}\" to file with path: {}", tgApiFilePath, res);
         return res.toFile();
     }
 
@@ -153,7 +154,6 @@ public class TgContentManager {
     }
 
     private static String transliterateFromRusToEng(String filename) {
-        String CYRILLIC_TO_LATIN = "Russian-Latin/BGN";
         Transliterator toLatinTrans = Transliterator.getInstance(CYRILLIC_TO_LATIN);
         return toLatinTrans.transliterate(filename);
     }
@@ -192,12 +192,12 @@ public class TgContentManager {
 
         @Override
         public String toString() {
-            return "GetFileResponse{" +
-                    "ok=" + ok +
-                    ", errorCode=" + errorCode +
-                    ", description='" + description + '\'' +
-                    ", result=" + result +
-                    '}';
+            return "GetFileResponse{"
+                    + "ok=" + ok
+                    + ", errorCode=" + errorCode
+                    + ", description='" + description + '\''
+                    + ", result=" + result
+                    + "}";
         }
     }
 

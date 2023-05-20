@@ -20,7 +20,7 @@ public class AddOkGroup extends Command {
             https://ok.ru/ok
             https://ok.ru/group57212027273260""";
     static final String SAME_SOCIAL_MEDIA_MSG = """
-            Социальная сеть %s уже была синхронизирована с текущим Телеграм-каналом.
+            Социальная сеть %s уже была синхронизирована с текущим Телеграмм-каналом.
             Пожалуйста, выберите другую социальную сеть и попробуйте снова.""";
 
     @Autowired
