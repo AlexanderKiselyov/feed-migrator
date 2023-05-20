@@ -1,5 +1,5 @@
 package polis.bot;
 
 public interface TgNotificator {
-    void sendNotification(long userChatId, long channelId, String message);
+    void sendNotification(long userChatId, String message);
 }
