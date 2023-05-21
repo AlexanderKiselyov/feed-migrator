@@ -1,6 +1,5 @@
 package polis.commands;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,22 +95,22 @@ public class NonCommand {
 
             AnswerPair answer = telegramDataCheck.checkTelegramChannelLink(checkChannelLink);
             if (!answer.getError()) {
-                JSONObject chatParameters = telegramDataCheck.getChatParameters(checkChannelLink);
+                TelegramDataCheck.TelegramChannel channel = telegramDataCheck.getChannelParameters(checkChannelLink);
 
-                if (chatParameters == null) {
+                if (channel == null) {
                     return new AnswerPair(WRONG_CHAT_PARAMETERS, true);
                 }
 
-                UserChannels addedChannel = userChannelsRepository.getUserChannel(chatParameters.getLong("id"),
-                        chatId);
+                UserChannels addedChannel = userChannelsRepository.getUserChannel(channel.id(), chatId);
+
                 if (addedChannel != null) {
                     return new AnswerPair(String.format(SAME_CHANNEL, addedChannel.getChannelUsername()), true);
                 }
 
                 UserChannels newTgChannel = new UserChannels(
                         chatId,
-                        chatParameters.getLong("id"),
-                        chatParameters.getString("title")
+                        channel.id(),
+                        channel.title()
                 );
 
                 userChannelsRepository.insertUserChannel(newTgChannel);
