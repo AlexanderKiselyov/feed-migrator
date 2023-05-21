@@ -1,5 +1,6 @@
 package polis.commands;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +40,15 @@ public class NonCommand {
     public static final String VK_GROUP_ADDED = """
             Группа была успешно добавлена.
             Синхронизируйте группу с Телеграмм-каналом по команде /%s.""";
+    private static final String WRONG_CHAT_PARAMETERS = """
+            Ошибка получения параметров чата.
+            Пожалуйста, проверьте, что ссылка на канал является верной и введите ссылку еще раз.""";
+    private static final String SAME_CHANNEL = """
+            Телеграмм-канал <b>%s</b> уже был ранее добавлен.
+            Пожалуйста, выберите другой Телеграмм-канал и попробуйте снова.""";
     private static final String WRONG_LINK_TELEGRAM = """
-             Ссылка неверная.
-             Пожалуйста, проверьте, что ссылка на канал является верной и введите ссылку еще раз.""";
+            Ссылка неверная.
+            Пожалуйста, проверьте, что ссылка на канал является верной и введите ссылку еще раз.""";
     private static final String WRONG_ACCOUNT = """
             Неверный аккаунт %s.
             Пожалуйста, вернитесь в главное меню (%s) и следуйте дальнейшим инструкциям.""";
@@ -89,11 +96,24 @@ public class NonCommand {
 
             AnswerPair answer = telegramDataCheck.checkTelegramChannelLink(checkChannelLink);
             if (!answer.getError()) {
+                JSONObject chatParameters = telegramDataCheck.getChatParameters(checkChannelLink);
+
+                if (chatParameters == null) {
+                    return new AnswerPair(WRONG_CHAT_PARAMETERS, true);
+                }
+
+                UserChannels addedChannel = userChannelsRepository.getUserChannel(chatParameters.getLong("id"),
+                        chatId);
+                if (addedChannel != null) {
+                    return new AnswerPair(String.format(SAME_CHANNEL, addedChannel.getChannelUsername()), true);
+                }
+
                 UserChannels newTgChannel = new UserChannels(
                         chatId,
-                        (Long) telegramDataCheck.getChatParameter(checkChannelLink, "id"),
-                        checkChannelLink
+                        chatParameters.getLong("id"),
+                        chatParameters.getString("title")
                 );
+
                 userChannelsRepository.insertUserChannel(newTgChannel);
                 currentChannelRepository.insertCurrentChannel(new CurrentChannel(chatId, newTgChannel.getChannelId(),
                         newTgChannel.getChannelUsername()));
