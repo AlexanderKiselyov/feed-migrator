@@ -17,7 +17,7 @@ public class ReplyKeyboard extends Keyboard {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setSelective(true);
         replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
+        replyKeyboardMarkup.setOneTimeKeyboard(true);
 
         int buttonsAtTheRow = (int) Math.ceil((double) commands.size() / rowsCount);
 

@@ -18,8 +18,7 @@ import java.util.List;
 @Component
 public class Autoposting extends Command {
     private static final String AUTOPOSTING_MSG = """
-            Функция автопостинга позволяет автоматически публиковать новый пост из Телеграмм-канала в группу.""";
-    private static final String AUTOPOSTING_INLINE_MSG = """
+            Функция автопостинга позволяет автоматически публиковать новый пост из Телеграмм-канала в группу.
             Включить данную функцию для Телеграмм-канала <b>%s</b> и группы <b>%s (%s)</b>?""";
     private static final String NO_CURRENT_TG_CHANNEL_MSG = """
             Телеграмм-канал не был выбран.
@@ -51,11 +50,10 @@ public class Autoposting extends Command {
 
         if (currentChannel != null && currentAccount != null && currentGroup != null) {
             String groupName = currentGroup.getGroupName();
-            sendAnswerWithInlineKeyboardAndBackButton(
+            sendAnswerWithInlineKeyboard(
                     absSender,
                     chat.getId(),
-                    AUTOPOSTING_MSG,
-                    String.format(AUTOPOSTING_INLINE_MSG, currentChannel.getChannelUsername(), groupName,
+                    String.format(AUTOPOSTING_MSG, currentChannel.getChannelUsername(), groupName,
                             currentGroup.getSocialMedia().getName()),
                     ROWS_COUNT,
                     getButtonsForAutopostingOptions(chat.getId(), currentChannel.getChannelId()),

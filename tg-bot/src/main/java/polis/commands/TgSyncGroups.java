@@ -18,8 +18,6 @@ import java.util.List;
 @Component
 public class TgSyncGroups extends Command {
     private static final String TG_SYNC_GROUPS_MSG = """
-            Список синхронизированных групп.""";
-    private static final String TG_SYNC_GROUPS_INLINE_MSG = """
             Список синхронизированных групп.
             Для выбора определенной группы нажмите на нужную группу.
             Для удаления группы нажмите 'Удалить' справа от группы.""";
@@ -52,11 +50,10 @@ public class TgSyncGroups extends Command {
                     channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId());
 
             if (channelGroups != null && !channelGroups.isEmpty()) {
-                sendAnswerWithInlineKeyboardAndBackButton(
+                sendAnswerWithInlineKeyboard(
                         absSender,
                         chat.getId(),
                         TG_SYNC_GROUPS_MSG,
-                        TG_SYNC_GROUPS_INLINE_MSG,
                         channelGroups.size(),
                         getButtonsForTgChannelGroups(channelGroups),
                         loggingInfo(user.getUserName()));
