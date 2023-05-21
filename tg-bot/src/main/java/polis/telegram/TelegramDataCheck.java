@@ -102,7 +102,7 @@ public class TelegramDataCheck {
         }
     }
 
-    public TelegramChannel getChannelParameters(String channelUsername) {
+    public TelegramChannel getChannel(String channelUsername) {
         try {
             URI uri = new URIBuilder(String.format(GET_CHAT, BotProperties.TOKEN))
                     .addParameter("chat_id", String.format("@%s", channelUsername))

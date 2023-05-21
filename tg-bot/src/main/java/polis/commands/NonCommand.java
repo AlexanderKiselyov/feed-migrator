@@ -95,7 +95,7 @@ public class NonCommand {
 
             AnswerPair answer = telegramDataCheck.checkTelegramChannelLink(checkChannelLink);
             if (!answer.getError()) {
-                TelegramDataCheck.TelegramChannel channel = telegramDataCheck.getChannelParameters(checkChannelLink);
+                TelegramDataCheck.TelegramChannel channel = telegramDataCheck.getChannel(checkChannelLink);
 
                 if (channel == null) {
                     return new AnswerPair(WRONG_CHAT_PARAMETERS, true);
