@@ -34,7 +34,9 @@ public class TelegramDataCheck {
     private static final String GET_CHAT = "https://api.telegram.org/bot%s/getChat";
     private static final String RESULT_FIELD = "result";
     private static final String STATUS_FIELD = "status";
+    private static final String ID_FIELD = "id";
     private static final String TITLE_FIELD = "title";
+    private static final String USERNAME_FIELD = "username";
     private static final String NOT_SUCCESS_CODE = """
                                 Not 200 code of the response.
                                 Request URI: %s
@@ -100,10 +102,10 @@ public class TelegramDataCheck {
         }
     }
 
-    public Object getChatParameter(String chatUsername, String parameter) {
+    public TelegramChannel getChannel(String channelUsername) {
         try {
             URI uri = new URIBuilder(String.format(GET_CHAT, BotProperties.TOKEN))
-                    .addParameter("chat_id", String.format("@%s", chatUsername))
+                    .addParameter("chat_id", String.format("@%s", channelUsername))
                     .build();
 
             HttpRequest request = HttpRequest
@@ -124,17 +126,32 @@ public class TelegramDataCheck {
             if (!object.has(RESULT_FIELD)) {
                 logFieldAbsence(request, response, RESULT_FIELD);
                 return null;
-
             }
 
-            JSONObject result = object.getJSONObject(RESULT_FIELD);
+            JSONObject channel = object.getJSONObject(RESULT_FIELD);
 
-            if (!result.has(parameter)) {
+            if (!channel.has(ID_FIELD)) {
+                logFieldAbsence(request, response, ID_FIELD);
+                return null;
+            }
+
+            Long id = channel.getLong(ID_FIELD);
+
+            if (!channel.has(TITLE_FIELD)) {
                 logFieldAbsence(request, response, TITLE_FIELD);
                 return null;
             }
 
-            return result.get(parameter);
+            String title = channel.getString(TITLE_FIELD);
+
+            if (!channel.has(USERNAME_FIELD)) {
+                logFieldAbsence(request, response, USERNAME_FIELD);
+                return null;
+            }
+
+            String username = channel.getString(USERNAME_FIELD);
+
+            return new TelegramChannel(id, title, username);
         } catch (URISyntaxException | IOException | InterruptedException e) {
             LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
             return null;
@@ -147,5 +164,9 @@ public class TelegramDataCheck {
 
     private void logFieldAbsence(HttpRequest request, HttpResponse<String> response, String field) {
         LOGGER.error(String.format(FIELD_ABSENCE, field, request.uri(), request.headers().toString(), response.body()));
+    }
+
+    public record TelegramChannel(Long id, String title, String username) {
+
     }
 }
