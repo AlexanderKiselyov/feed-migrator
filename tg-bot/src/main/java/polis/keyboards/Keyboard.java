@@ -6,7 +6,8 @@ import polis.util.Emojis;
 import java.util.List;
 
 public abstract class Keyboard {
-    public static String GO_BACK_BUTTON_TEXT = Emojis.BACK_ARROW + " Назад";
+    public static final String GO_BACK_BUTTON_TEXT = Emojis.BACK_ARROW + " Назад";
+    public static final String GO_BACK_CALLBACK_DATA = "go-back";
 
     public SendMessage createSendMessage(Long chatId, String messageText, int rowsCount, List<String> commands,
                                          String... optionalButtonsValues) {

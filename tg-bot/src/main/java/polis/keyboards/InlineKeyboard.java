@@ -30,6 +30,12 @@ public class InlineKeyboard extends Keyboard {
             keyboard.add(row);
         }
 
+        keyboard.add(List.of(InlineKeyboardButton.builder()
+                .text(GO_BACK_BUTTON_TEXT)
+                .callbackData(GO_BACK_CALLBACK_DATA)
+                .build()
+        ));
+
         inlineKeyboardMarkup.setKeyboard(keyboard);
         sendMessage.setReplyMarkup(inlineKeyboardMarkup);
     }
