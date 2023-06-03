@@ -1,6 +1,7 @@
 package polis.posting.ok;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.glassfish.jersey.internal.util.Producer;
 import org.springframework.stereotype.Component;
 import polis.ok.api.OkAuthorizator;
 import polis.ok.api.exceptions.OkApiException;
@@ -43,7 +44,7 @@ public class OkPostProcessor implements IPostProcessor {
             long groupId,
             long accountId,
             String accessToken,
-            String refreshToken,
+            Producer<String> refreshTokenProducer,
             Consumer<Pair<String, String>> tokenRefreshedCallback
     ) {
         if (!post.documents().isEmpty() && post.animations().isEmpty()) {
@@ -53,15 +54,15 @@ public class OkPostProcessor implements IPostProcessor {
 
             List<String> videoIds = executeTokenExpirationAware((token) ->
                             okPoster.uploadVideos(post.videos(), (int) accountId, token, groupId),
-                    accessToken, refreshToken, tokenRefreshedCallback
+                    accessToken, refreshTokenProducer, tokenRefreshedCallback
             );
             List<String> photoIds = executeTokenExpirationAware((token) ->
                             okPoster.uploadPhotos(post.photos(), (int) accountId, token, groupId),
-                    accessToken, refreshToken, tokenRefreshedCallback
+                    accessToken, refreshTokenProducer, tokenRefreshedCallback
             );
             String formattedText = executeTokenExpirationAware(
                     (token) -> okPoster.getTextLinks(post.text(), post.textLinks(), token),
-                    accessToken, refreshToken, tokenRefreshedCallback
+                    accessToken, refreshTokenProducer, tokenRefreshedCallback
             );
 
             OkPoster.OkPost okPost = okPoster.newPost(accessToken)
@@ -72,7 +73,7 @@ public class OkPostProcessor implements IPostProcessor {
 
             long postId = executeTokenExpirationAware(
                     (token) -> okPost.post(groupId, token),
-                    accessToken, refreshToken, tokenRefreshedCallback
+                    accessToken, refreshTokenProducer, tokenRefreshedCallback
             );
 
             if (videoIds == null || videoIds.isEmpty()) {
@@ -103,7 +104,7 @@ public class OkPostProcessor implements IPostProcessor {
     private <T> T executeTokenExpirationAware(
             OkApiAction<T> action,
             String accessToken,
-            String refreshToken,
+            Producer<String> refreshTokenProducer,
             Consumer<Pair<String, String>> tokenRefreshedCallback
     ) throws ApiException, URISyntaxException, IOException {
         try {
@@ -112,6 +113,7 @@ public class OkPostProcessor implements IPostProcessor {
             if (!(e.getCause() instanceof TokenExpiredException)) {
                 throw e;
             }
+            String refreshToken = refreshTokenProducer.call();
             OkAuthorizator.TokenPair refreshedTokens;
             try {
                 refreshedTokens = okAuthorizator.refreshToken(refreshToken);

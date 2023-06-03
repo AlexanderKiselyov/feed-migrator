@@ -1,6 +1,7 @@
 package polis.posting;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.glassfish.jersey.internal.util.Producer;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import polis.util.Emojis;
@@ -35,7 +36,7 @@ public interface IPostProcessor {
             long groupId,
             long accountId,
             String accessToken,
-            String refreshToken,
+            Producer<String> refreshTokenProducer,
             Consumer<Pair<String, String>> tokenRefreshedCallback
     ) {
         return processPostInChannel(post, ownerChatId, groupId, accountId, accessToken);
