@@ -20,8 +20,7 @@ import static polis.util.Emojis.STOP_PROFANITY;
 
 public abstract class SyncGroupWithChannel extends Command {
     private static final String SYNC_MSG = """
-            Вы выбрали Телеграмм-канал <b>%s</b> и группу <b>%s (%s)</b>.""";
-    private static final String SYNC_INLINE_MSG = String.format("""
+            Вы выбрали Телеграмм-канал <b>%s</b> и группу <b>%s (%s)</b>.
             Хотите ли Вы синхронизировать их?
                         
             <b>* При размещении контента на Вашем канале очень важно уважать права других авторов, в связи с чем"""
@@ -29,8 +28,7 @@ public abstract class SyncGroupWithChannel extends Command {
              автопостинг для пересланных сообщений не осуществляется %s
             * Запрещается публиковать контент, нарущающий законодательство РФ (ненормативная лексика, контент 18+ и\s"""
             + """
-            др.) %s %s</b>""",
-            HAPPY_FACE, STOP_PROFANITY, EIGHTEEN_PLUS);
+            др.) %s %s</b>""";
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
             Невозможно связать Телеграмм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
@@ -59,16 +57,11 @@ public abstract class SyncGroupWithChannel extends Command {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
             String groupName = currentGroup.getGroupName();
-            sendAnswerWithInlineKeyboardAndBackButton(
+            sendAnswerWithInlineKeyboard(
                     absSender,
                     chat.getId(),
-                    String.format(
-                            SYNC_MSG,
-                            currentChannel.getChannelUsername(),
-                            groupName,
-                            currentGroup.getSocialMedia().getName()
-                    ),
-                    SYNC_INLINE_MSG,
+                    String.format(SYNC_MSG, currentChannel.getChannelUsername(), groupName,
+                            currentGroup.getSocialMedia().getName(), HAPPY_FACE, STOP_PROFANITY, EIGHTEEN_PLUS),
                     ROWS_COUNT,
                     getButtonsForSyncOptions(),
                     loggingInfo(user.getUserName()));
@@ -77,10 +70,7 @@ public abstract class SyncGroupWithChannel extends Command {
         sendAnswerWithReplyKeyboardAndBackButton(
                 absSender,
                 chat.getId(),
-                String.format(
-                        NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP,
-                        State.MainMenu.getIdentifier()
-                ),
+                String.format(NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP, State.MainMenu.getIdentifier()),
                 ROWS_COUNT,
                 KEYBOARD_COMMANDS_IN_ERROR_CASE,
                 loggingInfo(user.getUserName()));

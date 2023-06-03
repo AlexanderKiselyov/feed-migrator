@@ -16,8 +16,7 @@ import java.util.List;
 @Component
 public class TgChannelsList extends Command {
     private static final String TG_CHANNELS_LIST_MSG = """
-            Список добавленных Телеграмм-каналов.""";
-    private static final String TG_CHANNELS_LIST_INLINE_MSG = """
+            Список добавленных Телеграмм-каналов.
             Нажмите на Телеграмм-канал, чтобы выбрать определенный.
             Для удаления Телеграмм-канала нажмите 'Удалить' справа от канала.""";
     private static final String NO_TG_CHANNELS = """
@@ -42,11 +41,10 @@ public class TgChannelsList extends Command {
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         List<UserChannels> channels = userChannelsRepository.getUserChannels(chat.getId());
         if (channels != null && !channels.isEmpty()) {
-            sendAnswerWithInlineKeyboardAndBackButton(
+            sendAnswerWithInlineKeyboard(
                     absSender,
                     chat.getId(),
                     TG_CHANNELS_LIST_MSG,
-                    TG_CHANNELS_LIST_INLINE_MSG,
                     channels.size(),
                     getUserTgChannelsArray(channels),
                     loggingInfo(user.getUserName()));

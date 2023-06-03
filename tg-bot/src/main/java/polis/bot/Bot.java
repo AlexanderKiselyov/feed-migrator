@@ -61,9 +61,6 @@ import polis.util.SocialMedia;
 import polis.util.State;
 import polis.util.Substate;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -81,6 +78,7 @@ import static polis.datacheck.VkDataCheck.SAME_VK_ACCOUNT;
 import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_ANSWER;
 import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
+import static polis.keyboards.Keyboard.GO_BACK_CALLBACK_DATA;
 import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
 import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
 import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
@@ -303,7 +301,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                     || callbackQueryData.startsWith(YES_NO_CALLBACK_TEXT)
                     || callbackQueryData.startsWith(AUTOPOSTING)
                     || callbackQueryData.equals(NO_CALLBACK_TEXT)
-                    || callbackQueryData.startsWith(NOTIFICATIONS)) {
+                    || callbackQueryData.startsWith(NOTIFICATIONS)
+                    || callbackQueryData.equals(GO_BACK_CALLBACK_DATA)) {
                 try {
                     parseInlineKeyboardData(callbackQueryData, msg);
                 } catch (TelegramApiException e) {
@@ -543,6 +542,20 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 getRegisteredCommand(State.GroupDescription.getIdentifier()).processMessage(this, msg, null);
             }
             case NO_CALLBACK_TEXT -> deleteLastMessage(msg, chatId);
+            case GO_BACK_CALLBACK_DATA -> {
+                CurrentState currentState = currentStateRepository.getCurrentState(chatId);
+                if (currentState != null) {
+                    IState previousState = State.getPrevState(currentState.getState());
+                    if (previousState == null) {
+                        LOGGER.error("Previous state = null, tmp state = {}", currentStateRepository
+                                .getCurrentState(chatId).getState().getIdentifier());
+                        return;
+                    }
+                    currentStateRepository.insertCurrentState(new CurrentState(chatId, previousState.getIdentifier()));
+                    deleteLastMessage(msg, chatId);
+                    getRegisteredCommand(previousState.getIdentifier()).processMessage(this, msg, null);
+                }
+            }
             default -> LOGGER.error(String.format("Unknown inline keyboard data: %s", data));
         }
     }

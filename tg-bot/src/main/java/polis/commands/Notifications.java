@@ -18,8 +18,7 @@ import java.util.List;
 @Component
 public class Notifications extends Command {
     private static final String NOTIFICATIONS_MSG = """
-            Включите уведомления, чтобы получать информацию о публикации Ваших постов.""";
-    private static final String NOTIFICATIONS_INLINE_MSG = """
+            Включите уведомления, чтобы получать информацию о публикации Ваших постов.
             Включить данную функцию для Телеграмм-канала <b>%s</b> и группы <b>%s (%s)</b>?""";
     private static final String NO_CURRENT_TG_CHANNEL = """
             Телеграмм-канал не был выбран.
@@ -51,12 +50,11 @@ public class Notifications extends Command {
 
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
             String groupName = currentGroup.getGroupName();
-            String notificationsEnable = String.format(NOTIFICATIONS_INLINE_MSG, currentChannel.getChannelUsername(),
+            String notificationsEnable = String.format(NOTIFICATIONS_MSG, currentChannel.getChannelUsername(),
                     groupName, currentGroup.getGroupName());
-            sendAnswerWithInlineKeyboardAndBackButton(
+            sendAnswerWithInlineKeyboard(
                     absSender,
                     chat.getId(),
-                    NOTIFICATIONS_MSG,
                     notificationsEnable,
                     ROWS_COUNT,
                     getButtonsForNotificationsOptions(currentChannel.getChannelId()),

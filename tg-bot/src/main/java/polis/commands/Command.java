@@ -63,17 +63,6 @@ public abstract class Command extends BotCommand {
         setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }
 
-    static void sendAnswerWithInlineKeyboardAndBackButton(AbsSender absSender,
-                                                          Long chatId,
-                                                          String textReply,
-                                                          String textInline,
-                                                          int rowsCount,
-                                                          List<String> inlineKeyboardCommands,
-                                                          LoggingInfo loggingInfo) {
-        sendAnswerWithOnlyBackButton(absSender, chatId, textReply, loggingInfo);
-        sendAnswerWithInlineKeyboard(absSender, chatId, textInline, rowsCount, inlineKeyboardCommands, loggingInfo);
-    }
-
     static void sendAnswerWithOnlyBackButton(AbsSender absSender, Long chatId, String text, LoggingInfo loggingInfo) {
         SendMessage message = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, 0, Collections.emptyList(),
                 GO_BACK_BUTTON_TEXT);

@@ -15,8 +15,9 @@ import java.util.List;
 
 @Component
 public class AccountsList extends Command {
-    private static final String ACCOUNTS_LIST_MSG = "Список Ваших аккаунтов.";
-    private static final String ACCOUNTS_LIST_INLINE_MSG = "Чтобы выбрать аккаунт, нажмите на соответствующую кнопку.";
+    private static final String ACCOUNTS_LIST_MSG = """
+            Список Ваших аккаунтов.
+            Чтобы выбрать аккаунт, нажмите на соответствующую кнопку.""";
     private static final String NOT_VALID_SOCIAL_MEDIA_ACCOUNTS_LIST_MSG = """
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
@@ -38,11 +39,10 @@ public class AccountsList extends Command {
         List<Account> accounts = accountsRepository.getAccountsForUser(chat.getId());
 
         if (accounts != null && !accounts.isEmpty()) {
-            sendAnswerWithInlineKeyboardAndBackButton(
+            sendAnswerWithInlineKeyboard(
                     absSender,
                     chat.getId(),
                     ACCOUNTS_LIST_MSG,
-                    ACCOUNTS_LIST_INLINE_MSG,
                     accounts.size(),
                     getButtonsForAccounts(accounts),
                     loggingInfo(user.getUserName()));
