@@ -1,6 +1,9 @@
 package polis.posting.ok;
 
 import org.springframework.stereotype.Component;
+import polis.ok.api.OkAuthorizator;
+import polis.ok.api.exceptions.OkApiException;
+import polis.ok.api.exceptions.TokenExpiredException;
 import polis.posting.ApiException;
 import polis.posting.IPostProcessor;
 import polis.util.SocialMedia;
@@ -24,9 +27,11 @@ public class OkPostProcessor implements IPostProcessor {
     private static final String OK_SOCIAL_NAME = SocialMedia.OK.getName();
 
     private final OkPoster okPoster;
+    private final OkAuthorizator okAuthorizator;
 
-    public OkPostProcessor(OkPoster okPoster) {
+    public OkPostProcessor(OkPoster okPoster, OkAuthorizator okAuthorizator) {
         this.okPoster = okPoster;
+        this.okAuthorizator = okAuthorizator;
     }
 
     @Override
@@ -62,6 +67,19 @@ public class OkPostProcessor implements IPostProcessor {
             return IPostProcessor.failPostToGroupMsg(OK_SOCIAL_NAME, groupLink(groupId));
         }
 
+    }
+
+    private interface OkApiAction<T> {
+        T execute(String accessToken) throws OkApiException;
+    }
+
+    private <T> T executeTokenExpirationAware(OkApiAction<T> action, String accessToken, String refreshToken) throws OkApiException, URISyntaxException, IOException {
+        try {
+            return action.execute(accessToken);
+        } catch (TokenExpiredException e) {
+            OkAuthorizator.TokenPair refreshedTokens = okAuthorizator.refreshToken(refreshToken);
+            return action.execute(refreshedTokens.accessToken());
+        }
     }
 
     private static String groupLink(long groupId) {
