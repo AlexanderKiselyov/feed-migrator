@@ -1,5 +1,6 @@
 package polis.posting.ok;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 import polis.ok.api.OkAuthorizator;
 import polis.ok.api.exceptions.OkApiException;
@@ -11,6 +12,7 @@ import polis.util.SocialMedia;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Component
 public class OkPostProcessor implements IPostProcessor {
@@ -40,24 +42,39 @@ public class OkPostProcessor implements IPostProcessor {
             long ownerChatId,
             long groupId,
             long accountId,
-            String accessToken
+            String accessToken,
+            String refreshToken,
+            Consumer<Pair<String, String>> tokenRefreshedCallback
     ) {
-        //Здесь можно будет сделать маленькие трайи, чтобы пользователю писать более конкретную ошибку
+        if (!post.documents().isEmpty() && post.animations().isEmpty()) {
+            return DOCUMENTS_ARENT_SUPPORTED;
+        }
         try {
-            if (!post.documents().isEmpty() && post.animations().isEmpty()) {
-                return DOCUMENTS_ARENT_SUPPORTED;
-            }
 
-            List<String> videoIds = okPoster.uploadVideos(post.videos(), (int) accountId, accessToken, groupId);
-            List<String> photoIds = okPoster.uploadPhotos(post.photos(), (int) accountId, accessToken, groupId);
-            String formattedText = okPoster.getTextLinks(post.text(), post.textLinks(), accessToken);
+            List<String> videoIds = executeTokenExpirationAware((token) ->
+                            okPoster.uploadVideos(post.videos(), (int) accountId, token, groupId),
+                    accessToken, refreshToken, tokenRefreshedCallback
+            );
+            List<String> photoIds = executeTokenExpirationAware((token) ->
+                            okPoster.uploadPhotos(post.photos(), (int) accountId, token, groupId),
+                    accessToken, refreshToken, tokenRefreshedCallback
+            );
+            String formattedText = executeTokenExpirationAware(
+                    (token) -> okPoster.getTextLinks(post.text(), post.textLinks(), token),
+                    accessToken, refreshToken, tokenRefreshedCallback
+            );
 
-            long postId = okPoster.newPost(accessToken)
+            OkPoster.OkPost okPost = okPoster.newPost(accessToken)
                     .addVideos(videoIds)
                     .addPhotos(photoIds)
                     .addPoll(post.poll())
-                    .addTextWithLinks(formattedText)
-                    .post(groupId);
+                    .addTextWithLinks(formattedText);
+
+            long postId = executeTokenExpirationAware(
+                    (token) -> okPost.post(groupId, token),
+                    accessToken, refreshToken, tokenRefreshedCallback
+            );
+
             if (videoIds == null || videoIds.isEmpty()) {
                 return IPostProcessor.successfulPostMsg(OK_SOCIAL_NAME, postLink(groupId, postId));
             } else {
@@ -66,18 +83,42 @@ public class OkPostProcessor implements IPostProcessor {
         } catch (URISyntaxException | IOException | ApiException e) {
             return IPostProcessor.failPostToGroupMsg(OK_SOCIAL_NAME, groupLink(groupId));
         }
+    }
 
+    @Override
+    public String processPostInChannel(
+            Post post,
+            long ownerChatId,
+            long groupId,
+            long accountId,
+            String accessToken
+    ) {
+        return processPostInChannel(post, ownerChatId, groupId, accountId, accessToken, null, null);
     }
 
     private interface OkApiAction<T> {
-        T execute(String accessToken) throws OkApiException;
+        T execute(String accessToken) throws URISyntaxException, IOException, ApiException;
     }
 
-    private <T> T executeTokenExpirationAware(OkApiAction<T> action, String accessToken, String refreshToken) throws OkApiException, URISyntaxException, IOException {
+    private <T> T executeTokenExpirationAware(
+            OkApiAction<T> action,
+            String accessToken,
+            String refreshToken,
+            Consumer<Pair<String, String>> tokenRefreshedCallback
+    ) throws ApiException, URISyntaxException, IOException {
         try {
             return action.execute(accessToken);
-        } catch (TokenExpiredException e) {
-            OkAuthorizator.TokenPair refreshedTokens = okAuthorizator.refreshToken(refreshToken);
+        } catch (ApiException e) {
+            if (!(e.getCause() instanceof TokenExpiredException)) {
+                throw e;
+            }
+            OkAuthorizator.TokenPair refreshedTokens;
+            try {
+                refreshedTokens = okAuthorizator.refreshToken(refreshToken);
+            } catch (OkApiException ex) {
+                throw new ApiException(ex);
+            }
+            tokenRefreshedCallback.accept(Pair.of(refreshedTokens.accessToken(), refreshedTokens.refreshToken()));
             return action.execute(refreshedTokens.accessToken());
         }
     }
