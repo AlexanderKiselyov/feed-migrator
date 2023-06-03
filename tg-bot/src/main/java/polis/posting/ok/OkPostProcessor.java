@@ -62,7 +62,7 @@ public class OkPostProcessor implements IPostProcessor {
                     accessToken, tokenExpirationHandler
             );
 
-            OkPoster.OkPost okPost = okPoster.newPost(accessToken)
+            OkPoster.OkPost okPost = okPoster.newPost()
                     .addVideos(videoIds)
                     .addPhotos(photoIds)
                     .addPoll(post.poll())
