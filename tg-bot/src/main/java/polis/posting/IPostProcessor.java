@@ -2,12 +2,14 @@ package polis.posting;
 
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
+import polis.ok.api.OkAuthorizator;
 import polis.util.Emojis;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface IPostProcessor {
     String SUCCESS_POST_MSG = "Успешно опубликовал пост в социальной сети %s";
@@ -26,6 +28,18 @@ public interface IPostProcessor {
             long accountId,
             String accessToken
     );
+
+    default String processPostInChannel(
+            Post post,
+            long ownerChatId,
+            long groupId,
+            long accountId,
+            String accessToken,
+            String refreshToken,
+            Consumer<OkAuthorizator.TokenPair> tokenRefreshedCallback
+    ) {
+        return processPostInChannel(post, ownerChatId, groupId, accountId, accessToken);
+    }
 
     static String successfulPostMsg(String social, String what) {
         return String.format(SUCCESS_POST_MSG, social) + " " + what;
