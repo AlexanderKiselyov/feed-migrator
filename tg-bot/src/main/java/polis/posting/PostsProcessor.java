@@ -152,8 +152,12 @@ public class PostsProcessor implements IPostsProcessor {
 
                 String message;
                 switch (group.getSocialMedia()) {
-                    case OK -> message = okPostProcessor.processPostInChannel(post, ownerChatId,
-                            group.getGroupId(), accountId, accessToken);
+                    case OK -> message = okPostProcessor.processPostInChannel(
+                            post,
+                            ownerChatId, group.getGroupId(), accountId,
+                            accessToken,
+                            new TokenExpirationHandler(group, accountId)
+                    );
                     case VK -> message = vkPostProcessor.processPostInChannel(post, ownerChatId,
                             group.getGroupId(), accountId, accessToken);
                     default -> {
@@ -257,6 +261,10 @@ public class PostsProcessor implements IPostsProcessor {
             this.accountId = accountId;
         }
 
+        /**
+         *
+         * @return refreshed access token
+         */
         public String handleTokenExpiration() throws URISyntaxException, IOException, OkApiException {
             Account account = accountsRepository.getUserAccount(
                     group.getChatId(), accountId, group.getSocialMedia().getName());
