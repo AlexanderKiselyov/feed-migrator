@@ -1,8 +1,8 @@
 package polis.posting;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
-import polis.ok.api.OkAuthorizator;
 import polis.util.Emojis;
 
 import javax.annotation.Nullable;
@@ -36,7 +36,7 @@ public interface IPostProcessor {
             long accountId,
             String accessToken,
             String refreshToken,
-            Consumer<OkAuthorizator.TokenPair> tokenRefreshedCallback
+            Consumer<Pair<String, String>> tokenRefreshedCallback
     ) {
         return processPostInChannel(post, ownerChatId, groupId, accountId, accessToken);
     }

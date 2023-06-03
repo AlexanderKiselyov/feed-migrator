@@ -162,8 +162,12 @@ public class OkPoster implements IOkPoster {
         }
 
         @Override
-        public long post(long groupId)
-                throws URISyntaxException, IOException, ApiException {
+        public long post(long groupId) throws URISyntaxException, IOException, ApiException {
+            return post(groupId, accessToken);
+        }
+
+        @Override
+        public long post(long groupId, String accessToken) throws URISyntaxException, IOException, ApiException {
             try {
                 return okClient.postMediaTopic(accessToken, groupId, attachment);
             } catch (OkApiException e) {
