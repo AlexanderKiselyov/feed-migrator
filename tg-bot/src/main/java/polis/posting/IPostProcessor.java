@@ -1,7 +1,5 @@
 package polis.posting;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.glassfish.jersey.internal.util.Producer;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import polis.util.Emojis;
@@ -10,7 +8,6 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.util.List;
-import java.util.function.Consumer;
 
 public interface IPostProcessor {
     String SUCCESS_POST_MSG = "Успешно опубликовал пост в социальной сети %s";
@@ -36,8 +33,7 @@ public interface IPostProcessor {
             long groupId,
             long accountId,
             String accessToken,
-            Producer<String> refreshTokenProducer,
-            Consumer<Pair<String, String>> tokenRefreshedCallback
+            PostsProcessor.TokenExpirationHandler tokenExpirationHandler
     ) {
         return processPostInChannel(post, ownerChatId, groupId, accountId, accessToken);
     }

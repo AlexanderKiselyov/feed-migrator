@@ -1,19 +1,17 @@
 package polis.posting.ok;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.glassfish.jersey.internal.util.Producer;
 import org.springframework.stereotype.Component;
 import polis.ok.api.OkAuthorizator;
 import polis.ok.api.exceptions.OkApiException;
 import polis.ok.api.exceptions.TokenExpiredException;
 import polis.posting.ApiException;
 import polis.posting.IPostProcessor;
+import polis.posting.PostsProcessor;
 import polis.util.SocialMedia;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.function.Consumer;
 
 @Component
 public class OkPostProcessor implements IPostProcessor {
@@ -44,25 +42,24 @@ public class OkPostProcessor implements IPostProcessor {
             long groupId,
             long accountId,
             String accessToken,
-            Producer<String> refreshTokenProducer,
-            Consumer<Pair<String, String>> tokenRefreshedCallback
+            PostsProcessor.TokenExpirationHandler tokenExpirationHandler
     ) {
         if (!post.documents().isEmpty() && post.animations().isEmpty()) {
             return DOCUMENTS_ARENT_SUPPORTED;
         }
         try {
 
-            List<String> videoIds = executeTokenExpirationAware((token) ->
-                            okPoster.uploadVideos(post.videos(), (int) accountId, token, groupId),
-                    accessToken, refreshTokenProducer, tokenRefreshedCallback
+            List<String> videoIds = executeTokenExpirationAware(
+                    (token) -> okPoster.uploadVideos(post.videos(), (int) accountId, token, groupId),
+                    accessToken, tokenExpirationHandler
             );
-            List<String> photoIds = executeTokenExpirationAware((token) ->
-                            okPoster.uploadPhotos(post.photos(), (int) accountId, token, groupId),
-                    accessToken, refreshTokenProducer, tokenRefreshedCallback
+            List<String> photoIds = executeTokenExpirationAware(
+                    (token) -> okPoster.uploadPhotos(post.photos(), (int) accountId, token, groupId),
+                    accessToken, tokenExpirationHandler
             );
             String formattedText = executeTokenExpirationAware(
                     (token) -> okPoster.getTextLinks(post.text(), post.textLinks(), token),
-                    accessToken, refreshTokenProducer, tokenRefreshedCallback
+                    accessToken, tokenExpirationHandler
             );
 
             OkPoster.OkPost okPost = okPoster.newPost(accessToken)
@@ -73,7 +70,7 @@ public class OkPostProcessor implements IPostProcessor {
 
             long postId = executeTokenExpirationAware(
                     (token) -> okPost.post(groupId, token),
-                    accessToken, refreshTokenProducer, tokenRefreshedCallback
+                    accessToken, tokenExpirationHandler
             );
 
             if (videoIds == null || videoIds.isEmpty()) {
@@ -94,7 +91,7 @@ public class OkPostProcessor implements IPostProcessor {
             long accountId,
             String accessToken
     ) {
-        return processPostInChannel(post, ownerChatId, groupId, accountId, accessToken, null, null);
+        return processPostInChannel(post, ownerChatId, groupId, accountId, accessToken, null);
     }
 
     private interface OkApiAction<T> {
@@ -104,24 +101,21 @@ public class OkPostProcessor implements IPostProcessor {
     private <T> T executeTokenExpirationAware(
             OkApiAction<T> action,
             String accessToken,
-            Producer<String> refreshTokenProducer,
-            Consumer<Pair<String, String>> tokenRefreshedCallback
+            PostsProcessor.TokenExpirationHandler tokenExpirationHandler
     ) throws ApiException, URISyntaxException, IOException {
         try {
             return action.execute(accessToken);
         } catch (ApiException e) {
-            if (!(e.getCause() instanceof TokenExpiredException)) {
+            if (!(e.getCause() instanceof TokenExpiredException) || tokenExpirationHandler == null) {
                 throw e;
             }
-            String refreshToken = refreshTokenProducer.call();
-            OkAuthorizator.TokenPair refreshedTokens;
+            String newAccessToken;
             try {
-                refreshedTokens = okAuthorizator.refreshToken(refreshToken);
+                newAccessToken = tokenExpirationHandler.handleTokenExpiration();
             } catch (OkApiException ex) {
                 throw new ApiException(ex);
             }
-            tokenRefreshedCallback.accept(Pair.of(refreshedTokens.accessToken(), refreshedTokens.refreshToken()));
-            return action.execute(refreshedTokens.accessToken());
+            return action.execute(newAccessToken);
         }
     }
 
