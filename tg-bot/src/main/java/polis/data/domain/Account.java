@@ -21,10 +21,10 @@ public class Account {
     private final String userFullName;
 
     @Column(value = "access_token")
-    private final String accessToken;
+    private String accessToken;
 
     @Column(value = "refresh_token")
-    private final String refreshToken;
+    private String refreshToken;
 
     public Account(long chatId, String socialMedia, long accountId, String userFullName, String accessToken,
                    String refreshToken) {
@@ -58,6 +58,14 @@ public class Account {
 
     public String getRefreshToken() {
         return refreshToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     @Override

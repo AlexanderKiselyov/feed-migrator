@@ -26,7 +26,7 @@ public class ChannelGroup {
     private final long accountId;
 
     @Column("access_token")
-    private final String accessToken;
+    private String accessToken;
 
     @Column("chat_id")
     private final long chatId;
@@ -85,6 +85,10 @@ public class ChannelGroup {
 
     public long getChatId() {
         return chatId;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
     @Override

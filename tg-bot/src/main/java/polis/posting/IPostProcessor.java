@@ -27,6 +27,17 @@ public interface IPostProcessor {
             String accessToken
     );
 
+    default String processPostInChannel(
+            Post post,
+            long ownerChatId,
+            long groupId,
+            long accountId,
+            String accessToken,
+            PostsProcessor.TokenExpirationHandler tokenExpirationHandler
+    ) {
+        return processPostInChannel(post, ownerChatId, groupId, accountId, accessToken);
+    }
+
     static String successfulPostMsg(String social, String what) {
         return String.format(SUCCESS_POST_MSG, social) + " " + what;
     }

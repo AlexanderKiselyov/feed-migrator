@@ -88,17 +88,12 @@ public class OkPoster implements IOkPoster {
     }
 
     @Override
-    public OkPost newPost(String accessToken) {
-        return new OkPost(accessToken);
+    public OkPost newPost() {
+        return new OkPost();
     }
 
     public class OkPost implements IOkPost {
         private final Attachment attachment = new Attachment();
-        private final String accessToken;
-
-        public OkPost(String accessToken) {
-            this.accessToken = accessToken;
-        }
 
         @Override
         public OkPost addPhotos(List<String> photoIds) {
@@ -162,8 +157,7 @@ public class OkPoster implements IOkPoster {
         }
 
         @Override
-        public long post(long groupId)
-                throws URISyntaxException, IOException, ApiException {
+        public long post(long groupId, String accessToken) throws URISyntaxException, IOException, ApiException {
             try {
                 return okClient.postMediaTopic(accessToken, groupId, attachment);
             } catch (OkApiException e) {

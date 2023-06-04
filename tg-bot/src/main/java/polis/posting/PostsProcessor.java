@@ -17,10 +17,14 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.FileIsTooBigException;
 import polis.bot.TgContentManager;
 import polis.bot.TgNotificator;
+import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.UserChannels;
+import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.UserChannelsRepository;
+import polis.ok.api.OkAuthorizator;
+import polis.ok.api.exceptions.OkApiException;
 import polis.posting.ok.OkPostProcessor;
 import polis.posting.vk.VkPostProcessor;
 import polis.ratelim.RateLimiter;
@@ -62,10 +66,16 @@ public class PostsProcessor implements IPostsProcessor {
     private OkPostProcessor okPostProcessor;
 
     @Autowired
+    private OkAuthorizator okAuthorizator;
+
+    @Autowired
     private VkPostProcessor vkPostProcessor;
 
     @Autowired
     private UserChannelsRepository userChannelsRepository;
+
+    @Autowired
+    private AccountsRepository accountsRepository;
 
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
@@ -142,8 +152,12 @@ public class PostsProcessor implements IPostsProcessor {
 
                 String message;
                 switch (group.getSocialMedia()) {
-                    case OK -> message = okPostProcessor.processPostInChannel(post, ownerChatId,
-                            group.getGroupId(), accountId, accessToken);
+                    case OK -> message = okPostProcessor.processPostInChannel(
+                            post,
+                            ownerChatId, group.getGroupId(), accountId,
+                            accessToken,
+                            new TokenExpirationHandler(group, accountId)
+                    );
                     case VK -> message = vkPostProcessor.processPostInChannel(post, ownerChatId,
                             group.getGroupId(), accountId, accessToken);
                     default -> {
@@ -235,6 +249,32 @@ public class PostsProcessor implements IPostsProcessor {
     private void sendNotificationIfEnabled(long userChatId, long channelId, String message) {
         if (userChannelsRepository.isSetNotification(userChatId, channelId)) {
             tgNotificator.sendNotification(userChatId, message);
+        }
+    }
+
+    public class TokenExpirationHandler {
+        private final ChannelGroup group;
+        private final long accountId;
+
+        private TokenExpirationHandler(ChannelGroup group, long accountId) {
+            this.group = group;
+            this.accountId = accountId;
+        }
+
+        /**
+         *
+         * @return refreshed access token
+         */
+        public String handleTokenExpiration() throws URISyntaxException, IOException, OkApiException {
+            Account account = accountsRepository.getUserAccount(
+                    group.getChatId(), accountId, group.getSocialMedia().getName());
+            OkAuthorizator.TokenPair tokenPair = okAuthorizator.refreshToken(account.getRefreshToken());
+            group.setAccessToken(tokenPair.accessToken());
+            account.setAccessToken(tokenPair.accessToken());
+            account.setRefreshToken(tokenPair.refreshToken());
+            accountsRepository.insertNewAccount(account);
+            channelGroupsRepository.insertChannelGroup(group);
+            return tokenPair.accessToken();
         }
     }
 }

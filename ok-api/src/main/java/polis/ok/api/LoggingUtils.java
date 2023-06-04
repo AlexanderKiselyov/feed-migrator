@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import polis.ok.api.exceptions.CodeExpiredException;
 import polis.ok.api.exceptions.OkApiException;
+import polis.ok.api.exceptions.TokenExpiredException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 class LoggingUtils {
+    private static final String SESSION_EXPIRED_API_ERROR_CODE = "102";
     private static final String CODE_EXPIRED_API_MSG = "Expired code";
     private static final String ERROR_DESCRIPTION = "error_description";
     private static final String ERROR = "error";
@@ -84,7 +86,9 @@ class LoggingUtils {
         if (errorDesc.contains(CODE_EXPIRED_API_MSG)) {
             throw new CodeExpiredException();
         }
-
+        if (errorCode.equals(SESSION_EXPIRED_API_ERROR_CODE)) {
+            throw new TokenExpiredException();
+        }
         throw new OkApiException("Получена ошибка от сервера Одноклассников " + errorCode + ": " + errorDesc);
     }
 
