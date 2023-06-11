@@ -159,8 +159,8 @@ public class NonCommand {
             }
 
             return answer;
-        } else if (state.equals(Substate.AddVkAccount_AuthCode)) {
-        return vkDataCheck.getVkAuthCode(text, chatId);
+        } else if (state.equals(Substate.AddVkAccount_AccessToken)) {
+        return vkDataCheck.getVkAccessToken(text, chatId);
         } else if (state.equals(Substate.AddVkGroup_AddGroup)) {
             CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chatId);
             if (currentAccount == null) {

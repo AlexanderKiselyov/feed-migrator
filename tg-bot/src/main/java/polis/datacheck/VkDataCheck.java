@@ -48,7 +48,7 @@ public class VkDataCheck {
     @Autowired
     private CurrentStateRepository currentStateRepository;
 
-    public NonCommand.AnswerPair getVkAuthCode(String text, Long chatId) {
+    public NonCommand.AnswerPair getVkAccessToken(String text, Long chatId) {
         String accessToken;
         int userId;
 
