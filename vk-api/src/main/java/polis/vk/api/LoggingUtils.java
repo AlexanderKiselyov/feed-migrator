@@ -2,7 +2,6 @@ package polis.vk.api;
 
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
-import com.vk.api.sdk.objects.UserAuthResponse;
 import com.vk.api.sdk.objects.base.responses.GetUploadServerResponse;
 import com.vk.api.sdk.objects.docs.responses.DocUploadResponse;
 import com.vk.api.sdk.objects.groups.responses.GetByIdObjectLegacyResponse;
@@ -18,7 +17,6 @@ import com.vk.api.sdk.objects.wall.responses.PostResponse;
 import com.vk.api.sdk.queries.docs.DocsGetWallUploadServerQuery;
 import com.vk.api.sdk.queries.docs.DocsSaveQuery;
 import com.vk.api.sdk.queries.groups.GroupsGetByIdQueryWithObjectLegacy;
-import com.vk.api.sdk.queries.oauth.OAuthUserAuthorizationCodeFlowQuery;
 import com.vk.api.sdk.queries.photos.PhotosGetWallUploadServerQuery;
 import com.vk.api.sdk.queries.photos.PhotosSaveWallPhotoQuery;
 import com.vk.api.sdk.queries.polls.PollsCreateQuery;
@@ -38,22 +36,6 @@ import java.util.List;
 public class LoggingUtils {
     private static final String SERVER_INCORRECT_ANSWER = "Сервер ВКонтакте ответил в некорректном формате: %s";
     private static final String SERVER_ERROR = "Получена ошибка от сервера ВКонтакте: %s";
-
-    static VkAuthorizator.TokenWithId getAccessToken(OAuthUserAuthorizationCodeFlowQuery request, Logger logger)
-            throws VkApiException {
-        UserAuthResponse response;
-        try {
-            response = request.execute();
-            return new VkAuthorizator.TokenWithId(
-                    response.getAccessToken(),
-                    response.getUserId()
-            );
-        } catch (ApiException e) {
-            throw wrapAndLogApiException(e, logger);
-        } catch (ClientException e) {
-            throw wrapAndLogClientException(e, logger);
-        }
-    }
 
     static Boolean getIsGroupAdmin(GroupsGetByIdQueryWithObjectLegacy request, Logger logger) throws VkApiException {
         try {
