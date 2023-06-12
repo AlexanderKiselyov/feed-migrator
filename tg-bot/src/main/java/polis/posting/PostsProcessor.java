@@ -107,7 +107,10 @@ public class PostsProcessor implements IPostsProcessor {
             return;
         }
         Message postItem = postItems.get(0);
-        long ownerChatId = userChannelsRepository.getUserChatId(channelId);
+        Long ownerChatId = userChannelsRepository.getUserChatId(channelId);
+        if (ownerChatId == null) {
+            return;
+        }
         if (!postingRateLimiter.allowRequest(ownerChatId)) {
             repliesThrottler.throttle(ownerChatId, () ->
                     tgNotificator.sendNotification(ownerChatId, TOO_MANY_API_REQUESTS_MSG)
@@ -135,8 +138,7 @@ public class PostsProcessor implements IPostsProcessor {
         }
 
         try {
-            long userChatId = userChannelsRepository.getUserChatId(channelId);
-            UserChannels tgChannel = userChannelsRepository.getUserChannel(channelId, userChatId);
+            UserChannels tgChannel = userChannelsRepository.getUserChannel(channelId, ownerChatId);
             if (tgChannel == null || !tgChannel.isAutoposting()) {
                 return;
             }
