@@ -30,10 +30,13 @@ public class VkDataCheck {
             Вы были успешно авторизованы в социальной сети ВКонтакте.
             Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
     public static final String SAME_VK_ACCOUNT = "Данный аккаунт в социальной сети ВКонтакте уже был добавлен.";
-    private static final String CODE = "code=";
+    private static final String INVALID_LINK = """
+            Введена неверная ссылка.
+            Пожалуйста, скопируйте ссылку из адресной строки и введите ее еще раз.""";
+    private static final String ACCESS_CODE = "access_token=";
+    private static final String USER_ID = "user_id=";
     private static final String VK_SOCIAL_NAME = SocialMedia.VK.getName();
     private static final Logger LOGGER = LoggerFactory.getLogger(VkDataCheck.class);
-    private final VkAuthorizator vkAuthorizator = new VkAuthorizator();
     private final VkApiMethods vkApiMethods = new VkApiMethods();
 
     @Autowired
@@ -45,56 +48,65 @@ public class VkDataCheck {
     @Autowired
     private CurrentStateRepository currentStateRepository;
 
-    public NonCommand.AnswerPair getVkAuthCode(String text, Long chatId) {
-        try {
-            if (text.contains(CODE)) {
-                text = text.substring(text.indexOf(CODE) + CODE.length());
-            }
+    public NonCommand.AnswerPair getVkAccessToken(String text, Long chatId) {
+        String accessToken;
+        int userId;
 
-            VkAuthorizator.TokenWithId tokenWithId = vkAuthorizator.getToken(text);
+        if (text.contains(ACCESS_CODE) && text.contains(USER_ID)) {
+            int accessTokenStartIndex = text.indexOf(ACCESS_CODE) + ACCESS_CODE.length();
+            int accessTokenEndIndex = text.indexOf("&", accessTokenStartIndex);
 
-            if (accountsRepository.getUserAccount(chatId, tokenWithId.userId(), VK_SOCIAL_NAME) != null) {
-                return new NonCommand.AnswerPair(SAME_VK_ACCOUNT, true);
-            }
+            int userIdStartIndex = text.indexOf(USER_ID) + USER_ID.length();
+            int userIdEndIndex = text.indexOf("&", userIdStartIndex);
 
-            String username = getVkUsername(tokenWithId);
-
-            if (username == null) {
-                return new NonCommand.AnswerPair(USERNAME_NOT_FOUND, true);
-            }
-
-            Account newAccount = new Account(
-                    chatId,
-                    VK_SOCIAL_NAME,
-                    tokenWithId.userId(),
-                    username,
-                    tokenWithId.accessToken(),
-                    ""
-            );
-
-            currentAccountRepository.insertCurrentAccount(
-                    new CurrentAccount(
-                            chatId,
-                            newAccount.getSocialMedia().getName(),
-                            newAccount.getAccountId(),
-                            newAccount.getUserFullName(),
-                            newAccount.getAccessToken(),
-                            newAccount.getRefreshToken()
-                    )
-            );
-
-            accountsRepository.insertNewAccount(newAccount);
-
-            currentStateRepository.insertCurrentState(new CurrentState(chatId,
-                    Substate.nextSubstate(State.VkAccountDescription).getIdentifier()));
-
-            return new NonCommand.AnswerPair(
-                    String.format(VK_AUTH_STATE_ANSWER, State.VkAccountDescription.getIdentifier()),
-                    false);
-        } catch (VkApiException e) {
-            LOGGER.error(String.format("Unknown error: %s", e.getMessage()));
-            return new NonCommand.AnswerPair(VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, true);
+            accessToken = text.substring(accessTokenStartIndex,
+                    accessTokenEndIndex == -1 ? text.length() : accessTokenEndIndex);
+            userId = Integer.parseInt(text.substring(userIdStartIndex,
+                    userIdEndIndex == -1 ? text.length() : userIdEndIndex));
+        } else {
+            return new NonCommand.AnswerPair(INVALID_LINK, true);
         }
+
+        VkAuthorizator.TokenWithId tokenWithId = new VkAuthorizator.TokenWithId(accessToken, userId);
+
+        if (accountsRepository.getUserAccount(chatId, userId, VK_SOCIAL_NAME) != null) {
+            return new NonCommand.AnswerPair(SAME_VK_ACCOUNT, true);
+        }
+
+        String username = getVkUsername(tokenWithId);
+
+        if (username == null) {
+            return new NonCommand.AnswerPair(USERNAME_NOT_FOUND, true);
+        }
+
+        Account newAccount = new Account(
+                chatId,
+                VK_SOCIAL_NAME,
+                userId,
+                username,
+                accessToken,
+                ""
+        );
+
+        currentAccountRepository.insertCurrentAccount(
+                new CurrentAccount(
+                        chatId,
+                        newAccount.getSocialMedia().getName(),
+                        newAccount.getAccountId(),
+                        newAccount.getUserFullName(),
+                        newAccount.getAccessToken(),
+                        newAccount.getRefreshToken()
+                )
+        );
+
+        accountsRepository.insertNewAccount(newAccount);
+
+        currentStateRepository.insertCurrentState(new CurrentState(chatId,
+                Substate.nextSubstate(State.VkAccountDescription).getIdentifier()));
+
+        return new NonCommand.AnswerPair(
+                String.format(VK_AUTH_STATE_ANSWER, State.VkAccountDescription.getIdentifier()),
+                false);
     }
 
     public Boolean getIsVkGroupAdmin(VkAuthorizator.TokenWithId tokenWithId, String groupId) {
