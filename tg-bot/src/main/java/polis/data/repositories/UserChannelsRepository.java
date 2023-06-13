@@ -42,13 +42,14 @@ public class UserChannelsRepository {
         );
     }
 
-    public long getUserChatId(long channelId) throws DataAccessException {
-        return Objects.requireNonNull(cassandraOperations.selectOne(
+    public Long getUserChatId(long channelId) throws DataAccessException {
+        UserChannels channel = cassandraOperations.selectOne(
                 query(
                         where(CHANNEL_ID).is(channelId)
                 ),
                 UserChannels.class
-        )).getChatId();
+        );
+        return channel == null ? null : channel.getChatId();
     }
 
     public void insertUserChannel(@NotNull UserChannels userChannels) throws DataAccessException {

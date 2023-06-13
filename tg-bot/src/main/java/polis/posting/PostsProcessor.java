@@ -55,6 +55,7 @@ public class PostsProcessor implements IPostsProcessor {
     private static final String TG_FILE_IS_TOO_BIG_MGS = "%s: Размер файла не может превышать %d Мб"
             .formatted(TG_LOAD_POST_ERROR_MGS, TgContentManager.FILE_SIZE_LIMIT_MB);
     private static final String UNEXPECTED_ERROR_MSG = "Произошла непредвиденная ошибка при обработке поста ";
+    private static final String NO_USER_FOUND = "No chat found for channel %s.";
 
     @Autowired
     private RateLimiter postingRateLimiter;
@@ -107,7 +108,11 @@ public class PostsProcessor implements IPostsProcessor {
             return;
         }
         Message postItem = postItems.get(0);
-        long ownerChatId = userChannelsRepository.getUserChatId(channelId);
+        Long ownerChatId = userChannelsRepository.getUserChatId(channelId);
+        if (ownerChatId == null) {
+            LOGGER.warn(String.format(NO_USER_FOUND, channelId));
+            return;
+        }
         if (!postingRateLimiter.allowRequest(ownerChatId)) {
             repliesThrottler.throttle(ownerChatId, () ->
                     tgNotificator.sendNotification(ownerChatId, TOO_MANY_API_REQUESTS_MSG)
@@ -135,8 +140,7 @@ public class PostsProcessor implements IPostsProcessor {
         }
 
         try {
-            long userChatId = userChannelsRepository.getUserChatId(channelId);
-            UserChannels tgChannel = userChannelsRepository.getUserChannel(channelId, userChatId);
+            UserChannels tgChannel = userChannelsRepository.getUserChannel(channelId, ownerChatId);
             if (tgChannel == null || !tgChannel.isAutoposting()) {
                 return;
             }

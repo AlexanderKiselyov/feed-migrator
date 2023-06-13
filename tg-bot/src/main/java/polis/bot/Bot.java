@@ -405,11 +405,12 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         String[] dataParts = data.split(" ");
         switch (dataParts[0]) {
             case TG_CHANNEL_CALLBACK_TEXT -> {
+                long channelId = Long.parseLong(dataParts[1]);
                 if (isJustClicked(dataParts)) {
                     UserChannels currentTelegramChannel = null;
                     List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(chatId);
                     for (UserChannels ch : tgChannels) {
-                        if (Objects.equals(String.valueOf(ch.getChannelId()), dataParts[1])) {
+                        if (ch.getChannelId() == channelId) {
                             currentTelegramChannel = ch;
                             break;
                         }
@@ -421,18 +422,19 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                         getRegisteredCommand(State.TgChannelDescription.getIdentifier()).processMessage(this, msg,
                                 null);
                     } else {
-                        LOGGER.error(String.format("Cannot find such a telegram channel id: %s", dataParts[1]));
+                        LOGGER.error(String.format("Cannot find such a telegram channel id: %s", channelId));
                     }
                 } else if (isDeletionRequested(dataParts)) {
                     List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(chatId);
                     for (UserChannels ch : tgChannels) {
-                        if (Objects.equals(String.valueOf(ch.getChannelId()), dataParts[1])) {
+                        if (ch.getChannelId() == channelId) {
                             userChannelsRepository.deleteUserChannel(ch);
                             break;
                         }
                     }
-                    if (tgChannels.size() == 0) {
-                        currentChannelRepository.deleteCurrentChannel(chatId);
+                    currentChannelRepository.deleteCurrentChannel(chatId);
+                    for (SocialMedia socialMedia : SocialMedia.values()) {
+                        channelGroupsRepository.deleteChannelGroup(channelId, socialMedia.getName());
                     }
                     deleteLastMessage(msg, chatId);
                     getRegisteredCommand(State.TgChannelsList.getIdentifier()).processMessage(this, msg, null);
