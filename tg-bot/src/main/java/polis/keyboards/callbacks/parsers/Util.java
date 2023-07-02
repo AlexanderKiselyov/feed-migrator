@@ -8,4 +8,8 @@ public class Util {
             default -> throw new NumberFormatException();
         };
     }
+
+    static String booleanFlag(boolean flag) {
+        return flag ? "1" : "0";
+    }
 }
