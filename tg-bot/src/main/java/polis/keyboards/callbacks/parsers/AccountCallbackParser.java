@@ -24,7 +24,7 @@ public class AccountCallbackParser implements CallbackParser<AccountCallback> {
     @Override
     public AccountCallback fromText(List<String> data) {
         long accountId = Long.parseLong(data.get(ACCOUNT_ID_INDEX));
-        boolean clickForDeletion = Util.isClickForDeletion(data.get(IS_DELETION_REQUESTED_FLAG_INDEX));
+        boolean clickForDeletion = Util.booleanFlag(data.get(IS_DELETION_REQUESTED_FLAG_INDEX));
         String socialMedia = data.get(SOCIAL_MEDIA_NAME_INDEX);
         return new AccountCallback(accountId, clickForDeletion, socialMedia);
     }

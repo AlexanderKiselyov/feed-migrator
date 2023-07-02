@@ -20,7 +20,7 @@ public class TgChannelCallbackParser implements CallbackParser<TgChannelCallback
     @Override
     public TgChannelCallback fromText(List<String> data) {
         long channelId = Long.parseLong(data.get(0));
-        boolean isClickForDeletion = Util.isClickForDeletion(data.get(1));
+        boolean isClickForDeletion = Util.booleanFlag(data.get(1));
         return new TgChannelCallback(channelId, isClickForDeletion);
     }
 

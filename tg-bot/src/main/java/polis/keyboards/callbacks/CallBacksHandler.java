@@ -26,7 +26,7 @@ public class CallBacksHandler {
     }
 
     public <CB extends Callback> CB handleCallback(String callbackData) {
-        String[] data = callbackData.split(" ");
+        String[] data = callbackData.split(CallbackParser.FIELDS_SEPARATOR);
         String type = data[CALLBACK_TYPE_INDEX];
 
         CallbackParser<? extends Callback> parser = parsers.get(type);
@@ -34,5 +34,4 @@ public class CallBacksHandler {
         Callback callback = parser.fromText(dataList);
         return (CB) callback;
     }
-
 }

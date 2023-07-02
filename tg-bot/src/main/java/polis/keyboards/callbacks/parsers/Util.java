@@ -1,7 +1,7 @@
 package polis.keyboards.callbacks.parsers;
 
 public class Util {
-    static boolean isClickForDeletion(String flag) {
+    static boolean booleanFlag(String flag) {
         return switch (Byte.parseByte(flag)) {
             case 0 -> false;
             case 1 -> true;

@@ -2,7 +2,6 @@ package polis.keyboards.callbacks.parsers;
 
 import org.springframework.stereotype.Component;
 import polis.keyboards.callbacks.CallbackType;
-import polis.keyboards.callbacks.objects.AccountCallback;
 import polis.keyboards.callbacks.objects.GroupCallback;
 
 import java.util.List;
@@ -22,7 +21,7 @@ public class GroupCBParser implements CallbackParser<GroupCallback> {
     @Override
     public GroupCallback fromText(List<String> data) {
         long groupId = Long.parseLong(data.get(0));
-        boolean clickForDeletion = Util.isClickForDeletion(data.get(1));
+        boolean clickForDeletion = Util.booleanFlag(data.get(1));
         String socialMedia = data.get(2);
         return new GroupCallback(groupId, clickForDeletion, socialMedia);
     }

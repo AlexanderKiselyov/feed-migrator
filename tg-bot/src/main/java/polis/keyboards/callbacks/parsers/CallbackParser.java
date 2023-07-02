@@ -15,4 +15,5 @@ public interface CallbackParser<CB extends Callback> {
     int dataFieldsCount();
 
     CallbackType callbackType();
+
 }
