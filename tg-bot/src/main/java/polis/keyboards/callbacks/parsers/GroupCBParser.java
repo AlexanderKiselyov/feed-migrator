@@ -13,17 +13,18 @@ public class GroupCBParser implements CallbackParser<GroupCallback> {
     public String toText(GroupCallback callback) {
         return String.join(FIELDS_SEPARATOR,
                 String.valueOf(callback.groupId),
-                callback.isClickForDeletion ? "1" : "0",
+                Util.booleanFlag(callback.isClickForDeletion),
                 callback.socialMedia
         );
     }
 
     @Override
     public GroupCallback fromText(List<String> data) {
-        long groupId = Long.parseLong(data.get(0));
-        boolean clickForDeletion = Util.booleanFlag(data.get(1));
-        String socialMedia = data.get(2);
-        return new GroupCallback(groupId, clickForDeletion, socialMedia);
+        return new GroupCallback(
+                Long.parseLong(data.get(0)),
+                Util.booleanFlag(data.get(1)),
+                data.get(2)
+        );
     }
 
     @Override

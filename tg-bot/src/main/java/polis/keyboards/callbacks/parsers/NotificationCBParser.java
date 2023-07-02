@@ -19,9 +19,10 @@ public class NotificationCBParser implements CallbackParser<NotificationsCallbac
 
     @Override
     public NotificationsCallback fromText(List<String> data) {
-        long chatId = Long.parseLong(data.get(0));
-        boolean isEnabled = Util.booleanFlag(data.get(1));
-        return new NotificationsCallback(chatId, isEnabled);
+        return new NotificationsCallback(
+                Long.parseLong(data.get(0)),
+                Util.booleanFlag(data.get(1))
+        );
     }
 
     @Override

@@ -13,15 +13,16 @@ public class TgChannelCallbackParser implements CallbackParser<TgChannelCallback
     public String toText(TgChannelCallback callback) {
         return String.join(FIELDS_SEPARATOR,
                 String.valueOf(callback.channelId),
-                callback.isClickedForDeletion ? "1" : "0"
+                Util.booleanFlag(callback.isClickedForDeletion)
         );
     }
 
     @Override
     public TgChannelCallback fromText(List<String> data) {
-        long channelId = Long.parseLong(data.get(0));
-        boolean isClickForDeletion = Util.booleanFlag(data.get(1));
-        return new TgChannelCallback(channelId, isClickForDeletion);
+        return new TgChannelCallback(
+                Long.parseLong(data.get(0)),
+                Util.booleanFlag(data.get(1))
+        );
     }
 
     @Override

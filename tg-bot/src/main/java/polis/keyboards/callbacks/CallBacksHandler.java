@@ -30,6 +30,10 @@ public class CallBacksHandler {
         String type = data[CALLBACK_TYPE_INDEX];
 
         CallbackParser<? extends Callback> parser = parsers.get(type);
+        if (parser == null) {
+            return null;
+        }
+
         List<String> dataList = Arrays.asList(data).subList(META_FIELDS_COUNT, parser.dataFieldsCount());
         Callback callback = parser.fromText(dataList);
         return (CB) callback;

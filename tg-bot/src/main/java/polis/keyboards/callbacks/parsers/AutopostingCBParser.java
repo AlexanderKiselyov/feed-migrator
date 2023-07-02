@@ -8,6 +8,7 @@ import java.util.List;
 
 @Component
 public class AutopostingCBParser implements CallbackParser<AutopostingCallback> {
+
     @Override
     public String toText(AutopostingCallback callback) {
         return String.join(FIELDS_SEPARATOR,
@@ -19,7 +20,11 @@ public class AutopostingCBParser implements CallbackParser<AutopostingCallback> 
 
     @Override
     public AutopostingCallback fromText(List<String> data) {
-        return null;
+        return new AutopostingCallback(
+                Long.parseLong(data.get(0)),
+                Long.parseLong(data.get(1)),
+                Util.booleanFlag(data.get(2))
+        );
     }
 
     @Override

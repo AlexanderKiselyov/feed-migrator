@@ -1,21 +1,22 @@
 package polis.keyboards.callbacks.parsers;
 
+import org.springframework.stereotype.Component;
 import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.YesNoCallback;
 
 import java.util.List;
 
+@Component
 public class YesNoCBParser implements CallbackParser<YesNoCallback> {
 
     @Override
     public String toText(YesNoCallback callback) {
-        return callback.yesOrNo ? "1" : "0";
+        return Util.booleanFlag(callback.yesOrNo);
     }
 
     @Override
     public YesNoCallback fromText(List<String> data) {
-        boolean yesOrNo = Util.booleanFlag(data.get(0));
-        return new YesNoCallback(yesOrNo);
+        return new YesNoCallback(Util.booleanFlag(data.get(0)));
     }
 
     @Override
