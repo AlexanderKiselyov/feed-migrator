@@ -1,0 +1,56 @@
+package polis.keyboards.callbacks.handlers;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import polis.bot.TgNotificator;
+import polis.data.domain.UserChannels;
+import polis.data.repositories.UserChannelsRepository;
+import polis.keyboards.callbacks.CallbackParser;
+import polis.keyboards.callbacks.CallbackType;
+import polis.keyboards.callbacks.objects.AutopostingCallback;
+import polis.keyboards.callbacks.parsers.AutopostingCallbackParser;
+
+public class AutoPostingCallbackHandler extends ACallbackHandler<AutopostingCallback> {
+    private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в "
+            + "курсе автоматически опубликованных записей с помощью команды /notifications";
+    private static final String AUTOPOSTING_FUNCTION_ENABLED = "включена";
+    private static final String AUTOPOSTING_FUNCTION_DISABLED = "выключена";
+    private static final String AUTOPOSTING_ENABLE = "Функция автопостинга %s.";
+
+    @Autowired
+    private UserChannelsRepository userChannelsRepository;
+    @Autowired
+    TgNotificator tgNotificator;
+
+    {
+        callbackParser = new AutopostingCallbackParser();
+    }
+
+    @Override
+    public CallbackType callbackType() {
+        return CallbackType.AUTOPOSTING;
+    }
+
+    @Override
+    protected CallbackParser<AutopostingCallback> callbackParser() {
+        return callbackParser;
+    }
+
+    @Override
+    protected void handleCallback(long userChatId, Message message, AutopostingCallback callback) throws TelegramApiException {
+        String enable = AUTOPOSTING_FUNCTION_ENABLED;
+        if (callback.disable()) {
+            userChannelsRepository.setAutoposting(userChatId, callback.channelId, false);
+            enable = AUTOPOSTING_FUNCTION_DISABLED;
+        } else {
+            userChannelsRepository.setAutoposting(userChatId, callback.channelId, true);
+        }
+        deleteLastMessage(message);
+        String text = String.format(AUTOPOSTING_ENABLE, enable);
+        if (AUTOPOSTING_FUNCTION_ENABLED.equals(enable)) {
+            text += TURN_ON_NOTIFICATIONS_MSG;
+        }
+        tgNotificator.sendNotification(message.getChatId(), text);
+    }
+}

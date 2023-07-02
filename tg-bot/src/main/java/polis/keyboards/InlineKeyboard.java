@@ -1,15 +1,21 @@
 package polis.keyboards;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import polis.keyboards.callbacks.objects.GoBackCallback;
+import polis.keyboards.callbacks.parsers.GoBackCallbackParser;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class InlineKeyboard extends Keyboard {
 
-    public static final InlineKeyboard INSTANCE = new InlineKeyboard();
+    @Autowired
+    private GoBackCallbackParser goBackCallbackParser;
 
     // optionalButtonsValues : Button1-text, Button1-callbackData, Button2-text, Button2-callbackData...
     public synchronized void getKeyboard(SendMessage sendMessage, int rowsCount, List<String> commands,
@@ -32,7 +38,7 @@ public class InlineKeyboard extends Keyboard {
 
         keyboard.add(List.of(InlineKeyboardButton.builder()
                 .text(GO_BACK_BUTTON_TEXT)
-                .callbackData(GO_BACK_CALLBACK_DATA)
+                .callbackData(goBackCallbackParser.toText(GoBackCallback.INSTANCE))
                 .build()
         ));
 

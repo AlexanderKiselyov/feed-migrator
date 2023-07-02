@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.keyboards.callbacks.objects.AccountCallback;
+import polis.keyboards.callbacks.parsers.AccountCallbackParser;
 import polis.data.domain.Account;
 import polis.data.repositories.AccountsRepository;
 import polis.util.Emojis;
@@ -22,13 +24,14 @@ public class AccountsList extends Command {
             Список аккаунтов пустой.
             Пожалуйста, вернитесь в меню добавления группы (/%s) и следуйте дальнейшим инструкциям.""";
     private static final String ACCOUNT_INFO = "%s (%s)";
-    private static final String GET_ACCOUNT = "account %d 0 %s";
-    private static final String DELETE_ACCOUNT = "account %d 1 %s";
     private static final int ROWS_COUNT = 1;
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.AddGroup.getDescription());
 
     @Autowired
     private AccountsRepository accountsRepository;
+
+    @Autowired
+    private AccountCallbackParser accountCallbackParser;
 
     public AccountsList() {
         super(State.AccountsList.getIdentifier(), State.AccountsList.getDescription());
@@ -57,17 +60,16 @@ public class AccountsList extends Command {
                 loggingInfo(user.getUserName()));
     }
 
-    private static List<String> getButtonsForAccounts(List<Account> socialMediaAccounts) {
+    private List<String> getButtonsForAccounts(List<Account> socialMediaAccounts) {
         List<String> buttons = new ArrayList<>(socialMediaAccounts.size() * 4);
         for (Account account : socialMediaAccounts) {
             String accountUsername = account.getUserFullName();
             String socialMediaName = account.getSocialMedia().getName();
             long accountId = account.getAccountId();
-
             buttons.add(String.format(ACCOUNT_INFO, accountUsername, socialMediaName));
-            buttons.add(String.format(GET_ACCOUNT, accountId, socialMediaName));
+            buttons.add(accountCallbackParser.toText(new AccountCallback(accountId, false, socialMediaName)));
             buttons.add(Emojis.TRASH + DELETE_MESSAGE);
-            buttons.add(String.format(DELETE_ACCOUNT, accountId, socialMediaName));
+            buttons.add(accountCallbackParser.toText(new AccountCallback(accountId, false, socialMediaName)));
         }
         return buttons;
     }

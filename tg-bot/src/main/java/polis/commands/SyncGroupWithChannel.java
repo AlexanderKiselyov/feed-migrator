@@ -10,6 +10,8 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
+import polis.keyboards.callbacks.objects.YesNoCallback;
+import polis.keyboards.callbacks.parsers.YesNoCallbackParser;
 import polis.util.State;
 
 import java.util.List;
@@ -32,8 +34,6 @@ public abstract class SyncGroupWithChannel extends Command {
     private static final String NOT_VALID_CURRENT_TG_CHANNEL_OR_GROUP = """
             Невозможно связать Телеграмм-канал и группу.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
-    private static final String ENABLE_SYNC = "yesNo 0";
-    private static final String DISABLE_SYNC = "yesNo 1";
     private static final int ROWS_COUNT = 1;
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
@@ -45,6 +45,9 @@ public abstract class SyncGroupWithChannel extends Command {
 
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private YesNoCallbackParser yesNoCallbackParser;
 
     public SyncGroupWithChannel(String commandIdentifier, String description) {
         super(commandIdentifier, description);
@@ -76,12 +79,12 @@ public abstract class SyncGroupWithChannel extends Command {
                 loggingInfo(user.getUserName()));
     }
 
-    private static List<String> getButtonsForSyncOptions() {
+    private List<String> getButtonsForSyncOptions() {
         return List.of(
                 YES_ANSWER,
-                ENABLE_SYNC,
+                yesNoCallbackParser.toText(YesNoCallback.YES_CALLBACK),
                 NO_ANSWER,
-                DISABLE_SYNC
+                yesNoCallbackParser.toText(YesNoCallback.NO_CALLBACK)
         );
     }
 }

@@ -7,6 +7,8 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.UserChannelsRepository;
+import polis.keyboards.callbacks.objects.TgChannelCallback;
+import polis.keyboards.callbacks.parsers.TgChannelCallbackParser;
 import polis.util.Emojis;
 import polis.util.State;
 
@@ -22,8 +24,6 @@ public class TgChannelsList extends Command {
     private static final String NO_TG_CHANNELS = """
             Список добавленных Телеграмм-каналов пуст.
             Пожалуйста, добавьте хотя бы один канал.""";
-    private static final String GET_TELEGRAM_CHANNEL = "tg_channel %s %d";
-    private static final String DELETE_TELEGRAM_CHANNEL = "tg_channel %s %d";
     private static final int ROWS_COUNT = 2;
     private static final List<String> KEYBOARD_COMMANDS = List.of(
             State.AddTgChannel.getDescription(),
@@ -32,6 +32,9 @@ public class TgChannelsList extends Command {
 
     @Autowired
     private UserChannelsRepository userChannelsRepository;
+
+    @Autowired
+    private TgChannelCallbackParser tgChannelCallbackParser;
 
     public TgChannelsList() {
         super(State.TgChannelsList.getIdentifier(), State.TgChannelsList.getDescription());
@@ -59,15 +62,15 @@ public class TgChannelsList extends Command {
         }
     }
 
-    private static List<String> getUserTgChannelsArray(List<UserChannels> channels) {
+    private List<String> getUserTgChannelsArray(List<UserChannels> channels) {
         List<String> buttons = new ArrayList<>(channels.size() * 4);
         for (UserChannels channel : channels) {
             String telegramChannelUsername = channel.getChannelUsername();
-            Long telegramChannelId = channel.getChannelId();
+            long telegramChannelId = channel.getChannelId();
             buttons.add(telegramChannelUsername);
-            buttons.add(String.format(GET_TELEGRAM_CHANNEL, telegramChannelId, 0));
+            buttons.add(tgChannelCallbackParser.toText(new TgChannelCallback(telegramChannelId, false)));
             buttons.add(Emojis.TRASH + DELETE_MESSAGE);
-            buttons.add(String.format(DELETE_TELEGRAM_CHANNEL, telegramChannelId, 1));
+            buttons.add(tgChannelCallbackParser.toText(new TgChannelCallback(telegramChannelId, true)));
         }
         return buttons;
     }
