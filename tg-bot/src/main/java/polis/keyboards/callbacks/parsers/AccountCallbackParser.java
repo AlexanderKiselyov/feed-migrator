@@ -16,7 +16,7 @@ public class AccountCallbackParser implements CallbackParser<AccountCallback> {
     public String toText(AccountCallback callback) {
         return String.join(FIELDS_SEPARATOR,
                 String.valueOf(callback.accountId),
-                String.valueOf(callback.isClickedForDeletion),
+                callback.isClickedForDeletion ? "1" : "0",
                 callback.socialMedia
         );
     }
@@ -24,7 +24,7 @@ public class AccountCallbackParser implements CallbackParser<AccountCallback> {
     @Override
     public AccountCallback fromText(List<String> data) {
         long accountId = Long.parseLong(data.get(ACCOUNT_ID_INDEX));
-        boolean clickForDeletion = isClickForDeletion(data.get(IS_DELETION_REQUESTED_FLAG_INDEX));
+        boolean clickForDeletion = Util.isClickForDeletion(data.get(IS_DELETION_REQUESTED_FLAG_INDEX));
         String socialMedia = data.get(SOCIAL_MEDIA_NAME_INDEX);
         return new AccountCallback(accountId, clickForDeletion, socialMedia);
     }
@@ -39,11 +39,4 @@ public class AccountCallbackParser implements CallbackParser<AccountCallback> {
         return CallbackType.ACCOUNT_CHOSEN;
     }
 
-    private static boolean isClickForDeletion(String flag) {
-        return switch (Byte.parseByte(flag)) {
-            case 0 -> false;
-            case 1 -> true;
-            default -> throw new NumberFormatException();
-        };
-    }
 }
