@@ -14,7 +14,7 @@ public class AccountCallbackParser extends ACallbackParser<AccountCallback> {
     }
 
     @Override
-    public String toText2(AccountCallback callback) {
+    protected String toText2(AccountCallback callback) {
         return String.join(FIELDS_SEPARATOR,
                 String.valueOf(callback.accountId),
                 Util.booleanFlag(callback.isClickedForDeletion),
@@ -23,7 +23,7 @@ public class AccountCallbackParser extends ACallbackParser<AccountCallback> {
     }
 
     @Override
-    public AccountCallback fromText2(List<String> data) {
+    protected AccountCallback fromText2(List<String> data) {
         return new AccountCallback(
                 Long.parseLong(data.get(0)),
                 Util.booleanFlag(data.get(1)),

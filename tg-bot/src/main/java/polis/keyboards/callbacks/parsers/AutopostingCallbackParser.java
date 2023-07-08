@@ -18,7 +18,7 @@ public class AutopostingCallbackParser extends ACallbackParser<AutopostingCallba
         return String.join(FIELDS_SEPARATOR,
                 String.valueOf(callback.channelId),
                 String.valueOf(callback.chatId),
-                Util.booleanFlag(callback.isEnabled)
+                Util.booleanFlag(callback.enableOrDisable)
         );
     }
 

@@ -11,6 +11,8 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
+import polis.keyboards.callbacks.objects.NotificationsCallback;
+import polis.keyboards.callbacks.parsers.NotificationCallbackParser;
 import polis.util.State;
 
 import java.util.List;
@@ -34,6 +36,9 @@ public class Notifications extends Command {
 
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private NotificationCallbackParser notificationCallbackParser;
 
     private static final int ROWS_COUNT = 1;
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
@@ -70,12 +75,12 @@ public class Notifications extends Command {
                 loggingInfo(user.getUserName()));
     }
 
-    private static List<String> getButtonsForNotificationsOptions(Long id) {
+    private List<String> getButtonsForNotificationsOptions(Long id) {
         return List.of(
                 YES_ANSWER,
-                String.format(ENABLE_NOTIFICATIONS, id),
+                notificationCallbackParser.toText(new NotificationsCallback(id, true)),
                 NO_ANSWER,
-                String.format(DISABLE_NOTIFICATIONS, id)
+                notificationCallbackParser.toText(new NotificationsCallback(id, false))
         );
     }
 }

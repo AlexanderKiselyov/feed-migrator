@@ -9,6 +9,8 @@ import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.CurrentChannelRepository;
+import polis.keyboards.callbacks.objects.GroupCallback;
+import polis.keyboards.callbacks.parsers.GroupCallbackParser;
 import polis.util.Emojis;
 import polis.util.State;
 
@@ -25,8 +27,6 @@ public class TgSyncGroups extends Command {
             Список синхронизированных групп пуст.
             Пожалуйста, вернитесь в описание Телеграмм-канала (/%s) и добавьте хотя бы одну группу.""";
     private static final String GROUP_INFO = "%s (%s)";
-    private static final String GET_GROUP = "group %s %d %s";
-    private static final String DELETE_GROUP = "group %s %d %s";
     private static final int ROWS_COUNT = 1;
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(
             State.TgChannelDescription.getDescription());
@@ -36,6 +36,9 @@ public class TgSyncGroups extends Command {
 
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
+
+    @Autowired
+    private GroupCallbackParser groupCallbackParser;
 
     public TgSyncGroups() {
         super(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription());
@@ -69,15 +72,15 @@ public class TgSyncGroups extends Command {
                 loggingInfo(user.getUserName()));
     }
 
-    private static List<String> getButtonsForTgChannelGroups(List<ChannelGroup> groups) {
+    private List<String> getButtonsForTgChannelGroups(List<ChannelGroup> groups) {
         List<String> buttons = new ArrayList<>(groups.size() * 4);
         for (ChannelGroup group : groups) {
             String socialMediaName = group.getSocialMedia().getName();
             long groupId = group.getGroupId();
             buttons.add(String.format(GROUP_INFO, group.getGroupName(), socialMediaName));
-            buttons.add(String.format(GET_GROUP, groupId, 0, socialMediaName));
+            buttons.add(groupCallbackParser.toText(new GroupCallback(groupId, false, socialMediaName)));
             buttons.add(Emojis.TRASH + DELETE_MESSAGE);
-            buttons.add(String.format(DELETE_GROUP, groupId, 1, socialMediaName));
+            buttons.add(groupCallbackParser.toText(new GroupCallback(groupId, true, socialMediaName)));
         }
         return buttons;
     }

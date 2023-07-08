@@ -11,6 +11,8 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
+import polis.keyboards.callbacks.objects.AutopostingCallback;
+import polis.keyboards.callbacks.parsers.AutopostingCallbackParser;
 import polis.util.State;
 
 import java.util.List;
@@ -23,8 +25,6 @@ public class Autoposting extends Command {
     private static final String NO_CURRENT_TG_CHANNEL_MSG = """
             Телеграмм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
-    private static final String ENABLE_AUTOPOSTING = "autoposting %d %d 0";
-    private static final String DISABLE_AUTOPOSTING = "autoposting %d %d 1";
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -34,6 +34,9 @@ public class Autoposting extends Command {
 
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
+
+    @Autowired
+    private AutopostingCallbackParser autopostingCallbackParser;
 
     private static final int ROWS_COUNT = 1;
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
@@ -69,12 +72,12 @@ public class Autoposting extends Command {
                 loggingInfo(user.getUserName()));
     }
 
-    private static List<String> getButtonsForAutopostingOptions(long chatId, long channelId) {
+    private List<String> getButtonsForAutopostingOptions(long chatId, long channelId) {
         return List.of(
                 YES_ANSWER,
-                String.format(ENABLE_AUTOPOSTING, chatId, channelId),
+                autopostingCallbackParser.toText(new AutopostingCallback(chatId, channelId, true)),
                 NO_ANSWER,
-                String.format(DISABLE_AUTOPOSTING, chatId, channelId)
+                autopostingCallbackParser.toText(new AutopostingCallback(chatId, channelId, false))
         );
     }
 }
