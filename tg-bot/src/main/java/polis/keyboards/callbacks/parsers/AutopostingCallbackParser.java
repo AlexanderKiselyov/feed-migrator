@@ -14,7 +14,7 @@ public class AutopostingCallbackParser extends ACallbackParser<AutopostingCallba
     }
 
     @Override
-    public String toText2(AutopostingCallback callback) {
+    protected String toText2(AutopostingCallback callback) {
         return String.join(FIELDS_SEPARATOR,
                 String.valueOf(callback.channelId),
                 String.valueOf(callback.chatId),
@@ -23,7 +23,7 @@ public class AutopostingCallbackParser extends ACallbackParser<AutopostingCallba
     }
 
     @Override
-    public AutopostingCallback fromText2(List<String> data) {
+    protected AutopostingCallback fromText2(List<String> data) {
         return new AutopostingCallback(
                 Long.parseLong(data.get(0)),
                 Long.parseLong(data.get(1)),

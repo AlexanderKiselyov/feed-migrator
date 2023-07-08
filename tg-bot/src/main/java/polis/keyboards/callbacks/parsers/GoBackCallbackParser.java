@@ -14,12 +14,12 @@ public class GoBackCallbackParser extends ACallbackParser<GoBackCallback> {
     }
 
     @Override
-    public String toText2(GoBackCallback callback) {
+    protected String toText2(GoBackCallback callback) {
         return "";
     }
 
     @Override
-    public GoBackCallback fromText2(List<String> data) {
+    protected GoBackCallback fromText2(List<String> data) {
         return new GoBackCallback();
     }
 

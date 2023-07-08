@@ -14,7 +14,7 @@ public class TgChannelCallbackParser extends ACallbackParser<TgChannelCallback> 
     }
 
     @Override
-    public String toText2(TgChannelCallback callback) {
+    protected String toText2(TgChannelCallback callback) {
         return String.join(FIELDS_SEPARATOR,
                 String.valueOf(callback.channelId),
                 Util.booleanFlag(callback.isClickedForDeletion)
@@ -22,7 +22,7 @@ public class TgChannelCallbackParser extends ACallbackParser<TgChannelCallback> 
     }
 
     @Override
-    public TgChannelCallback fromText2(List<String> data) {
+    protected TgChannelCallback fromText2(List<String> data) {
         return new TgChannelCallback(
                 Long.parseLong(data.get(0)),
                 Util.booleanFlag(data.get(1))

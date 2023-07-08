@@ -14,12 +14,12 @@ public class YesNoCallbackParser extends ACallbackParser<YesNoCallback> {
     }
 
     @Override
-    public String toText2(YesNoCallback callback) {
+    protected String toText2(YesNoCallback callback) {
         return Util.booleanFlag(callback.yesOrNo);
     }
 
     @Override
-    public YesNoCallback fromText2(List<String> data) {
+    protected YesNoCallback fromText2(List<String> data) {
         return new YesNoCallback(Util.booleanFlag(data.get(0)));
     }
 

@@ -14,7 +14,7 @@ public class GroupCallbackParser extends ACallbackParser<GroupCallback> {
     }
 
     @Override
-    public String toText2(GroupCallback callback) {
+    protected String toText2(GroupCallback callback) {
         return String.join(FIELDS_SEPARATOR,
                 String.valueOf(callback.groupId),
                 Util.booleanFlag(callback.isClickForDeletion),
@@ -23,7 +23,7 @@ public class GroupCallbackParser extends ACallbackParser<GroupCallback> {
     }
 
     @Override
-    public GroupCallback fromText2(List<String> data) {
+    protected GroupCallback fromText2(List<String> data) {
         return new GroupCallback(
                 Long.parseLong(data.get(0)),
                 Util.booleanFlag(data.get(1)),
