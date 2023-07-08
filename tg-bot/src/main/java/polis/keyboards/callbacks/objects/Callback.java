@@ -1,5 +1,7 @@
 package polis.keyboards.callbacks.objects;
 
+import polis.keyboards.callbacks.objects.*;
+
 import java.io.Serializable;
 
 /**

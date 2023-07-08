@@ -7,10 +7,14 @@ import polis.keyboards.callbacks.objects.AccountCallback;
 import java.util.List;
 
 @Component
-public class AccountCallbackParser implements CallbackParser<AccountCallback> {
+public class AccountCallbackParser extends ACallbackParser<AccountCallback> {
+
+    protected AccountCallbackParser() {
+        super(CallbackType.ACCOUNT_CHOSEN, 3);
+    }
 
     @Override
-    public String toText(AccountCallback callback) {
+    public String toText2(AccountCallback callback) {
         return String.join(FIELDS_SEPARATOR,
                 String.valueOf(callback.accountId),
                 Util.booleanFlag(callback.isClickedForDeletion),
@@ -19,22 +23,12 @@ public class AccountCallbackParser implements CallbackParser<AccountCallback> {
     }
 
     @Override
-    public AccountCallback fromText(List<String> data) {
+    public AccountCallback fromText2(List<String> data) {
         return new AccountCallback(
                 Long.parseLong(data.get(0)),
                 Util.booleanFlag(data.get(1)),
                 data.get(2)
         );
-    }
-
-    @Override
-    public int dataFieldsCount() {
-        return 3;
-    }
-
-    @Override
-    public CallbackType callbackType() {
-        return CallbackType.ACCOUNT_CHOSEN;
     }
 
 }

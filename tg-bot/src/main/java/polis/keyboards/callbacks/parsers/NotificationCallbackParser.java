@@ -7,10 +7,14 @@ import polis.keyboards.callbacks.objects.NotificationsCallback;
 import java.util.List;
 
 @Component
-public class NotificationCBParser implements CallbackParser<NotificationsCallback> {
+public class NotificationCallbackParser extends ACallbackParser<NotificationsCallback> {
+
+    protected NotificationCallbackParser() {
+        super(CallbackType.NOTIFICATIONS, 2);
+    }
 
     @Override
-    public String toText(NotificationsCallback callback) {
+    public String toText2(NotificationsCallback callback) {
         return String.join(FIELDS_SEPARATOR,
                 String.valueOf(callback.chatId),
                 Util.booleanFlag(callback.isEnabled)
@@ -18,20 +22,11 @@ public class NotificationCBParser implements CallbackParser<NotificationsCallbac
     }
 
     @Override
-    public NotificationsCallback fromText(List<String> data) {
+    public NotificationsCallback fromText2(List<String> data) {
         return new NotificationsCallback(
                 Long.parseLong(data.get(0)),
                 Util.booleanFlag(data.get(1))
         );
     }
 
-    @Override
-    public int dataFieldsCount() {
-        return 2;
-    }
-
-    @Override
-    public CallbackType callbackType() {
-        return CallbackType.NOTIFICATIONS;
-    }
 }
