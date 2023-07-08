@@ -38,7 +38,7 @@ public class InlineKeyboard extends Keyboard {
 
         keyboard.add(List.of(InlineKeyboardButton.builder()
                 .text(GO_BACK_BUTTON_TEXT)
-                .callbackData(goBackCallbackParser.toText(new GoBackCallback()))
+                .callbackData(goBackCallbackParser.toText(GoBackCallback.INSTANCE))
                 .build()
         ));
 
