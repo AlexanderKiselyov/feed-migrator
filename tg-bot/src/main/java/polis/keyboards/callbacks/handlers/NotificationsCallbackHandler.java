@@ -1,6 +1,7 @@
 package polis.keyboards.callbacks.handlers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -24,12 +25,14 @@ public class NotificationsCallbackHandler extends ACallbackHandler<Notifications
     private UserChannelsRepository userChannelsRepository;
     @Autowired
     private CurrentStateRepository currentStateRepository;
+    @Lazy
     @Autowired
     private TgNotificator tgNotificator;
 
-    {
-        callbackParser = new NotificationCallbackParser();
+    public NotificationsCallbackHandler(NotificationCallbackParser callbackParser) {
+        this.callbackParser = callbackParser;
     }
+
 
     @Override
     public CallbackType callbackType() {

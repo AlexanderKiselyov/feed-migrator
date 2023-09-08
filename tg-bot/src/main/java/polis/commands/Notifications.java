@@ -11,6 +11,8 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.objects.NotificationsCallback;
 import polis.keyboards.callbacks.parsers.NotificationCallbackParser;
 import polis.util.State;
@@ -43,8 +45,8 @@ public class Notifications extends Command {
     private static final int ROWS_COUNT = 1;
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
-    public Notifications() {
-        super(State.Notifications.getIdentifier(), State.Notifications.getDescription());
+    public Notifications(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.Notifications.getIdentifier(), State.Notifications.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

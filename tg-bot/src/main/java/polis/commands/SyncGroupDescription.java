@@ -11,6 +11,8 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.State;
 
 import java.util.List;
@@ -36,8 +38,8 @@ public class SyncGroupDescription extends Command {
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
 
-    public SyncGroupDescription() {
-        super(State.SyncGroupDescription.getIdentifier(), State.SyncGroupDescription.getDescription());
+    public SyncGroupDescription(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.SyncGroupDescription.getIdentifier(), State.SyncGroupDescription.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

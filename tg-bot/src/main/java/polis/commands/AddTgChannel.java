@@ -1,12 +1,16 @@
 package polis.commands;
 
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.State;
 
 import java.util.List;
 
+@Component
 public class AddTgChannel extends Command {
     private static final String ADD_TELEGRAM_CHANNEL = """
             Для добавления нового канала необходимо выполнить следующие действия:
@@ -16,8 +20,8 @@ public class AddTgChannel extends Command {
     private static final int ROWS_COUNT = 1;
     private static final List<String> KEYBOARD_COMMANDS = List.of(State.MainMenu.getDescription());
 
-    public AddTgChannel() {
-        super(State.AddTgChannel.getIdentifier(), State.AddTgChannel.getDescription());
+    public AddTgChannel(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.AddTgChannel.getIdentifier(), State.AddTgChannel.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

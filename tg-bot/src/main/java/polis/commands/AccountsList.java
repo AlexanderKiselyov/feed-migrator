@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.objects.AccountCallback;
 import polis.keyboards.callbacks.parsers.AccountCallbackParser;
 import polis.data.domain.Account;
@@ -33,8 +35,8 @@ public class AccountsList extends Command {
     @Autowired
     private AccountCallbackParser accountCallbackParser;
 
-    public AccountsList() {
-        super(State.AccountsList.getIdentifier(), State.AccountsList.getDescription());
+    public AccountsList(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.AccountsList.getIdentifier(), State.AccountsList.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

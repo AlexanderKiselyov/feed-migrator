@@ -7,6 +7,8 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.CurrentChannelRepository;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.State;
 
 import java.util.List;
@@ -28,8 +30,8 @@ public class AddGroup extends Command {
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
 
-    public AddGroup() {
-        super(State.AddGroup.getIdentifier(), State.AddGroup.getDescription());
+    public AddGroup(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.AddGroup.getIdentifier(), State.AddGroup.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

@@ -39,8 +39,8 @@ public class AccountCallbackHandler extends ACallbackHandler<AccountCallback> {
     @Autowired
     private CurrentStateRepository currentStateRepository;
 
-    {
-        callbackParser = new AccountCallbackParser();
+    public AccountCallbackHandler(AccountCallbackParser callbackParser) {
+        this.callbackParser = callbackParser;
     }
 
     @Override

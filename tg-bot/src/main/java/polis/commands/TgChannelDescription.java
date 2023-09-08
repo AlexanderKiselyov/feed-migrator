@@ -7,6 +7,8 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.CurrentChannelRepository;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.State;
 
 import java.util.List;
@@ -33,8 +35,8 @@ public class TgChannelDescription extends Command {
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
 
-    public TgChannelDescription() {
-        super(State.TgChannelDescription.getIdentifier(), State.TgChannelDescription.getDescription());
+    public TgChannelDescription(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.TgChannelDescription.getIdentifier(), State.TgChannelDescription.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

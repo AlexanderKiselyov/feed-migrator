@@ -11,6 +11,8 @@ import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.UserChannelsRepository;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.State;
 
 import java.util.ArrayList;
@@ -44,8 +46,8 @@ public class GroupDescription extends Command {
     @Autowired
     private UserChannelsRepository userChannelsRepository;
 
-    public GroupDescription() {
-        super(State.GroupDescription.getIdentifier(), State.GroupDescription.getDescription());
+    public GroupDescription(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.GroupDescription.getIdentifier(), State.GroupDescription.getDescription(), inlineKeyboard, replyKeyboard);
         this.commandsForKeyboard.add(State.Autoposting.getDescription());
     }
 

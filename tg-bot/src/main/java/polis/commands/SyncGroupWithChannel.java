@@ -1,6 +1,7 @@
 package polis.commands;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -10,6 +11,8 @@ import polis.data.domain.CurrentGroup;
 import polis.data.repositories.CurrentAccountRepository;
 import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.objects.YesNoCallback;
 import polis.keyboards.callbacks.parsers.YesNoCallbackParser;
 import polis.util.State;
@@ -20,6 +23,7 @@ import static polis.util.Emojis.EIGHTEEN_PLUS;
 import static polis.util.Emojis.HAPPY_FACE;
 import static polis.util.Emojis.STOP_PROFANITY;
 
+@Component
 public abstract class SyncGroupWithChannel extends Command {
     private static final String SYNC_MSG = """
             Вы выбрали Телеграмм-канал <b>%s</b> и группу <b>%s (%s)</b>.
@@ -49,8 +53,8 @@ public abstract class SyncGroupWithChannel extends Command {
     @Autowired
     private YesNoCallbackParser yesNoCallbackParser;
 
-    public SyncGroupWithChannel(String commandIdentifier, String description) {
-        super(commandIdentifier, description);
+    public SyncGroupWithChannel(String commandIdentifier, String description, InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(commandIdentifier, description, inlineKeyboard, replyKeyboard);
     }
 
     @Override

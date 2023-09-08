@@ -9,6 +9,8 @@ import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.CurrentChannelRepository;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.objects.GroupCallback;
 import polis.keyboards.callbacks.parsers.GroupCallbackParser;
 import polis.util.Emojis;
@@ -40,8 +42,8 @@ public class TgSyncGroups extends Command {
     @Autowired
     private GroupCallbackParser groupCallbackParser;
 
-    public TgSyncGroups() {
-        super(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription());
+    public TgSyncGroups(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

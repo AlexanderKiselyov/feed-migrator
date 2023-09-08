@@ -22,8 +22,8 @@ public class GoBackCallbackHandler extends ACallbackHandler<GoBackCallback> {
     @Autowired
     private CurrentStateRepository currentStateRepository;
 
-    {
-        callbackParser = new GoBackCallbackParser();
+    public GoBackCallbackHandler(GoBackCallbackParser callbackParser) {
+        this.callbackParser = callbackParser;
     }
 
     @Override

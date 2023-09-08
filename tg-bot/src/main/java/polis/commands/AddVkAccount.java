@@ -2,14 +2,18 @@ package polis.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.State;
 import polis.vk.api.VkAuthorizator;
 
 import java.net.URISyntaxException;
 
+@Component
 public class AddVkAccount extends Command {
     private static final String VK_AUTH_ANSWER_MSG = """
                     Для авторизации в социальной сети ВКонтакте перейдите по ссылке:
@@ -17,8 +21,8 @@ public class AddVkAccount extends Command {
                     После авторизации скопируйте всю ссылку из адресной строки целиком и отправьте ее в этот диалог.""";
     private static final Logger LOGGER = LoggerFactory.getLogger(AddVkAccount.class);
 
-    public AddVkAccount() {
-        super(State.AddVkAccount.getIdentifier(), State.AddVkAccount.getDescription());
+    public AddVkAccount(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.AddVkAccount.getIdentifier(), State.AddVkAccount.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

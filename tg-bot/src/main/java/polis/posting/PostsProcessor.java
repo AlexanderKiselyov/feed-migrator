@@ -87,7 +87,6 @@ public class PostsProcessor implements IPostsProcessor {
 
     @Lazy
     @Autowired
-    @Qualifier("Bot")
     private TgNotificator tgNotificator;
 
     @Override

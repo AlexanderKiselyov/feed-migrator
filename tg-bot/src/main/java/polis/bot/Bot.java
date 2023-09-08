@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
@@ -17,36 +16,9 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.commands.AccountsList;
-import polis.commands.AddGroup;
-import polis.commands.AddOkAccount;
-import polis.commands.AddOkGroup;
-import polis.commands.AddTgChannel;
-import polis.commands.AddVkAccount;
-import polis.commands.AddVkGroup;
-import polis.commands.Autoposting;
-import polis.commands.GroupDescription;
-import polis.commands.Help;
-import polis.commands.MainMenu;
 import polis.commands.NonCommand;
-import polis.commands.Notifications;
-import polis.commands.OkAccountDescription;
-import polis.commands.StartCommand;
-import polis.commands.SyncGroupDescription;
-import polis.commands.SyncOkTg;
-import polis.commands.SyncVkTg;
-import polis.commands.TgChannelDescription;
-import polis.commands.TgChannelsList;
-import polis.commands.TgSyncGroups;
-import polis.commands.VkAccountDescription;
 import polis.data.domain.CurrentState;
-import polis.data.repositories.AccountsRepository;
-import polis.data.repositories.ChannelGroupsRepository;
-import polis.data.repositories.CurrentAccountRepository;
-import polis.data.repositories.CurrentChannelRepository;
-import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.CurrentStateRepository;
-import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.CallbacksHandlerHelper;
 import polis.posting.IPostsProcessor;
@@ -54,29 +26,20 @@ import polis.util.IState;
 import polis.util.State;
 import polis.util.Substate;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static polis.commands.NonCommand.VK_GROUP_ADDED;
-import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_ANSWER;
-import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
-import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
-import static polis.datacheck.OkDataCheck.OK_GROUP_ADDED;
-import static polis.datacheck.OkDataCheck.SAME_OK_ACCOUNT;
-import static polis.datacheck.OkDataCheck.USER_HAS_NO_RIGHTS;
-import static polis.datacheck.OkDataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
-import static polis.datacheck.VkDataCheck.SAME_VK_ACCOUNT;
-import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_ANSWER;
-import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
+import static polis.datacheck.OkDataCheck.*;
+import static polis.datacheck.VkDataCheck.*;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
-import static polis.telegram.TelegramDataCheck.BOT_NOT_ADMIN;
-import static polis.telegram.TelegramDataCheck.RIGHT_LINK;
-import static polis.telegram.TelegramDataCheck.WRONG_LINK_OR_BOT_NOT_ADMIN;
+import static polis.telegram.TelegramDataCheck.*;
 
 @Configuration
-@Component("Bot")
+@Component
 public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, TgNotificator {
     private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
     private static final List<String> EMPTY_LIST = List.of();
@@ -111,22 +74,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private final String botToken;
 
     @Autowired
-    private AccountsRepository accountsRepository;
-
-    @Autowired
-    private ChannelGroupsRepository channelGroupsRepository;
-
-    @Autowired
-    private UserChannelsRepository userChannelsRepository;
-
-    @Autowired
-    private CurrentChannelRepository currentChannelRepository;
-
-    @Autowired
-    private CurrentAccountRepository currentAccountRepository;
-
-    @Autowired
-    private CurrentGroupRepository currentGroupRepository;
+    private Collection<IBotCommand> commands;
 
     @Autowired
     private CurrentStateRepository currentStateRepository;
@@ -135,62 +83,14 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private NonCommand nonCommand;
 
     @Autowired
-    private TgChannelDescription tgChannelDescription;
-
-    @Autowired
-    private TgChannelsList tgChannelsList;
-
-    @Autowired
-    private TgSyncGroups tgSyncGroups;
-
-    @Autowired
-    private GroupDescription groupDescription;
-
-    @Autowired
-    private AddGroup addGroup;
-
-    @Autowired
-    private OkAccountDescription okAccountDescription;
-
-    @Autowired
-    private AccountsList accountsList;
-
-    @Autowired
-    private AddOkGroup addOkGroup;
-
-    @Autowired
-    private SyncGroupDescription syncGroupDescription;
-
-    @Autowired
-    private SyncOkTg syncOkTg;
-
-    @Autowired
-    private Autoposting autoposting;
-
-    @Autowired
-    private Notifications notifications;
-
-    @Autowired
-    private VkAccountDescription vkAccountDescription;
-
-    @Autowired
-    private AddVkGroup addVkGroup;
-
-    @Autowired
-    private SyncVkTg syncVkTg;
-
-    @Autowired
     IPostsProcessor postsProcessor;
 
-    @Lazy
     @Autowired
-    private TgContentManager tgContentManager;
+    CallbacksHandlerHelper callbacksHandlerHelper;
 
     @Autowired
     private ReplyKeyboard replyKeyboard;
 
-    @Autowired
-    CallbacksHandlerHelper callbacksHandlerHelper;
 
     public Bot(
             @Value("${bot.name}") String botName,
@@ -214,27 +114,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     @Override
     public void onRegister() {
         super.onRegister();
-        register(new StartCommand());
-        register(new AddTgChannel());
-        register(new Help());
-        register(new MainMenu());
-        register(tgChannelDescription);
-        register(tgChannelsList);
-        register(tgSyncGroups);
-        register(groupDescription);
-        register(addGroup);
-        register(new AddOkAccount());
-        register(okAccountDescription);
-        register(accountsList);
-        register(addOkGroup);
-        register(syncGroupDescription);
-        register(syncOkTg);
-        register(autoposting);
-        register(notifications);
-        register(new AddVkAccount());
-        register(vkAccountDescription);
-        register(addVkGroup);
-        register(syncVkTg);
+        for (IBotCommand command : commands) {
+            register(command);
+        }
     }
 
     @Override

@@ -1,17 +1,19 @@
 package polis.keyboards.callbacks.handlers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.TgNotificator;
-import polis.data.domain.UserChannels;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.AutopostingCallback;
 import polis.keyboards.callbacks.parsers.AutopostingCallbackParser;
 
-public class AutoPostingCallbackHandler extends ACallbackHandler<AutopostingCallback> {
+@Component
+public class AutopostingCallbackHandler extends ACallbackHandler<AutopostingCallback> {
     private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в "
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
     private static final String AUTOPOSTING_FUNCTION_ENABLED = "включена";
@@ -20,11 +22,13 @@ public class AutoPostingCallbackHandler extends ACallbackHandler<AutopostingCall
 
     @Autowired
     private UserChannelsRepository userChannelsRepository;
+    @Lazy
     @Autowired
     TgNotificator tgNotificator;
 
-    {
-        callbackParser = new AutopostingCallbackParser();
+
+    public AutopostingCallbackHandler(AutopostingCallbackParser callbackParser) {
+        this.callbackParser = callbackParser;
     }
 
     @Override

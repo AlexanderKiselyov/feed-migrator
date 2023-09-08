@@ -1,17 +1,21 @@
 package polis.commands;
 
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.State;
 
+@Component
 public class Help extends Command {
     private static final String HELP = """
             <b>Feed-Migrator</b> - бот авто-постинга в Телеграмме.
             Бот позволяет подключить несколько аккаунтов с группами в социальных сетях ВКонтакте и Одноклассники к"""
             + """
              Телеграмм-каналу и автоматически публиковать контент из канала одновременно во все группы.
-            
+                        
             Для того, чтобы настроить авто-постинг для группы из социальной сети ВКонтакте или Одноклассники,"""
             + """
              необходимо сделать следующее:
@@ -25,7 +29,7 @@ public class Help extends Command {
             6. Согласиться с синхронизацией выбранного Телеграмм-канала и выбранной группы
             7. Включить функцию авто-постинга из Телеграмм-канала с группу
             8*. По желанию включить функцию уведомления о статусе опубликованных постов
-            
+                        
             Возможность публиковать следующий контент:
             1. Одноклассники:
             1.1. Текст
@@ -40,11 +44,11 @@ public class Help extends Command {
             2.4. Опросы
             2.5. Документы
             2.6. Текстовые ссылки
-            
+                        
             Дополнительные функции:
             1. Возможность включения/выключения авто-постинга для выбранных Телеграмм-каналов
             2. Возможность включения/выключения уведомлений для выбранных Телеграмм-каналов
-            
+                        
             <b>Ограничения пользования ботом:
             1. Каждый Телеграмм-канал может быть связан не более, чем с одной группой каждой из социальных сетей\s"""
             + """
@@ -66,8 +70,8 @@ public class Help extends Command {
             + """
             осуществляется по причине ограничений посещаемости таких групп и каналов.</b>""";
 
-    public Help() {
-        super(State.Help.getIdentifier(), State.Help.getDescription());
+    public Help(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.Help.getIdentifier(), State.Help.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

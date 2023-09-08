@@ -9,6 +9,8 @@ import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.CurrentChannelRepository;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.SocialMedia;
 import polis.util.State;
 
@@ -29,8 +31,8 @@ public class AddVkGroup extends Command {
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
 
-    public AddVkGroup() {
-        super(State.AddVkGroup.getIdentifier(), State.AddVkGroup.getDescription());
+    public AddVkGroup(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.AddVkGroup.getIdentifier(), State.AddVkGroup.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

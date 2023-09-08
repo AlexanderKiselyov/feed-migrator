@@ -2,7 +2,6 @@ package polis.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -17,22 +16,26 @@ import java.util.List;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
 public abstract class Command extends BotCommand {
-    static final String YES_ANSWER = "Да";
-    static final String NO_ANSWER = "Нет";
-    static final String DELETE_MESSAGE = " Удалить";
-    public static final String USER_ID_NOT_FOUND = "Не удалось найти id пользователя. Попробуйте еще раз.";
     public static final String USERNAME_NOT_FOUND = "Не удалось найти имя пользователя. Попробуйте еще раз.";
     public static final String GROUP_NAME_NOT_FOUND = "Не удалось найти название группы. Попробуйте еще раз.";
+    public static final String USER_ID_NOT_FOUND = "Не удалось найти id пользователя. Попробуйте еще раз.";
+    protected static final String YES_ANSWER = "Да";
+    protected static final String NO_ANSWER = "Нет";
+    protected static final String DELETE_MESSAGE = " Удалить";
     private static final Logger LOGGER = LoggerFactory.getLogger(Command.class);
 
-    @Autowired
-    private InlineKeyboard inlineKeyboard;
+    private final InlineKeyboard inlineKeyboard;
+    private final ReplyKeyboard replyKeyboard;
 
-    @Autowired
-    private ReplyKeyboard replyKeyboard;
-
-    public Command(String commandIdentifier, String description) {
+    public Command(
+            String commandIdentifier,
+            String description,
+            InlineKeyboard inlineKeyboard,
+            ReplyKeyboard replyKeyboard
+    ) {
         super(commandIdentifier, description);
+        this.inlineKeyboard = inlineKeyboard;
+        this.replyKeyboard = replyKeyboard;
     }
 
     private void setAndSendMessage(AbsSender absSender, Long chatId, String text, SendMessage message,

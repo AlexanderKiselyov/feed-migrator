@@ -1,6 +1,7 @@
 package polis.keyboards.callbacks.handlers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.ICommandRegistry;
@@ -14,8 +15,10 @@ import polis.keyboards.callbacks.objects.Callback;
 
 @Component
 public abstract class ACallbackHandler<CB extends Callback> implements CallbackHandler<CB> {
+    @Lazy
     @Autowired
     protected ICommandRegistry commandRegistry;
+    @Lazy
     @Autowired
     protected AbsSender sender;
 

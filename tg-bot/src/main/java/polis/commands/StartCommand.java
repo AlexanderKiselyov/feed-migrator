@@ -1,12 +1,16 @@
 package polis.commands;
 
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.State;
 
 import java.util.List;
 
+@Component
 public class StartCommand extends Command {
     private static final String startAnswer = String.format("""
             Давайте начнём! С помощью бота Вы можете синхронизировать Ваши Телеграмм-каналы с группами в"""
@@ -23,8 +27,8 @@ public class StartCommand extends Command {
             State.Help.getDescription()
     );
 
-    public StartCommand() {
-        super(State.Start.getIdentifier(), State.Start.getDescription());
+    public StartCommand(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.Start.getIdentifier(), State.Start.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

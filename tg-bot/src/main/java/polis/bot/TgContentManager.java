@@ -44,7 +44,7 @@ public class TgContentManager {
 
     @Autowired
     public TgContentManager(
-            @Qualifier("Bot") TgFileLoader fileLoader,
+            TgFileLoader fileLoader,
             @Value("${bot.token}") String tgApiToken,
             HttpClient client,
             ObjectMapper mapper

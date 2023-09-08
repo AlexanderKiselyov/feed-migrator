@@ -31,8 +31,8 @@ public class TgChannelCallbackHandler extends ACallbackHandler<TgChannelCallback
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
 
-    {
-        callbackParser = new TgChannelCallbackParser();
+    public TgChannelCallbackHandler(TgChannelCallbackParser callbackParser) {
+        this.callbackParser = callbackParser;
     }
 
     @Override

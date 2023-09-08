@@ -1,12 +1,16 @@
 package polis.commands;
 
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.State;
 
 import java.util.List;
 
+@Component
 public class MainMenu extends Command {
     private static final String MAIN_MENU = """
             Добро пожаловать в главное меню!
@@ -20,8 +24,8 @@ public class MainMenu extends Command {
             State.Help.getDescription()
     );
 
-    public MainMenu() {
-        super(State.MainMenu.getIdentifier(), State.MainMenu.getDescription());
+    public MainMenu(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.MainMenu.getIdentifier(), State.MainMenu.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

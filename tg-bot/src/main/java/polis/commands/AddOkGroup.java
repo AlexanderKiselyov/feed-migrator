@@ -9,6 +9,8 @@ import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.CurrentChannelRepository;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.SocialMedia;
 import polis.util.State;
 
@@ -29,8 +31,8 @@ public class AddOkGroup extends Command {
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
 
-    public AddOkGroup() {
-        super(State.AddOkGroup.getIdentifier(), State.AddOkGroup.getDescription());
+    public AddOkGroup(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.AddOkGroup.getIdentifier(), State.AddOkGroup.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

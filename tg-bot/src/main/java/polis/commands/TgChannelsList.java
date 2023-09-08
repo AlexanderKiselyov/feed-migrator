@@ -7,6 +7,8 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.UserChannelsRepository;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.objects.TgChannelCallback;
 import polis.keyboards.callbacks.parsers.TgChannelCallbackParser;
 import polis.util.Emojis;
@@ -36,8 +38,8 @@ public class TgChannelsList extends Command {
     @Autowired
     private TgChannelCallbackParser tgChannelCallbackParser;
 
-    public TgChannelsList() {
-        super(State.TgChannelsList.getIdentifier(), State.TgChannelsList.getDescription());
+    public TgChannelsList(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.TgChannelsList.getIdentifier(), State.TgChannelsList.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

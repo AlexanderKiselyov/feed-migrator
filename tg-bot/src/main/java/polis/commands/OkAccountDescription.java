@@ -7,6 +7,8 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.data.domain.CurrentAccount;
 import polis.data.repositories.CurrentAccountRepository;
+import polis.keyboards.InlineKeyboard;
+import polis.keyboards.ReplyKeyboard;
 import polis.util.State;
 
 import java.util.List;
@@ -26,8 +28,8 @@ public class OkAccountDescription extends Command {
     private static final List<String> KEYBOARD_COMMANDS = List.of(State.AddOkGroup.getDescription());
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
-    public OkAccountDescription() {
-        super(State.OkAccountDescription.getIdentifier(), State.OkAccountDescription.getDescription());
+    public OkAccountDescription(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.OkAccountDescription.getIdentifier(), State.OkAccountDescription.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override

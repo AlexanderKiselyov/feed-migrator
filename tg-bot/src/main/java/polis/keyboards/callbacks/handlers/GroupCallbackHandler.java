@@ -30,8 +30,8 @@ public class GroupCallbackHandler extends ACallbackHandler<GroupCallback> {
     @Autowired
     private CurrentGroupRepository currentGroupRepository;
 
-    {
-        callbackParser = new GroupCallbackParser();
+    public GroupCallbackHandler(GroupCallbackParser callbackParser) {
+        this.callbackParser = callbackParser;
     }
 
     @Override

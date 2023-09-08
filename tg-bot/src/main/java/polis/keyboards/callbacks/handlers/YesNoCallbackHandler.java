@@ -38,8 +38,8 @@ public class YesNoCallbackHandler extends ACallbackHandler<YesNoCallback> {
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
 
-    {
-        callbackParser = new YesNoCallbackParser();
+    public YesNoCallbackHandler(YesNoCallbackParser callbackParser) {
+        this.callbackParser = callbackParser;
     }
 
     @Override
