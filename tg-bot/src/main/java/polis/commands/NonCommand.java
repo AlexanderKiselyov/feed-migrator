@@ -4,15 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import polis.commands.context.Context;
+import polis.commands.context.ContextStorage;
+import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
-import polis.data.domain.CurrentAccount;
 import polis.data.domain.CurrentChannel;
-import polis.data.domain.CurrentGroup;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.ChannelGroupsRepository;
-import polis.data.repositories.CurrentAccountRepository;
-import polis.data.repositories.CurrentChannelRepository;
-import polis.data.repositories.CurrentGroupRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.datacheck.OkDataCheck;
 import polis.datacheck.VkDataCheck;
@@ -25,8 +23,8 @@ import polis.vk.api.VkAuthorizator;
 
 import java.util.Objects;
 
-import static polis.commands.impl.AddOkGroup.SAME_SOCIAL_MEDIA_MSG;
 import static polis.commands.Command.GROUP_NAME_NOT_FOUND;
+import static polis.commands.impl.AddOkGroup.SAME_SOCIAL_MEDIA_MSG;
 
 @Component
 public class NonCommand {
@@ -53,16 +51,7 @@ public class NonCommand {
             Пожалуйста, вернитесь в главное меню (%s) и следуйте дальнейшим инструкциям.""";
 
     @Autowired
-    private CurrentAccountRepository currentAccountRepository;
-
-    @Autowired
     private UserChannelsRepository userChannelsRepository;
-
-    @Autowired
-    private CurrentChannelRepository currentChannelRepository;
-
-    @Autowired
-    private CurrentGroupRepository currentGroupRepository;
 
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
@@ -76,13 +65,19 @@ public class NonCommand {
     @Autowired
     private TelegramDataCheck telegramDataCheck;
 
+    @Autowired
+    private ContextStorage contextStorage;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(NonCommand.class);
 
-    public AnswerPair nonCommandExecute(String text, Long chatId, IState state) {
+    public AnswerPair nonCommandExecute(String text, Long chatId) {
+        Context context = contextStorage.getContext(chatId);
+        IState state = context.currentState();
         if (state == null) {
             LOGGER.error("Null state");
             return new AnswerPair(BOT_WRONG_STATE_ANSWER, true);
         }
+
 
         if (state.equals(State.Start)) {
             return new AnswerPair(START_STATE_ANSWER, true);
@@ -114,14 +109,17 @@ public class NonCommand {
                 );
 
                 userChannelsRepository.insertUserChannel(newTgChannel);
-                currentChannelRepository.insertCurrentChannel(new CurrentChannel(chatId, newTgChannel.getChannelId(),
-                        newTgChannel.getChannelUsername()));
+                context.resetCurrentChannel(new CurrentChannel(
+                        chatId,
+                        newTgChannel.getChannelId(),
+                        newTgChannel.getChannelUsername()
+                ));
             }
             return answer;
         } else if (state.equals(Substate.AddOkAccount_AuthCode)) {
             return okDataCheck.getOKAuthCode(text, chatId);
         } else if (state.equals(Substate.AddOkGroup_AddGroup)) {
-            CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chatId);
+            Account currentAccount = context.currentAccount();
             if (currentAccount == null) {
                 return new AnswerPair(String.format(WRONG_ACCOUNT, SocialMedia.OK.getName(),
                         State.MainMenu.getIdentifier()),
@@ -129,7 +127,7 @@ public class NonCommand {
             }
 
             for (ChannelGroup smg : channelGroupsRepository
-                    .getGroupsForChannel(currentChannelRepository.getCurrentChannel(chatId).getChannelId())) {
+                    .getGroupsForChannel(context.currentChannel().getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.OK) {
                     return new AnswerPair(String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.OK.getName()), true);
                 }
@@ -152,17 +150,21 @@ public class NonCommand {
             }
 
             if (!answer.getError()) {
-                CurrentGroup newGroup = new CurrentGroup(chatId, SocialMedia.OK.getName(), groupId,
+                context.resetCurrentGroup(new ChannelGroup(
+                        currentAccount.getAccessToken(),
                         groupName,
-                        currentAccount.getAccountId(), currentAccount.getAccessToken());
-                currentGroupRepository.insertCurrentGroup(newGroup);
+                        currentAccount.getAccountId(),
+                        chatId,
+                        groupId,
+                        SocialMedia.OK.getName()
+                ));
             }
 
             return answer;
         } else if (state.equals(Substate.AddVkAccount_AccessToken)) {
-        return vkDataCheck.getVkAccessToken(text, chatId);
+            return vkDataCheck.getVkAccessToken(text, chatId);
         } else if (state.equals(Substate.AddVkGroup_AddGroup)) {
-            CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chatId);
+            Account currentAccount = context.currentAccount();
             if (currentAccount == null) {
                 return new AnswerPair(String.format(WRONG_ACCOUNT, SocialMedia.VK.getName(),
                         State.MainMenu.getIdentifier()),
@@ -170,7 +172,7 @@ public class NonCommand {
             }
 
             for (ChannelGroup smg : channelGroupsRepository
-                    .getGroupsForChannel(currentChannelRepository.getCurrentChannel(chatId).getChannelId())) {
+                    .getGroupsForChannel(context.currentChannel().getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.VK) {
                     return new AnswerPair(String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.VK.getName()), true);
                 }
@@ -194,7 +196,7 @@ public class NonCommand {
 
             String groupName = vkDataCheck.getVkGroupName(
                     new VkAuthorizator.TokenWithId(currentAccount.getAccessToken(),
-                    (int) currentAccount.getAccountId()),
+                            (int) currentAccount.getAccountId()),
                     groupId
             );
 
@@ -202,11 +204,14 @@ public class NonCommand {
                 return new AnswerPair(GROUP_NAME_NOT_FOUND, true);
             }
 
-            CurrentGroup newGroup = new CurrentGroup(chatId, SocialMedia.VK.getName(), groupId,
+            context.resetCurrentGroup(new ChannelGroup(
+                    currentAccount.getAccessToken(),
                     groupName,
-                    currentAccount.getAccountId(), currentAccount.getAccessToken());
-            currentGroupRepository.insertCurrentGroup(newGroup);
-
+                    currentAccount.getAccountId(),
+                    chatId,
+                    groupId,
+                    SocialMedia.VK.getName()
+            ));
             return new AnswerPair(String.format(VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()), false);
         }
         return new AnswerPair(BOT_WRONG_STATE_ANSWER, true);
