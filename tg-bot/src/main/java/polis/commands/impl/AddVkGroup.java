@@ -37,7 +37,7 @@ public class AddVkGroup extends Command {
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
         if (currentChannel != null) {
             for (ChannelGroup smg : channelGroupsRepository.getGroupsForChannel(currentChannel.getChannelId())) {

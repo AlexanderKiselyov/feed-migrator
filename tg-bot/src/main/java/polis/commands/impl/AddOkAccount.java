@@ -27,7 +27,7 @@ public class AddOkAccount extends Command {
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         try {
             String messageText = String.format(OK_AUTH_ANSWER_MSG, OkAuthorizator.formAuthorizationUrl());
             sendAnswerWithOnlyBackButton(

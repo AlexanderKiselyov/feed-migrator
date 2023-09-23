@@ -27,7 +27,7 @@ public class AddVkAccount extends Command {
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         try {
             String messageText = String.format(VK_AUTH_ANSWER_MSG, VkAuthorizator.formAuthorizationUrl());
             sendAnswerWithOnlyBackButton(

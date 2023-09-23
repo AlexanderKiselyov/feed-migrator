@@ -11,7 +11,7 @@ public class ContextStorageImpl implements ContextStorage {
 
     @Override
     public Context getContext(long userChatId) {
-        return contextStorage.get(userChatId);
+        return contextStorage.getOrDefault(userChatId, new ContextImpl());
     }
 
     @Override

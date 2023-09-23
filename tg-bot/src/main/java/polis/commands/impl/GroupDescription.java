@@ -53,7 +53,7 @@ public class GroupDescription extends Command {
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
 

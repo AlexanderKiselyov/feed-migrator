@@ -41,7 +41,7 @@ public class TgChannelDescription extends Command {
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
         boolean noErrorCondition = currentChannel != null;
         String text = noErrorCondition ? String.format(TELEGRAM_CHANNEL_DESCRIPTION,

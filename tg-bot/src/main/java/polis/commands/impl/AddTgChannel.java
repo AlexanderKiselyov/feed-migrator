@@ -38,7 +38,7 @@ public class AddTgChannel extends Command implements DescribableCommand {
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),

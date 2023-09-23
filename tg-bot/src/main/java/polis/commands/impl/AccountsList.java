@@ -41,7 +41,7 @@ public class AccountsList extends Command {
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         List<Account> accounts = accountsRepository.getAccountsForUser(chat.getId());
 
         if (accounts != null && !accounts.isEmpty()) {

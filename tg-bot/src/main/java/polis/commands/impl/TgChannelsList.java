@@ -62,7 +62,7 @@ public class TgChannelsList extends Command implements DescribableCommand {
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         List<UserChannels> channels = userChannelsRepository.getUserChannels(chat.getId());
         if (channels != null && !channels.isEmpty()) {
             sendAnswerWithInlineKeyboard(
