@@ -6,8 +6,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.TgNotificator;
-import polis.data.domain.CurrentState;
-import polis.data.repositories.CurrentStateRepository;
+import polis.commands.context.Context;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.CallbackType;
@@ -23,8 +22,6 @@ public class NotificationsCallbackHandler extends ACallbackHandler<Notifications
 
     @Autowired
     private UserChannelsRepository userChannelsRepository;
-    @Autowired
-    private CurrentStateRepository currentStateRepository;
     @Lazy
     @Autowired
     private TgNotificator tgNotificator;
@@ -45,16 +42,12 @@ public class NotificationsCallbackHandler extends ACallbackHandler<Notifications
     }
 
     @Override
-    protected void handleCallback(long userChatId, Message message, NotificationsCallback callback) throws TelegramApiException {
+    protected void handleCallback(long userChatId, Message message, NotificationsCallback callback, Context context) throws TelegramApiException {
         boolean areEnable = callback.isEnabled;
         userChannelsRepository.setNotification(message.getChatId(), callback.chatId, areEnable);
         tgNotificator.sendNotification(userChatId, String.format(NOTIFICATIONS_TEXT,
                 (areEnable ? NOTIFICATIONS_ENABLED : NOTIFICATIONS_DISABLED)));
         deleteLastMessage(message);
-        currentStateRepository.insertCurrentState(new CurrentState(
-                userChatId,
-                State.GroupDescription.getIdentifier()
-        ));
-        getRegisteredCommand(State.GroupDescription.getIdentifier()).processMessage(sender, message, null);
+        processNextCommand(State.GroupDescription, sender, message, null);
     }
 }

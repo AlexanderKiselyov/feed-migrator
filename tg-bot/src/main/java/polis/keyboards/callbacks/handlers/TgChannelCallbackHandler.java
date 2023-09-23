@@ -6,11 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.commands.ContextFullCommandRegistry;
+import polis.commands.context.Context;
 import polis.data.domain.CurrentChannel;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.ChannelGroupsRepository;
-import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.CallbackType;
@@ -28,11 +27,7 @@ public class TgChannelCallbackHandler extends ACallbackHandler<TgChannelCallback
     @Autowired
     private UserChannelsRepository userChannelsRepository;
     @Autowired
-    private CurrentChannelRepository currentChannelRepository;
-    @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
-    @Autowired
-    private ContextFullCommandRegistry contextFullCommandRegistry;
 
     public TgChannelCallbackHandler(TgChannelCallbackParser callbackParser) {
         this.callbackParser = callbackParser;
@@ -49,7 +44,7 @@ public class TgChannelCallbackHandler extends ACallbackHandler<TgChannelCallback
     }
 
     @Override
-    public void handleCallback(long userChatId, Message message, TgChannelCallback callback) throws TelegramApiException {
+    public void handleCallback(long userChatId, Message message, TgChannelCallback callback, Context context) throws TelegramApiException {
         long channelId = callback.channelId;
 
         if (callback.isClickedForDeletion) {
@@ -60,13 +55,12 @@ public class TgChannelCallbackHandler extends ACallbackHandler<TgChannelCallback
                     break;
                 }
             }
-            currentChannelRepository.deleteCurrentChannel(userChatId);
+            context.resetCurrentChannel(null);
             for (SocialMedia socialMedia : SocialMedia.values()) {
                 channelGroupsRepository.deleteChannelGroup(channelId, socialMedia.getName());
             }
             deleteLastMessage(message);
-            getRegisteredCommand(State.TgChannelsList.getIdentifier())
-                    .processMessage(sender, message, null);
+            processNextCommand(State.TgChannelsList, sender, message, null);
         } else {
             UserChannels currentTelegramChannel = null;
             List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(userChatId);
@@ -77,11 +71,13 @@ public class TgChannelCallbackHandler extends ACallbackHandler<TgChannelCallback
                 }
             }
             if (currentTelegramChannel != null) {
-                currentChannelRepository.insertCurrentChannel(new CurrentChannel(userChatId,
-                        currentTelegramChannel.getChannelId(), currentTelegramChannel.getChannelUsername()));
+                context.resetCurrentChannel(new CurrentChannel(
+                        userChatId,
+                        currentTelegramChannel.getChannelId(),
+                        currentTelegramChannel.getChannelUsername()
+                ));
                 deleteLastMessage(message);
-                getRegisteredCommand(State.TgChannelDescription)
-                        .execute(sender, message, );
+                processNextCommand(State.TgChannelDescription, sender, message, null);
             } else {
                 LOGGER.error(String.format("Cannot find such a telegram channel id: %s", channelId));
             }

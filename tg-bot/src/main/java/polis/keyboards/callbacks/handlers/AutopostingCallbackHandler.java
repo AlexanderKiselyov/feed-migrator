@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.TgNotificator;
+import polis.commands.context.Context;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.CallbackType;
@@ -42,7 +43,7 @@ public class AutopostingCallbackHandler extends ACallbackHandler<AutopostingCall
     }
 
     @Override
-    protected void handleCallback(long userChatId, Message message, AutopostingCallback callback) throws TelegramApiException {
+    protected void handleCallback(long userChatId, Message message, AutopostingCallback callback, Context context) throws TelegramApiException {
         String enable = AUTOPOSTING_FUNCTION_ENABLED;
         if (callback.disable()) {
             userChannelsRepository.setAutoposting(userChatId, callback.channelId, false);
