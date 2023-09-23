@@ -1,9 +1,11 @@
-package polis.commands;
+package polis.commands.contextless;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.commands.Command;
+import polis.commands.ContextLessCommand;
 import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
 import polis.util.State;
@@ -11,7 +13,7 @@ import polis.util.State;
 import java.util.List;
 
 @Component
-public class StartCommand extends Command {
+public class StartCommand extends Command implements ContextLessCommand {
     private static final String startAnswer = String.format("""
             Давайте начнём! С помощью бота Вы можете синхронизировать Ваши Телеграмм-каналы с группами в"""
             + """

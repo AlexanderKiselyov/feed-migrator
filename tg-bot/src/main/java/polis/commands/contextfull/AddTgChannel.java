@@ -1,9 +1,10 @@
-package polis.commands;
+package polis.commands.contextfull;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.commands.Command;
 import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
 import polis.util.State;

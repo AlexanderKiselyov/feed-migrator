@@ -1,10 +1,11 @@
-package polis.commands;
+package polis.commands.contextfull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import polis.commands.Command;
 import polis.data.domain.CurrentAccount;
 import polis.data.domain.CurrentChannel;
 import polis.data.domain.CurrentGroup;
@@ -13,20 +14,22 @@ import polis.data.repositories.CurrentChannelRepository;
 import polis.data.repositories.CurrentGroupRepository;
 import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
-import polis.keyboards.callbacks.objects.AutopostingCallback;
-import polis.keyboards.callbacks.parsers.AutopostingCallbackParser;
+import polis.keyboards.callbacks.objects.NotificationsCallback;
+import polis.keyboards.callbacks.parsers.NotificationCallbackParser;
 import polis.util.State;
 
 import java.util.List;
 
 @Component
-public class Autoposting extends Command {
-    private static final String AUTOPOSTING_MSG = """
-            Функция автопостинга позволяет автоматически публиковать новый пост из Телеграмм-канала в группу.
+public class Notifications extends Command {
+    private static final String NOTIFICATIONS_MSG = """
+            Включите уведомления, чтобы получать информацию о публикации Ваших постов.
             Включить данную функцию для Телеграмм-канала <b>%s</b> и группы <b>%s (%s)</b>?""";
-    private static final String NO_CURRENT_TG_CHANNEL_MSG = """
+    private static final String NO_CURRENT_TG_CHANNEL = """
             Телеграмм-канал не был выбран.
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
+    private static final String ENABLE_NOTIFICATIONS = "notifications %s 0";
+    private static final String DISABLE_NOTIFICATIONS = "notifications %s 1";
 
     @Autowired
     private CurrentChannelRepository currentChannelRepository;
@@ -38,13 +41,13 @@ public class Autoposting extends Command {
     private CurrentAccountRepository currentAccountRepository;
 
     @Autowired
-    private AutopostingCallbackParser autopostingCallbackParser;
+    private NotificationCallbackParser notificationCallbackParser;
 
     private static final int ROWS_COUNT = 1;
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
-    public Autoposting(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.Autoposting.getIdentifier(), State.Autoposting.getDescription(), inlineKeyboard, replyKeyboard);
+    public Notifications(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
+        super(State.Notifications.getIdentifier(), State.Notifications.getDescription(), inlineKeyboard, replyKeyboard);
     }
 
     @Override
@@ -53,33 +56,34 @@ public class Autoposting extends Command {
         CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
         CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
 
-        if (currentChannel != null && currentAccount != null && currentGroup != null) {
+        if (currentChannel != null && currentGroup != null && currentAccount != null) {
             String groupName = currentGroup.getGroupName();
+            String notificationsEnable = String.format(NOTIFICATIONS_MSG, currentChannel.getChannelUsername(),
+                    groupName, currentGroup.getGroupName());
             sendAnswerWithInlineKeyboard(
                     absSender,
                     chat.getId(),
-                    String.format(AUTOPOSTING_MSG, currentChannel.getChannelUsername(), groupName,
-                            currentGroup.getSocialMedia().getName()),
+                    notificationsEnable,
                     ROWS_COUNT,
-                    getButtonsForAutopostingOptions(chat.getId(), currentChannel.getChannelId()),
+                    getButtonsForNotificationsOptions(currentChannel.getChannelId()),
                     loggingInfo(user.getUserName()));
             return;
         }
         sendAnswerWithReplyKeyboardAndBackButton(
                 absSender,
                 chat.getId(),
-                String.format(NO_CURRENT_TG_CHANNEL_MSG, State.MainMenu.getIdentifier()),
+                String.format(NO_CURRENT_TG_CHANNEL, State.MainMenu.getIdentifier()),
                 ROWS_COUNT,
                 KEYBOARD_COMMANDS_IN_ERROR_CASE,
                 loggingInfo(user.getUserName()));
     }
 
-    private List<String> getButtonsForAutopostingOptions(long chatId, long channelId) {
+    private List<String> getButtonsForNotificationsOptions(Long id) {
         return List.of(
                 YES_ANSWER,
-                autopostingCallbackParser.toText(new AutopostingCallback(chatId, channelId, true)),
+                notificationCallbackParser.toText(new NotificationsCallback(id, true)),
                 NO_ANSWER,
-                autopostingCallbackParser.toText(new AutopostingCallback(chatId, channelId, false))
+                notificationCallbackParser.toText(new NotificationsCallback(id, false))
         );
     }
 }

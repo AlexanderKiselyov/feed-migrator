@@ -53,27 +53,27 @@ public abstract class Command extends BotCommand {
         }
     }
 
-    void sendAnswerWithInlineKeyboard(AbsSender absSender, Long chatId, String text, int rowsCount,
+    protected void sendAnswerWithInlineKeyboard(AbsSender absSender, Long chatId, String text, int rowsCount,
                                       List<String> inlineKeyboardCommands, LoggingInfo loggingInfo) {
         SendMessage message = inlineKeyboard.createSendMessage(chatId, text, rowsCount,
                 inlineKeyboardCommands);
         setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }
 
-    void sendAnswerWithReplyKeyboard(AbsSender absSender, Long chatId, String text, int rowsCount,
+    protected void sendAnswerWithReplyKeyboard(AbsSender absSender, Long chatId, String text, int rowsCount,
                                      List<String> commandsList, LoggingInfo loggingInfo) {
         SendMessage message = replyKeyboard.createSendMessage(chatId, text, rowsCount, commandsList);
         setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }
 
-    void sendAnswerWithReplyKeyboardAndBackButton(AbsSender absSender, Long chatId, String text, int rowsCount,
+    protected void sendAnswerWithReplyKeyboardAndBackButton(AbsSender absSender, Long chatId, String text, int rowsCount,
                                                   List<String> commandsList, LoggingInfo loggingInfo) {
         SendMessage message = replyKeyboard.createSendMessage(chatId, text, rowsCount, commandsList,
                 GO_BACK_BUTTON_TEXT);
         setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }
 
-    void sendAnswerWithOnlyBackButton(AbsSender absSender, Long chatId, String text, LoggingInfo loggingInfo) {
+    protected void sendAnswerWithOnlyBackButton(AbsSender absSender, Long chatId, String text, LoggingInfo loggingInfo) {
         SendMessage message = replyKeyboard.createSendMessage(chatId, text, 0, Collections.emptyList(),
                 GO_BACK_BUTTON_TEXT);
         setAndSendMessage(absSender, chatId, text, message, loggingInfo);
