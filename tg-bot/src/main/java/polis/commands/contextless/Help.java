@@ -8,7 +8,11 @@ import polis.commands.Command;
 import polis.commands.ContextLessCommand;
 import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
+import polis.util.IState;
 import polis.util.State;
+
+import java.util.Collection;
+import java.util.List;
 
 @Component
 public class Help extends Command implements ContextLessCommand {
@@ -83,5 +87,15 @@ public class Help extends Command implements ContextLessCommand {
                 chat.getId(),
                 HELP,
                 loggingInfo(user.getUserName()));
+    }
+
+    @Override
+    public String helloMessage() {
+        return HELP;
+    }
+
+    @Override
+    public List<IState> nextPossibleCommands() {
+        return List.of(State.MainMenu, State.Start);
     }
 }
