@@ -8,19 +8,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import polis.commands.NonCommand;
+import polis.commands.context.Context;
+import polis.commands.context.ContextStorage;
 import polis.data.domain.Account;
-import polis.data.domain.CurrentAccount;
-import polis.data.domain.CurrentState;
 import polis.data.repositories.AccountsRepository;
-import polis.data.repositories.CurrentAccountRepository;
-import polis.data.repositories.CurrentStateRepository;
 import polis.ok.api.OkAppProperties;
 import polis.ok.api.OkAuthorizator;
 import polis.ok.api.exceptions.CodeExpiredException;
 import polis.ok.api.exceptions.OkApiException;
 import polis.util.SocialMedia;
 import polis.util.State;
-import polis.util.Substate;
 
 import java.io.IOException;
 import java.net.URI;
@@ -60,14 +57,12 @@ public class OkDataCheck {
 
     private static final String OK_SOCIAL_NAME = SocialMedia.OK.getName();
 
-    @Autowired
-    private CurrentAccountRepository currentAccountRepository;
-
+    //TODO FIX AUTOWIRING REPOSITORIES IN CLASS CALLED DATACHECK
     @Autowired
     private AccountsRepository accountsRepository;
 
     @Autowired
-    private CurrentStateRepository currentStateRepository;
+    private ContextStorage contextStorage;
 
     @Autowired
     private OkAuthorizator okAuthorizator;
@@ -117,22 +112,17 @@ public class OkDataCheck {
                 pair.accessToken(),
                 pair.refreshToken()
         );
-
-        currentAccountRepository.insertCurrentAccount(
-                new CurrentAccount(
-                        chatId,
-                        newAccount.getSocialMedia().getName(),
-                        newAccount.getAccountId(),
-                        newAccount.getUserFullName(),
-                        newAccount.getAccessToken(),
-                        newAccount.getRefreshToken()
-                )
-        );
+        Context context = contextStorage.getContext(chatId);
+        context.resetCurrentAccount(new Account(
+                chatId,
+                newAccount.getSocialMedia().getName(),
+                newAccount.getAccountId(),
+                newAccount.getUserFullName(),
+                newAccount.getAccessToken(),
+                newAccount.getRefreshToken()
+        ));
 
         accountsRepository.insertNewAccount(newAccount);
-
-        currentStateRepository.insertCurrentState(new CurrentState(chatId,
-                Substate.nextSubstate(State.OkAccountDescription).getIdentifier()));
 
         return new NonCommand.AnswerPair(
                 String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
