@@ -1,15 +1,10 @@
-package polis.commands;
+package polis.commands.context;
 
 import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
-import polis.data.domain.CurrentState;
 
 public interface Context {
-    CurrentState currentState();
-
-    void resetCurrentState(CurrentState state);
-
     CurrentChannel currentChannel();
 
     void resetCurrentChannel(CurrentChannel channel);
