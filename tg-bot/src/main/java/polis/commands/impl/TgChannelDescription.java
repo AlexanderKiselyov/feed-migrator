@@ -1,15 +1,13 @@
 package polis.commands.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
+import polis.commands.context.Context;
 import polis.data.domain.CurrentChannel;
-import polis.data.repositories.CurrentChannelRepository;
-import polis.keyboards.InlineKeyboard;
-import polis.keyboards.ReplyKeyboard;
+import polis.util.IState;
 import polis.util.State;
 
 import java.util.List;
@@ -33,16 +31,14 @@ public class TgChannelDescription extends Command {
     );
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
-    @Autowired
-    private CurrentChannelRepository currentChannelRepository;
-
-    public TgChannelDescription(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.TgChannelDescription.getIdentifier(), State.TgChannelDescription.getDescription(), inlineKeyboard, replyKeyboard);
+    @Override
+    public IState state() {
+        return State.TgChannelDescription;
     }
 
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
+    public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
+        CurrentChannel currentChannel = context.currentChannel();
         boolean noErrorCondition = currentChannel != null;
         String text = noErrorCondition ? String.format(TELEGRAM_CHANNEL_DESCRIPTION,
                 currentChannel.getChannelUsername(), State.TgSyncGroups.getIdentifier(), State.AddGroup.getIdentifier())

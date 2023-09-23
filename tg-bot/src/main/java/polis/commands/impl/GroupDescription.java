@@ -6,14 +6,12 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
-import polis.data.domain.CurrentAccount;
-import polis.data.domain.CurrentGroup;
-import polis.data.repositories.CurrentAccountRepository;
-import polis.data.repositories.CurrentChannelRepository;
-import polis.data.repositories.CurrentGroupRepository;
+import polis.commands.context.Context;
+import polis.data.domain.Account;
+import polis.data.domain.ChannelGroup;
+import polis.data.domain.CurrentChannel;
 import polis.data.repositories.UserChannelsRepository;
-import polis.keyboards.InlineKeyboard;
-import polis.keyboards.ReplyKeyboard;
+import polis.util.IState;
 import polis.util.State;
 
 import java.util.ArrayList;
@@ -33,33 +31,29 @@ public class GroupDescription extends Command {
             Пожалуйста, вернитесь в описание Телеграмм-канала (/%s) и выберите нужную группу.""";
 
     private int rowsCount = 1;
-    private final List<String> commandsForKeyboard = new ArrayList<>();
-
-    @Autowired
-    private CurrentGroupRepository currentGroupRepository;
-
-    @Autowired
-    private CurrentAccountRepository currentAccountRepository;
-
-    @Autowired
-    private CurrentChannelRepository currentChannelRepository;
+    private static final List<String> commandsForKeyboard = new ArrayList<>();
 
     @Autowired
     private UserChannelsRepository userChannelsRepository;
 
-    public GroupDescription(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.GroupDescription.getIdentifier(), State.GroupDescription.getDescription(), inlineKeyboard, replyKeyboard);
-        this.commandsForKeyboard.add(State.Autoposting.getDescription());
+    static {
+        commandsForKeyboard.add(State.Autoposting.getDescription());
     }
 
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
-        CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
+    public IState state() {
+        return State.GroupDescription;
+    }
+
+    @Override
+    public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
+        ChannelGroup currentGroup = context.currentGroup();
+        Account currentAccount = context.currentAccount();
+        CurrentChannel currentChannel = context.currentChannel();
 
         if (currentGroup != null && currentAccount != null) {
             String groupName = currentGroup.getGroupName();
-            long channelId = currentChannelRepository.getCurrentChannel(chat.getId()).getChannelId();
+            long channelId = currentChannel.getChannelId();
             boolean isAutopostingEnable = userChannelsRepository.isSetAutoposting(chat.getId(), channelId);
             String msgToSend = isAutopostingEnable
                     ? String.format(GROUP_DESCRIPTION_EXTENDED_MSG, groupName, currentGroup.getSocialMedia().getName(),

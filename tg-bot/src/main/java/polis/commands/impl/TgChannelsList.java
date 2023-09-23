@@ -7,10 +7,9 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
 import polis.commands.DescribableCommand;
+import polis.commands.context.Context;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.UserChannelsRepository;
-import polis.keyboards.InlineKeyboard;
-import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.TgChannelCallback;
 import polis.keyboards.callbacks.parsers.TgChannelCallbackParser;
@@ -42,10 +41,6 @@ public class TgChannelsList extends Command implements DescribableCommand {
     @Autowired
     private TgChannelCallbackParser tgChannelCallbackParser;
 
-    public TgChannelsList(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.TgChannelsList.getIdentifier(), State.TgChannelsList.getDescription(), inlineKeyboard, replyKeyboard);
-    }
-
     @Override
     public String helloMessage() {
         return "";
@@ -62,7 +57,12 @@ public class TgChannelsList extends Command implements DescribableCommand {
     }
 
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public IState state() {
+        return State.TgChannelsList;
+    }
+
+    @Override
+    public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
         List<UserChannels> channels = userChannelsRepository.getUserChannels(chat.getId());
         if (channels != null && !channels.isEmpty()) {
             sendAnswerWithInlineKeyboard(

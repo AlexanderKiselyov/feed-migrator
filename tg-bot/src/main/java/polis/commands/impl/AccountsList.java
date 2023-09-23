@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
+import polis.commands.context.Context;
 import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.objects.AccountCallback;
@@ -13,6 +14,7 @@ import polis.keyboards.callbacks.parsers.AccountCallbackParser;
 import polis.data.domain.Account;
 import polis.data.repositories.AccountsRepository;
 import polis.util.Emojis;
+import polis.util.IState;
 import polis.util.State;
 
 import java.util.ArrayList;
@@ -36,12 +38,14 @@ public class AccountsList extends Command {
     @Autowired
     private AccountCallbackParser accountCallbackParser;
 
-    public AccountsList(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.AccountsList.getIdentifier(), State.AccountsList.getDescription(), inlineKeyboard, replyKeyboard);
+
+    @Override
+    public IState state() {
+        return State.AccountsList;
     }
 
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
         List<Account> accounts = accountsRepository.getAccountsForUser(chat.getId());
 
         if (accounts != null && !accounts.isEmpty()) {

@@ -1,19 +1,15 @@
 package polis.commands.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
-import polis.data.domain.CurrentAccount;
+import polis.commands.context.Context;
+import polis.data.domain.Account;
+import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
-import polis.data.domain.CurrentGroup;
-import polis.data.repositories.CurrentAccountRepository;
-import polis.data.repositories.CurrentChannelRepository;
-import polis.data.repositories.CurrentGroupRepository;
-import polis.keyboards.InlineKeyboard;
-import polis.keyboards.ReplyKeyboard;
+import polis.util.IState;
 import polis.util.State;
 
 import java.util.List;
@@ -30,24 +26,16 @@ public class SyncGroupDescription extends Command {
     private static final List<String> KEYBOARD_COMMANDS = List.of(State.Autoposting.getDescription());
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
-    @Autowired
-    private CurrentChannelRepository currentChannelRepository;
-
-    @Autowired
-    private CurrentGroupRepository currentGroupRepository;
-
-    @Autowired
-    private CurrentAccountRepository currentAccountRepository;
-
-    public SyncGroupDescription(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.SyncGroupDescription.getIdentifier(), State.SyncGroupDescription.getDescription(), inlineKeyboard, replyKeyboard);
+    @Override
+    public IState state() {
+        return State.SyncGroupDescription;
     }
 
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
-        CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
-        CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
+    public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
+        Account currentAccount = context.currentAccount();
+        ChannelGroup currentGroup = context.currentGroup();
+        CurrentChannel currentChannel = context.currentChannel();
 
         boolean noErrorCondition = currentChannel != null && currentGroup != null && currentAccount != null;
         String text = noErrorCondition

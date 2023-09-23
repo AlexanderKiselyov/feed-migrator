@@ -3,12 +3,13 @@ package polis.commands.impl;
 import org.springframework.stereotype.Component;
 import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
+import polis.util.IState;
 import polis.util.State;
 
 @Component
 public class SyncOkTg extends SyncGroupWithChannel {
-
-    public SyncOkTg(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.SyncOkTg.getIdentifier(), State.SyncOkTg.getDescription(), inlineKeyboard, replyKeyboard);
+    @Override
+    public IState state() {
+        return State.SyncOkTg;
     }
 }

@@ -6,14 +6,10 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
-import polis.data.domain.CurrentAccount;
+import polis.commands.context.Context;
+import polis.data.domain.Account;
+import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
-import polis.data.domain.CurrentGroup;
-import polis.data.repositories.CurrentAccountRepository;
-import polis.data.repositories.CurrentChannelRepository;
-import polis.data.repositories.CurrentGroupRepository;
-import polis.keyboards.InlineKeyboard;
-import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.objects.YesNoCallback;
 import polis.keyboards.callbacks.parsers.YesNoCallbackParser;
 import polis.util.State;
@@ -43,26 +39,13 @@ public abstract class SyncGroupWithChannel extends Command {
     private static final List<String> KEYBOARD_COMMANDS_IN_ERROR_CASE = List.of(State.MainMenu.getDescription());
 
     @Autowired
-    private CurrentChannelRepository currentChannelRepository;
-
-    @Autowired
-    private CurrentGroupRepository currentGroupRepository;
-
-    @Autowired
-    private CurrentAccountRepository currentAccountRepository;
-
-    @Autowired
     private YesNoCallbackParser yesNoCallbackParser;
 
-    public SyncGroupWithChannel(String commandIdentifier, String description, InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(commandIdentifier, description, inlineKeyboard, replyKeyboard);
-    }
-
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        CurrentAccount currentAccount = currentAccountRepository.getCurrentAccount(chat.getId());
-        CurrentGroup currentGroup = currentGroupRepository.getCurrentGroup(chat.getId());
-        CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
+    public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
+        Account currentAccount = context.currentAccount();
+        ChannelGroup currentGroup = context.currentGroup();
+        CurrentChannel currentChannel = context.currentChannel();
         if (currentChannel != null && currentGroup != null && currentAccount != null) {
             String groupName = currentGroup.getGroupName();
             sendAnswerWithInlineKeyboard(

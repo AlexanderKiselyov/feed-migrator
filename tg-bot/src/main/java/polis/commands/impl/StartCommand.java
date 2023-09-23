@@ -6,8 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
 import polis.commands.DescribableCommand;
-import polis.keyboards.InlineKeyboard;
-import polis.keyboards.ReplyKeyboard;
+import polis.commands.context.Context;
 import polis.util.IState;
 import polis.util.State;
 
@@ -40,12 +39,13 @@ public class StartCommand extends Command implements DescribableCommand {
         );
     }
 
-    public StartCommand(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.Start.getIdentifier(), State.Start.getDescription(), inlineKeyboard, replyKeyboard);
+    @Override
+    public IState state() {
+        return State.Start;
     }
 
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
         sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),

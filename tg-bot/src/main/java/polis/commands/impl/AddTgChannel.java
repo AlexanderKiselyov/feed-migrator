@@ -6,8 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
 import polis.commands.DescribableCommand;
-import polis.keyboards.InlineKeyboard;
-import polis.keyboards.ReplyKeyboard;
+import polis.commands.context.Context;
 import polis.util.IState;
 import polis.util.State;
 
@@ -23,10 +22,6 @@ public class AddTgChannel extends Command implements DescribableCommand {
     private static final int ROWS_COUNT = 1;
     private static final List<String> KEYBOARD_COMMANDS = List.of(State.MainMenu.getDescription());
 
-    public AddTgChannel(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.AddTgChannel.getIdentifier(), State.AddTgChannel.getDescription(), inlineKeyboard, replyKeyboard);
-    }
-
     @Override
     public String helloMessage() {
         return ADD_TELEGRAM_CHANNEL;
@@ -38,7 +33,12 @@ public class AddTgChannel extends Command implements DescribableCommand {
     }
 
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public IState state() {
+        return State.AddTgChannel;
+    }
+
+    @Override
+    public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
         sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),

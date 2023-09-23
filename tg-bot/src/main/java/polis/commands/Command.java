@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import polis.commands.context.Context;
 import polis.commands.context.ContextStorage;
 import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
@@ -43,7 +44,7 @@ public abstract class Command implements IBotCommand {
 
     public abstract IState state();
 
-    protected abstract void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments);
+    protected abstract void doExecute(AbsSender absSender, User user, Chat chat, Context context);
 
     @Override
     public String getCommandIdentifier() {
@@ -56,12 +57,13 @@ public abstract class Command implements IBotCommand {
     }
 
     public void processMessage(AbsSender absSender, Message message, String[] arguments) {
-        doExecute(absSender, message.getFrom(), message.getChat(), arguments);
+        execute(absSender, message.getFrom(), message.getChat(), arguments);
     }
 
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        contextStorage.getContext(user.getId()).resetCurrentState(state());
-        doExecute(absSender, user, chat, arguments);
+        Context context = contextStorage.getContext(user.getId());
+        context.resetCurrentState(state());
+        doExecute(absSender, user, chat, context);
     }
 
     private void setAndSendMessage(AbsSender absSender, Long chatId, String text, SendMessage message,

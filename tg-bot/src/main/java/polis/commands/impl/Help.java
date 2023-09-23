@@ -6,8 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
 import polis.commands.DescribableCommand;
-import polis.keyboards.InlineKeyboard;
-import polis.keyboards.ReplyKeyboard;
+import polis.commands.context.Context;
 import polis.util.IState;
 import polis.util.State;
 
@@ -75,17 +74,15 @@ public class Help extends Command implements DescribableCommand {
             + """
             осуществляется по причине ограничений посещаемости таких групп и каналов.</b>""";
 
-    public Help(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.Help.getIdentifier(), State.Help.getDescription(), inlineKeyboard, replyKeyboard);
-    }
 
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    protected void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
         sendAnswerWithOnlyBackButton(
                 absSender,
                 chat.getId(),
                 HELP,
-                loggingInfo(user.getUserName()));
+                loggingInfo(user.getUserName())
+        );
     }
 
     @Override
@@ -97,4 +94,10 @@ public class Help extends Command implements DescribableCommand {
     public List<IState> nextPossibleCommands() {
         return List.of(State.MainMenu, State.Start);
     }
+
+    @Override
+    public IState state() {
+        return State.Help;
+    }
+
 }

@@ -6,8 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
 import polis.commands.DescribableCommand;
-import polis.keyboards.InlineKeyboard;
-import polis.keyboards.ReplyKeyboard;
+import polis.commands.context.Context;
 import polis.util.IState;
 import polis.util.State;
 
@@ -43,12 +42,8 @@ public class MainMenu extends Command implements DescribableCommand {
             State.Help.getDescription()
     );
 
-    public MainMenu(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.MainMenu.getIdentifier(), State.MainMenu.getDescription(), inlineKeyboard, replyKeyboard);
-    }
-
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+    public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
         sendAnswerWithReplyKeyboard(
                 absSender,
                 chat.getId(),
@@ -56,5 +51,10 @@ public class MainMenu extends Command implements DescribableCommand {
                 ROWS_COUNT,
                 KEYBOARD_COMMANDS,
                 loggingInfo(user.getUserName()));
+    }
+
+    @Override
+    public IState state() {
+        return State.MainMenu;
     }
 }

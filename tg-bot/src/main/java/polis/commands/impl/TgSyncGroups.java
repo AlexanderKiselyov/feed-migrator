@@ -6,15 +6,14 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
+import polis.commands.context.Context;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.ChannelGroupsRepository;
-import polis.data.repositories.CurrentChannelRepository;
-import polis.keyboards.InlineKeyboard;
-import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.objects.GroupCallback;
 import polis.keyboards.callbacks.parsers.GroupCallbackParser;
 import polis.util.Emojis;
+import polis.util.IState;
 import polis.util.State;
 
 import java.util.ArrayList;
@@ -35,21 +34,19 @@ public class TgSyncGroups extends Command {
             State.TgChannelDescription.getDescription());
 
     @Autowired
-    private CurrentChannelRepository currentChannelRepository;
-
-    @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
 
     @Autowired
     private GroupCallbackParser groupCallbackParser;
 
-    public TgSyncGroups(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
-        super(State.TgSyncGroups.getIdentifier(), State.TgChannelsList.getDescription(), inlineKeyboard, replyKeyboard);
+    @Override
+    public IState state() {
+        return State.TgSyncGroups;
     }
 
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        CurrentChannel currentChannel = currentChannelRepository.getCurrentChannel(chat.getId());
+    public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
+        CurrentChannel currentChannel = context.currentChannel();
 
         if (currentChannel != null) {
             List<ChannelGroup> channelGroups =
