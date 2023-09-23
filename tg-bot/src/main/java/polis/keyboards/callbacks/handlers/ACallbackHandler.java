@@ -9,18 +9,21 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import polis.commands.ContextFullCommand;
+import polis.commands.ContextFullCommandRegistry;
 import polis.keyboards.callbacks.CallbackHandler;
 import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.objects.Callback;
+import polis.util.IState;
 
 @Component
 public abstract class ACallbackHandler<CB extends Callback> implements CallbackHandler<CB> {
     @Lazy
     @Autowired
-    protected ICommandRegistry commandRegistry;
-    @Lazy
-    @Autowired
     protected AbsSender sender;
+
+    @Autowired
+    protected ContextFullCommandRegistry contextFullCommandRegistry;
 
     protected CallbackParser<CB> callbackParser;
 
@@ -43,7 +46,7 @@ public abstract class ACallbackHandler<CB extends Callback> implements CallbackH
         sender.execute(lastMessage);
     }
 
-    protected IBotCommand getRegisteredCommand(String identifier) {
-        return commandRegistry.getRegisteredCommand(identifier);
+    protected ContextFullCommand getRegisteredCommand(IState state) {
+        return contextFullCommandRegistry.getRegisteredCommand(state.getIdentifier());
     }
 }

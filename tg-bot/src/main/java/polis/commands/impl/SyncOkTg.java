@@ -1,4 +1,4 @@
-package polis.commands.contextfull;
+package polis.commands.impl;
 
 import org.springframework.stereotype.Component;
 import polis.keyboards.InlineKeyboard;

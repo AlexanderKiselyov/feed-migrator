@@ -25,7 +25,7 @@ import polis.vk.api.VkAuthorizator;
 
 import java.util.Objects;
 
-import static polis.commands.contextfull.AddOkGroup.SAME_SOCIAL_MEDIA_MSG;
+import static polis.commands.impl.AddOkGroup.SAME_SOCIAL_MEDIA_MSG;
 import static polis.commands.Command.GROUP_NAME_NOT_FOUND;
 
 @Component

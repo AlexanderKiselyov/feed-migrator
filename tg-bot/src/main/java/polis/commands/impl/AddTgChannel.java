@@ -1,21 +1,20 @@
-package polis.commands.contextless;
+package polis.commands.impl;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
-import polis.commands.ContextLessCommand;
+import polis.commands.DescribableCommand;
 import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
 import polis.util.IState;
 import polis.util.State;
 
-import java.util.Collections;
 import java.util.List;
 
 @Component
-public class AddTgChannel extends Command implements ContextLessCommand {
+public class AddTgChannel extends Command implements DescribableCommand {
     private static final String ADD_TELEGRAM_CHANNEL = """
             Для добавления нового канала необходимо выполнить следующие действия:
             1. Добавить бота в администраторы Вашего Телеграмм-канала.

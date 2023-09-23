@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import polis.commands.ContextFullCommandRegistry;
 import polis.data.domain.CurrentChannel;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.ChannelGroupsRepository;
@@ -30,6 +31,8 @@ public class TgChannelCallbackHandler extends ACallbackHandler<TgChannelCallback
     private CurrentChannelRepository currentChannelRepository;
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
+    @Autowired
+    private ContextFullCommandRegistry contextFullCommandRegistry;
 
     public TgChannelCallbackHandler(TgChannelCallbackParser callbackParser) {
         this.callbackParser = callbackParser;
@@ -77,8 +80,8 @@ public class TgChannelCallbackHandler extends ACallbackHandler<TgChannelCallback
                 currentChannelRepository.insertCurrentChannel(new CurrentChannel(userChatId,
                         currentTelegramChannel.getChannelId(), currentTelegramChannel.getChannelUsername()));
                 deleteLastMessage(message);
-                getRegisteredCommand(State.TgChannelDescription.getIdentifier())
-                        .processMessage(sender, message, null);
+                getRegisteredCommand(State.TgChannelDescription)
+                        .execute(sender, message, );
             } else {
                 LOGGER.error(String.format("Cannot find such a telegram channel id: %s", channelId));
             }

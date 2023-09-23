@@ -1,21 +1,20 @@
-package polis.commands.contextless;
+package polis.commands.impl;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
-import polis.commands.ContextLessCommand;
+import polis.commands.DescribableCommand;
 import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
 import polis.util.IState;
 import polis.util.State;
 
-import java.util.Collection;
 import java.util.List;
 
 @Component
-public class Help extends Command implements ContextLessCommand {
+public class Help extends Command implements DescribableCommand {
     private static final String HELP = """
             <b>Feed-Migrator</b> - бот авто-постинга в Телеграмме.
             Бот позволяет подключить несколько аккаунтов с группами в социальных сетях ВКонтакте и Одноклассники к"""

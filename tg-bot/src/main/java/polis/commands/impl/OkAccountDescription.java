@@ -1,4 +1,4 @@
-package polis.commands.contextfull;
+package polis.commands.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

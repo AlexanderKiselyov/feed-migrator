@@ -13,7 +13,7 @@ import java.util.List;
  * - Знает о командах, к которым возможен дальнейший переход.
  * - Умеет кратко описать команды, к которым возможен дальнейший переход, что будет при переходе к ним и т.п.
  */
-public interface ContextLessCommand extends IBotCommand {
+public interface DescribableCommand extends IBotCommand {
     List<IState> TRANSITION_TO_NON_COMMAND = Collections.emptyList();
     List<IState> TRANSITION_WITH_CALLBACK = Collections.emptyList();
 

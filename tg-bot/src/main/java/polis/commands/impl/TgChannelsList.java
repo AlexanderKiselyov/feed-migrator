@@ -1,4 +1,4 @@
-package polis.commands.contextless;
+package polis.commands.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
-import polis.commands.ContextLessCommand;
+import polis.commands.DescribableCommand;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.InlineKeyboard;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class TgChannelsList extends Command implements ContextLessCommand {
+public class TgChannelsList extends Command implements DescribableCommand {
     private static final String TG_CHANNELS_LIST_MSG = """
             Список добавленных Телеграмм-каналов.
             Нажмите на Телеграмм-канал, чтобы выбрать определенный.
