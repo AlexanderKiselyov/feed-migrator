@@ -17,19 +17,16 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.NonCommand;
-import polis.data.domain.CurrentState;
-import polis.data.repositories.CurrentStateRepository;
+import polis.commands.context.ContextStorage;
 import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.CallbacksHandlerHelper;
 import polis.posting.IPostsProcessor;
 import polis.util.IState;
 import polis.util.State;
-import polis.util.Substate;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static polis.commands.NonCommand.VK_GROUP_ADDED;
@@ -77,9 +74,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private Collection<IBotCommand> commands;
 
     @Autowired
-    private CurrentStateRepository currentStateRepository;
-
-    @Autowired
     private NonCommand nonCommand;
 
     @Autowired
@@ -90,6 +84,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
 
     @Autowired
     private ReplyKeyboard replyKeyboard;
+
+    @Autowired
+    private ContextStorage contextStorage;
 
 
     public Bot(
@@ -145,14 +142,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             String s = messageDebugInfo(message);
             LOGGER.debug(s);
         }
-        if (message.getText() == null) {
-            return;
-        }
-        State currentState = State.findState(message.getText().replace("/", ""));
-        if (currentState != null) {
-            currentStateRepository.insertCurrentState(new CurrentState(message.getChatId(),
-                    currentState.getIdentifier()));
-        }
     }
 
     @Override
@@ -191,37 +180,24 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                 : State.findStateByDescription(messageText);
         if (customCommand != null) {
             IBotCommand command = getRegisteredCommand(customCommand.getIdentifier());
-            currentStateRepository.insertCurrentState(new CurrentState(chatId,
-                    Objects.requireNonNull(State.findState(command.getCommandIdentifier())).getIdentifier()));
             command.processMessage(this, msg, null);
             return;
         }
 
-        CurrentState currentState = currentStateRepository.getCurrentState(chatId);
+        IState currentState = contextStorage.getContext(msg.getChatId()).currentState();
+
         if (messageText.equals(GO_BACK_BUTTON_TEXT) && currentState != null) {
-            IState previousState = State.getPrevState(currentState.getState());
+            IState previousState = State.getPrevState(currentState);
             if (previousState == null) {
-                LOGGER.error("Previous state = null, tmp state = {}", currentStateRepository.getCurrentState(chatId)
-                        .getState().getIdentifier());
+                LOGGER.error("Previous state = null, tmp state = {}", currentState.getIdentifier());
                 return;
             }
-            currentStateRepository.insertCurrentState(new CurrentState(chatId, previousState.getIdentifier()));
             getRegisteredCommand(previousState.getIdentifier()).processMessage(this, msg, null);
             return;
         }
 
         if (currentState != null) {
-            IState currState = currentState.getState();
-            if (currState instanceof State) {
-                currState = Substate.nextSubstate(currState);
-                currentStateRepository.insertCurrentState(new CurrentState(chatId, currState.getIdentifier()));
-            }
-
-            NonCommand.AnswerPair answer = nonCommand.nonCommandExecute(messageText, chatId, currState);
-            if (!answer.getError()) {
-                currentStateRepository.insertCurrentState(new CurrentState(chatId,
-                        Substate.nextSubstate(currState).getIdentifier()));
-            }
+            NonCommand.AnswerPair answer = nonCommand.nonCommandExecute(messageText, chatId);
             sendAnswer(chatId, getUserName(msg), answer.getAnswer());
         }
 
