@@ -1,8 +1,10 @@
 package polis.commands;
 
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
+import polis.keyboards.callbacks.CallbackType;
 import polis.util.IState;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -12,6 +14,9 @@ import java.util.List;
  * - Умеет кратко описать команды, к которым возможен дальнейший переход, что будет при переходе к ним и т.п.
  */
 public interface ContextLessCommand extends IBotCommand {
+    List<IState> TRANSITION_TO_NON_COMMAND = Collections.emptyList();
+    List<IState> TRANSITION_WITH_CALLBACK = Collections.emptyList();
+
     String helloMessage();
 
     /**
@@ -28,6 +33,10 @@ public interface ContextLessCommand extends IBotCommand {
         return helloMessage() + "\n" + unformattedMessage.formatted(
                 nextCommandsIdentifiers()
         );
+    }
+
+    default CallbackType callbackType() {
+        return null;
     }
 
     default List<String> nextCommandsIdentifiers() {

@@ -1,4 +1,4 @@
-package polis.commands.contextfull;
+package polis.commands.contextless;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -6,20 +6,23 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
+import polis.commands.ContextLessCommand;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.UserChannelsRepository;
 import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
+import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.TgChannelCallback;
 import polis.keyboards.callbacks.parsers.TgChannelCallbackParser;
 import polis.util.Emojis;
+import polis.util.IState;
 import polis.util.State;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class TgChannelsList extends Command {
+public class TgChannelsList extends Command implements ContextLessCommand {
     private static final String TG_CHANNELS_LIST_MSG = """
             Список добавленных Телеграмм-каналов.
             Нажмите на Телеграмм-канал, чтобы выбрать определенный.
@@ -41,6 +44,21 @@ public class TgChannelsList extends Command {
 
     public TgChannelsList(InlineKeyboard inlineKeyboard, ReplyKeyboard replyKeyboard) {
         super(State.TgChannelsList.getIdentifier(), State.TgChannelsList.getDescription(), inlineKeyboard, replyKeyboard);
+    }
+
+    @Override
+    public String helloMessage() {
+        return "";
+    }
+
+    @Override
+    public List<IState> nextPossibleCommands() {
+        return TRANSITION_WITH_CALLBACK;
+    }
+
+    @Override
+    public CallbackType callbackType() {
+        return CallbackType.TG_CHANNEL_CHOSEN;
     }
 
     @Override
