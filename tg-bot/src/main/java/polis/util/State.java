@@ -53,11 +53,7 @@ public enum State implements IState {
             Map.entry(AddVkAccount, AddGroup),
             Map.entry(VkAccountDescription, AddGroup),
             Map.entry(AddVkGroup, VkAccountDescription),
-            Map.entry(SyncVkTg, VkAccountDescription),
-            Map.entry(Substate.AddOkAccount_AuthCode, AddGroup),
-            Map.entry(Substate.AddOkGroup_AddGroup, AddOkGroup),
-            Map.entry(Substate.AddVkAccount_AccessToken, AddGroup),
-            Map.entry(Substate.AddVkGroup_AddGroup, AddVkGroup)
+            Map.entry(SyncVkTg, VkAccountDescription)
     );
 
     State(String identifier, String description) {

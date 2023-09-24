@@ -14,13 +14,12 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.commands.NonCommand;
 import polis.commands.context.Context;
 import polis.commands.context.ContextStorage;
 import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.CallbacksHandlerHelper;
+import polis.keyboards.callbacks.handlers.replykeyboard.AddVkGroupHandler;
 import polis.posting.IPostsProcessor;
 import polis.util.IState;
 import polis.util.State;
@@ -30,9 +29,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static polis.commands.NonCommand.VK_GROUP_ADDED;
-import static polis.datacheck.OkDataCheck.*;
-import static polis.datacheck.VkDataCheck.*;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
+import static polis.datacheck.OkDataCheck.OK_GROUP_ADDED;
+import static polis.datacheck.OkDataCheck.SAME_OK_ACCOUNT;
+import static polis.datacheck.OkDataCheck.USER_HAS_NO_RIGHTS;
+import static polis.datacheck.OkDataCheck.WRONG_LINK_OR_USER_HAS_NO_RIGHTS;
+import static polis.datacheck.VkDataCheck.SAME_VK_ACCOUNT;
+import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_ANSWER;
+import static polis.datacheck.VkDataCheck.VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 import static polis.telegram.TelegramDataCheck.*;
 
@@ -46,7 +52,8 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private static final String AUTOPOSTING_ENABLE_AND_NOTIFICATIONS = "Функция автопостинга включена."
             + TURN_ON_NOTIFICATIONS_MSG;
     private static final String DEBUG_INFO_TEXT = "Update from ";
-    private static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.ofEntries(
+
+    public static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.ofEntries(
             Map.entry(String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
                     List.of(State.OkAccountDescription.getDescription())),
             Map.entry(String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()),
@@ -64,7 +71,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             Map.entry(AUTOPOSTING_ENABLE_AND_NOTIFICATIONS, List.of(State.Notifications.getDescription())),
             Map.entry(String.format(VK_AUTH_STATE_ANSWER, State.VkAccountDescription.getIdentifier()),
                     List.of(State.VkAccountDescription.getDescription())),
-            Map.entry(String.format(VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()),
+            Map.entry(String.format(AddVkGroupHandler.VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()),
                     List.of(State.SyncVkTg.getDescription()))
     );
 
@@ -73,9 +80,6 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
 
     @Autowired
     private Collection<IBotCommand> commands;
-
-    @Autowired
-    private NonCommand nonCommand;
 
     @Autowired
     IPostsProcessor postsProcessor;
@@ -173,12 +177,12 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             return;
         }
 
-        Long chatId = msg.getChatId();
         String messageText = msg.getText();
 
         State customCommand = messageText.startsWith("/")
                 ? State.findState(messageText.replace("/", ""))
                 : State.findStateByDescription(messageText);
+
         if (customCommand != null) {
             IBotCommand command = getRegisteredCommand(customCommand.getIdentifier());
             command.processMessage(this, msg, null);
@@ -199,17 +203,13 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             return;
         }
 
-        if (currentState != null) {
-            NonCommand.AnswerPair answer = nonCommand.nonCommandExecute(messageText, msg);
-            sendAnswer(chatId, getUserName(msg), answer.getAnswer());
+        try {
+            callbacksHandlerHelper.handleReplyKeyboardMessage(msg, messageText, context.currentState());
+        } catch (TelegramApiException e) {
+            //TODO LOG or not throw
+            throw new RuntimeException(e);
         }
 
-    }
-
-    private String getUserName(Message msg) {
-        User user = msg.getFrom();
-        String userName = user.getUserName();
-        return (userName != null) ? userName : String.format("%s %s", user.getLastName(), user.getFirstName());
     }
 
     void sendAnswer(Long chatId, String text) {
