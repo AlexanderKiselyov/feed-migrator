@@ -1,4 +1,4 @@
-package polis.keyboards.callbacks.handlers;
+package polis.keyboards.callbacks.handlers.inlinekeyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -11,7 +11,6 @@ import polis.data.domain.UserChannels;
 import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.UserChannelsRepository;
-import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.YesNoCallback;
 import polis.keyboards.callbacks.parsers.YesNoCallbackParser;
@@ -21,7 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-public class YesNoCallbackHandler extends ACallbackHandler<YesNoCallback> {
+public class YesNoCallbackHandler extends AReplyKeyboardCbHandler<YesNoCallback> {
     @Autowired
     private AccountsRepository accountsRepository;
     @Autowired
@@ -36,11 +35,6 @@ public class YesNoCallbackHandler extends ACallbackHandler<YesNoCallback> {
     @Override
     public CallbackType callbackType() {
         return CallbackType.YES_NO_ANSWER;
-    }
-
-    @Override
-    protected CallbackParser<YesNoCallback> callbackParser() {
-        return callbackParser;
     }
 
     @Override

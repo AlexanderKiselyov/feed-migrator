@@ -1,4 +1,4 @@
-package polis.keyboards.callbacks.handlers;
+package polis.keyboards.callbacks.handlers.inlinekeyboard;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +10,6 @@ import polis.commands.context.Context;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
 import polis.data.repositories.ChannelGroupsRepository;
-import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.GroupCallback;
 import polis.keyboards.callbacks.parsers.GroupCallbackParser;
@@ -19,7 +18,7 @@ import polis.util.State;
 import java.util.Objects;
 
 @Component
-public class GroupCallbackHandler extends ACallbackHandler<GroupCallback> {
+public class GroupCallbackHandler extends AReplyKeyboardCbHandler<GroupCallback> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupCallbackHandler.class);
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
@@ -31,11 +30,6 @@ public class GroupCallbackHandler extends ACallbackHandler<GroupCallback> {
     @Override
     public CallbackType callbackType() {
         return CallbackType.GROUP_CHOSEN;
-    }
-
-    @Override
-    protected CallbackParser<GroupCallback> callbackParser() {
-        return callbackParser;
     }
 
     @Override

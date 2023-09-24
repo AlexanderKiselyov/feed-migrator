@@ -1,4 +1,4 @@
-package polis.keyboards.callbacks.handlers;
+package polis.keyboards.callbacks.handlers.inlinekeyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -8,14 +8,13 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.TgNotificator;
 import polis.commands.context.Context;
 import polis.data.repositories.UserChannelsRepository;
-import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.NotificationsCallback;
 import polis.keyboards.callbacks.parsers.NotificationCallbackParser;
 import polis.util.State;
 
 @Component
-public class NotificationsCallbackHandler extends ACallbackHandler<NotificationsCallback> {
+public class NotificationsCallbackHandler extends AReplyKeyboardCbHandler<NotificationsCallback> {
     private static final String NOTIFICATIONS_TEXT = "Уведомления %s.";
     private static final String NOTIFICATIONS_ENABLED = "включены";
     private static final String NOTIFICATIONS_DISABLED = "выключены";
@@ -34,11 +33,6 @@ public class NotificationsCallbackHandler extends ACallbackHandler<Notifications
     @Override
     public CallbackType callbackType() {
         return CallbackType.NOTIFICATIONS;
-    }
-
-    @Override
-    protected CallbackParser<NotificationsCallback> callbackParser() {
-        return callbackParser;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package polis.keyboards.callbacks.handlers;
+package polis.keyboards.callbacks.handlers.inlinekeyboard;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,6 @@ import polis.data.domain.CurrentChannel;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.UserChannelsRepository;
-import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.TgChannelCallback;
 import polis.keyboards.callbacks.parsers.TgChannelCallbackParser;
@@ -21,7 +20,7 @@ import polis.util.State;
 import java.util.List;
 
 @Component
-public class TgChannelCallbackHandler extends ACallbackHandler<TgChannelCallback> {
+public class TgChannelCallbackHandler extends AReplyKeyboardCbHandler<TgChannelCallback> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TgChannelCallbackHandler.class);
 
     @Autowired
@@ -36,11 +35,6 @@ public class TgChannelCallbackHandler extends ACallbackHandler<TgChannelCallback
     @Override
     public CallbackType callbackType() {
         return CallbackType.TG_CHANNEL_CHOSEN;
-    }
-
-    @Override
-    protected CallbackParser<TgChannelCallback> callbackParser() {
-        return callbackParser;
     }
 
     @Override

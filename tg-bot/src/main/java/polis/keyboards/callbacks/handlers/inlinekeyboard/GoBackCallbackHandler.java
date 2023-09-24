@@ -1,4 +1,4 @@
-package polis.keyboards.callbacks.handlers;
+package polis.keyboards.callbacks.handlers.inlinekeyboard;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.context.Context;
-import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.GoBackCallback;
 import polis.keyboards.callbacks.parsers.GoBackCallbackParser;
@@ -14,7 +13,7 @@ import polis.util.IState;
 import polis.util.State;
 
 @Component
-public class GoBackCallbackHandler extends ACallbackHandler<GoBackCallback> {
+public class GoBackCallbackHandler extends AReplyKeyboardCbHandler<GoBackCallback> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GoBackCallbackHandler.class);
 
     public GoBackCallbackHandler(GoBackCallbackParser callbackParser) {
@@ -24,11 +23,6 @@ public class GoBackCallbackHandler extends ACallbackHandler<GoBackCallback> {
     @Override
     public CallbackType callbackType() {
         return CallbackType.GO_BACK;
-    }
-
-    @Override
-    protected CallbackParser<GoBackCallback> callbackParser() {
-        return callbackParser;
     }
 
     @Override

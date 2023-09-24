@@ -1,4 +1,4 @@
-package polis.keyboards.callbacks.handlers;
+package polis.keyboards.callbacks.handlers.inlinekeyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -10,7 +10,6 @@ import polis.data.domain.UserChannels;
 import polis.data.repositories.AccountsRepository;
 import polis.data.repositories.ChannelGroupsRepository;
 import polis.data.repositories.UserChannelsRepository;
-import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.AccountCallback;
 import polis.keyboards.callbacks.parsers.AccountCallbackParser;
@@ -21,7 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-public class AccountCallbackHandler extends ACallbackHandler<AccountCallback> {
+public class AccountCallbackHandler extends AReplyKeyboardCbHandler<AccountCallback> {
     @Autowired
     private AccountsRepository accountsRepository;
     @Autowired
@@ -36,11 +35,6 @@ public class AccountCallbackHandler extends ACallbackHandler<AccountCallback> {
     @Override
     public CallbackType callbackType() {
         return CallbackType.ACCOUNT_CHOSEN;
-    }
-
-    @Override
-    protected CallbackParser<AccountCallback> callbackParser() {
-        return callbackParser;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package polis.keyboards.callbacks.handlers;
+package polis.keyboards.callbacks.handlers.inlinekeyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -11,13 +11,13 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.context.Context;
 import polis.commands.context.ContextStorage;
-import polis.keyboards.callbacks.CallbackHandler;
 import polis.keyboards.callbacks.CallbackParser;
+import polis.keyboards.callbacks.handlers.InlineKeyboardCallbackHandler;
 import polis.keyboards.callbacks.objects.Callback;
 import polis.util.IState;
 
 @Component
-public abstract class ACallbackHandler<CB extends Callback> implements CallbackHandler<CB> {
+public abstract class AReplyKeyboardCbHandler<CB extends Callback> implements InlineKeyboardCallbackHandler<CB> {
 
     @Lazy
     @Autowired
@@ -32,11 +32,20 @@ public abstract class ACallbackHandler<CB extends Callback> implements CallbackH
 
     protected CallbackParser<CB> callbackParser;
 
-    protected abstract CallbackParser<CB> callbackParser();
+    @Override
+    public CallbackParser<CB> callbackParser() {
+        return callbackParser;
+    }
 
     protected abstract void handleCallback(long userChatId, Message message, CB callback, Context context) throws TelegramApiException;
 
     @Override
+    public void handleCallback(Message message, CB callback) throws TelegramApiException {
+        Long userChatId = message.getChatId();
+        handleCallback(userChatId, message, callback, contextStorage.getContext(userChatId));
+    }
+
+    //@Override
     public void handleCallback(Message message, String callbackData) throws TelegramApiException {
         CallbackParser<CB> parser = callbackParser();
         CB callback = parser.fromText(callbackData);
