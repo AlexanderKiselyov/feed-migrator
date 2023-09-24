@@ -26,12 +26,10 @@ public class CallbacksHandlerHelper {
             List<InlineKeyboardCallbackHandler<?>> handlers,
             List<ReplyKeyboardCallbackHandler> replyKeyboardCallbackHandlers
     ) {
-        this.handlersByType = handlers.stream()
-                .filter(handler -> handler.callbackType() != CallbackType.REPLY_KEYBOARD_MESSAGE)
-                .collect(Collectors.toMap(
-                        handler -> handler.callbackType().stringKey,
-                        Function.identity()
-                ));
+        this.handlersByType = handlers.stream().collect(Collectors.toMap(
+                handler -> handler.callbackType().stringKey,
+                Function.identity()
+        ));
         this.handlersByStateIdentifier = replyKeyboardCallbackHandlers.stream().collect(Collectors.toMap(
                 handler -> handler.state().getIdentifier(),
                 Function.identity()
