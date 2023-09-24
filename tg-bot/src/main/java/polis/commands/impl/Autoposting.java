@@ -23,7 +23,7 @@ public class Autoposting extends Command {
             Функция автопостинга позволяет автоматически публиковать новый пост из Телеграмм-канала в группу.
             Включить данную функцию для Телеграмм-канала <b>%s</b> и группы <b>%s (%s)</b>?""";
     private static final String NO_CURRENT_TG_CHANNEL_MSG = """
-            Телеграмм-канал не был выбран.
+            По какой-то причине не хватает информации о выбранной группе или телеграмм каналу
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
 
     @Autowired
@@ -39,29 +39,30 @@ public class Autoposting extends Command {
 
     @Override
     public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
-        Account currentAccount = context.currentAccount();
         ChannelGroup currentGroup = context.currentGroup();
         CurrentChannel currentChannel = context.currentChannel();
 
-        if (currentChannel != null && currentAccount != null && currentGroup != null) {
-            String groupName = currentGroup.getGroupName();
-            sendAnswerWithInlineKeyboard(
+        if (currentChannel == null || currentGroup == null) {
+            sendAnswerWithReplyKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    String.format(AUTOPOSTING_MSG, currentChannel.getChannelUsername(), groupName,
-                            currentGroup.getSocialMedia().getName()),
+                    String.format(NO_CURRENT_TG_CHANNEL_MSG, State.MainMenu.getIdentifier()),
                     ROWS_COUNT,
-                    getButtonsForAutopostingOptions(chat.getId(), currentChannel.getChannelId()),
-                    loggingInfo(user.getUserName()));
+                    KEYBOARD_COMMANDS_IN_ERROR_CASE,
+                    loggingInfo(user.getUserName())
+            );
             return;
         }
-        sendAnswerWithReplyKeyboardAndBackButton(
+        String groupName = currentGroup.getGroupName();
+        sendAnswerWithInlineKeyboard(
                 absSender,
                 chat.getId(),
-                String.format(NO_CURRENT_TG_CHANNEL_MSG, State.MainMenu.getIdentifier()),
+                String.format(AUTOPOSTING_MSG, currentChannel.getChannelUsername(), groupName,
+                        currentGroup.getSocialMedia().getName()),
                 ROWS_COUNT,
-                KEYBOARD_COMMANDS_IN_ERROR_CASE,
-                loggingInfo(user.getUserName()));
+                getButtonsForAutopostingOptions(chat.getId(), currentChannel.getChannelId()),
+                loggingInfo(user.getUserName())
+        );
     }
 
     private List<String> getButtonsForAutopostingOptions(long chatId, long channelId) {

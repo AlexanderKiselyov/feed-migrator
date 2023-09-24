@@ -23,7 +23,7 @@ public class Notifications extends Command {
             Включите уведомления, чтобы получать информацию о публикации Ваших постов.
             Включить данную функцию для Телеграмм-канала <b>%s</b> и группы <b>%s (%s)</b>?""";
     private static final String NO_CURRENT_TG_CHANNEL = """
-            Телеграмм-канал не был выбран.
+            По какой-то причине не хватает информации о выбранной группе или телеграмм каналу
             Пожалуйста, вернитесь в главное меню (/%s) и следуйте дальнейшим инструкциям.""";
 
     @Autowired
@@ -39,30 +39,30 @@ public class Notifications extends Command {
 
     @Override
     public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
-        Account currentAccount = context.currentAccount();
         ChannelGroup currentGroup = context.currentGroup();
         CurrentChannel currentChannel = context.currentChannel();
-
-        if (currentChannel != null && currentGroup != null && currentAccount != null) {
-            String groupName = currentGroup.getGroupName();
-            String notificationsEnable = String.format(NOTIFICATIONS_MSG, currentChannel.getChannelUsername(),
-                    groupName, currentGroup.getGroupName());
-            sendAnswerWithInlineKeyboard(
+        if (currentChannel == null || currentGroup == null) {
+            sendAnswerWithReplyKeyboardAndBackButton(
                     absSender,
                     chat.getId(),
-                    notificationsEnable,
+                    String.format(NO_CURRENT_TG_CHANNEL, State.MainMenu.getIdentifier()),
                     ROWS_COUNT,
-                    getButtonsForNotificationsOptions(currentChannel.getChannelId()),
-                    loggingInfo(user.getUserName()));
+                    KEYBOARD_COMMANDS_IN_ERROR_CASE,
+                    loggingInfo(user.getUserName())
+            );
             return;
         }
-        sendAnswerWithReplyKeyboardAndBackButton(
+        String groupName = currentGroup.getGroupName();
+        String notificationsEnable = String.format(NOTIFICATIONS_MSG, currentChannel.getChannelUsername(),
+                groupName, currentGroup.getGroupName());
+        sendAnswerWithInlineKeyboard(
                 absSender,
                 chat.getId(),
-                String.format(NO_CURRENT_TG_CHANNEL, State.MainMenu.getIdentifier()),
+                notificationsEnable,
                 ROWS_COUNT,
-                KEYBOARD_COMMANDS_IN_ERROR_CASE,
-                loggingInfo(user.getUserName()));
+                getButtonsForNotificationsOptions(currentChannel.getChannelId()),
+                loggingInfo(user.getUserName())
+        );
     }
 
     private List<String> getButtonsForNotificationsOptions(Long id) {

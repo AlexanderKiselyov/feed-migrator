@@ -48,39 +48,40 @@ public class GroupDescription extends Command {
     @Override
     public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
         ChannelGroup currentGroup = context.currentGroup();
-        Account currentAccount = context.currentAccount();
         CurrentChannel currentChannel = context.currentChannel();
 
-        if (currentGroup != null && currentAccount != null) {
-            String groupName = currentGroup.getGroupName();
-            long channelId = currentChannel.getChannelId();
-            boolean isAutopostingEnable = userChannelsRepository.isSetAutoposting(chat.getId(), channelId);
-            String msgToSend = isAutopostingEnable
-                    ? String.format(GROUP_DESCRIPTION_EXTENDED_MSG, groupName, currentGroup.getSocialMedia().getName(),
-                            State.Autoposting.getIdentifier(), State.Notifications.getIdentifier())
-                    : String.format(GROUP_DESCRIPTION_MSG, groupName, currentGroup.getSocialMedia().getName(),
-                            State.Autoposting.getIdentifier());
-            if (isAutopostingEnable && !commandsForKeyboard.contains(State.Notifications.getDescription())) {
-                commandsForKeyboard.add(State.Notifications.getDescription());
-                rowsCount++;
-            } else if (!isAutopostingEnable && commandsForKeyboard.contains(State.Notifications.getDescription())) {
-                commandsForKeyboard.remove(State.Notifications.getDescription());
-                rowsCount--;
-            }
-
-            sendAnswerWithReplyKeyboardAndBackButton(
+        if (currentGroup == null) {
+            sendAnswerWithOnlyBackButton(
                     absSender,
                     chat.getId(),
-                    msgToSend,
-                    rowsCount,
-                    commandsForKeyboard,
-                    loggingInfo(user.getUserName()));
+                    String.format(NO_VALID_GROUP_MSG, State.TgChannelDescription.getIdentifier()),
+                    loggingInfo(user.getUserName())
+            );
             return;
         }
-        sendAnswerWithOnlyBackButton(
+
+        String groupName = currentGroup.getGroupName();
+        long channelId = currentChannel.getChannelId();
+        boolean isAutopostingEnable = userChannelsRepository.isSetAutoposting(chat.getId(), channelId);
+        String msgToSend = isAutopostingEnable
+                ? String.format(GROUP_DESCRIPTION_EXTENDED_MSG, groupName, currentGroup.getSocialMedia().getName(),
+                        State.Autoposting.getIdentifier(), State.Notifications.getIdentifier())
+                : String.format(GROUP_DESCRIPTION_MSG, groupName, currentGroup.getSocialMedia().getName(),
+                        State.Autoposting.getIdentifier());
+        if (isAutopostingEnable && !commandsForKeyboard.contains(State.Notifications.getDescription())) {
+            commandsForKeyboard.add(State.Notifications.getDescription());
+            rowsCount++;
+        } else if (!isAutopostingEnable && commandsForKeyboard.contains(State.Notifications.getDescription())) {
+            commandsForKeyboard.remove(State.Notifications.getDescription());
+            rowsCount--;
+        }
+
+        sendAnswerWithReplyKeyboardAndBackButton(
                 absSender,
                 chat.getId(),
-                String.format(NO_VALID_GROUP_MSG, State.TgChannelDescription.getIdentifier()),
+                msgToSend,
+                rowsCount,
+                commandsForKeyboard,
                 loggingInfo(user.getUserName()));
     }
 }
