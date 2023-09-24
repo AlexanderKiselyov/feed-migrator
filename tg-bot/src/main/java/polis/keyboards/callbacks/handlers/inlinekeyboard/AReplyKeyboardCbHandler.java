@@ -45,7 +45,7 @@ public abstract class AReplyKeyboardCbHandler<CB extends Callback> implements In
         handleCallback(userChatId, message, callback, contextStorage.getContext(userChatId));
     }
 
-    //@Override
+    @Override
     public void handleCallback(Message message, String callbackData) throws TelegramApiException {
         CallbackParser<CB> parser = callbackParser();
         CB callback = parser.fromText(callbackData);
