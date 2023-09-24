@@ -6,7 +6,6 @@ import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.core.mapping.Table;
 import polis.util.IState;
 import polis.util.State;
-import polis.util.Substate;
 
 @Table("current_state")
 public class CurrentState {
@@ -26,8 +25,7 @@ public class CurrentState {
     }
 
     public IState getState() {
-        State findState = State.findState(state);
-        return findState == null ? Substate.findSubstate(state) : findState;
+        return State.findState(state);
     }
 
     @Override
