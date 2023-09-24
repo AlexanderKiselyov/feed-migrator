@@ -10,7 +10,7 @@ import polis.data.repositories.AccountsRepository;
 import polis.datacheck.OkDataCheck;
 import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.handlers.ReplyKeyboardCallbackHandler;
-import polis.keyboards.callbacks.handlers.UtilHandler;
+import polis.keyboards.callbacks.handlers.UtilCallbackHandler;
 import polis.keyboards.callbacks.objects.ReplyKeyboardCallback;
 import polis.ok.api.OkAuthorizator;
 import polis.ok.api.exceptions.CodeExpiredException;
@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 @Component
-public class OkAuthCodeCallbackHandler extends UtilHandler<ReplyKeyboardCallback> implements ReplyKeyboardCallbackHandler {
+public class OkAuthCodeCallbackHandler extends UtilCallbackHandler<ReplyKeyboardCallback> implements ReplyKeyboardCallbackHandler {
     @Autowired
     private OkAuthorizator okAuthorizator;
     @Autowired

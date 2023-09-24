@@ -5,11 +5,11 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.keyboards.callbacks.CallbackParser;
 import polis.keyboards.callbacks.handlers.InlineKeyboardCallbackHandler;
-import polis.keyboards.callbacks.handlers.UtilHandler;
+import polis.keyboards.callbacks.handlers.UtilCallbackHandler;
 import polis.keyboards.callbacks.objects.Callback;
 
 @Component
-public abstract class AReplyKeyboardCbHandler<CB extends Callback> extends UtilHandler<CB> implements InlineKeyboardCallbackHandler<CB> {
+public abstract class AReplyKeyboardCbHandler<CB extends Callback> extends UtilCallbackHandler<CB> implements InlineKeyboardCallbackHandler<CB> {
     protected CallbackParser<CB> callbackParser;
 
     @Override

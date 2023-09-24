@@ -25,8 +25,8 @@ import java.util.List;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
-public abstract class UtilHandler<CB extends Callback> implements CallbackHandler<CB> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UtilHandler.class);
+public abstract class UtilCallbackHandler<CB extends Callback> implements CallbackHandler<CB> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UtilCallbackHandler.class);
     @Lazy
     @Autowired
     protected ICommandRegistry commandRegistry;
