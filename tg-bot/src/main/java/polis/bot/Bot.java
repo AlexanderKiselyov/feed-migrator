@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.NonCommand;
+import polis.commands.context.Context;
 import polis.commands.context.ContextStorage;
 import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.CallbacksHandlerHelper;
@@ -184,7 +185,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
             return;
         }
 
-        IState currentState = contextStorage.getContext(msg.getChatId()).currentState();
+
+        Context context = contextStorage.getByMessage(msg);
+        IState currentState = context.currentState();
 
         if (messageText.equals(GO_BACK_BUTTON_TEXT) && currentState != null) {
             IState previousState = State.getPrevState(currentState);
@@ -197,7 +200,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         }
 
         if (currentState != null) {
-            NonCommand.AnswerPair answer = nonCommand.nonCommandExecute(messageText, chatId);
+            NonCommand.AnswerPair answer = nonCommand.nonCommandExecute(messageText, msg);
             sendAnswer(chatId, getUserName(msg), answer.getAnswer());
         }
 

@@ -39,7 +39,9 @@ public interface DescribableCommand extends IBotCommand {
         return null;
     }
 
-    default List<String> nextCommandsIdentifiers() {
-        return nextPossibleCommands().stream().map(IState::getIdentifier).toList();
+
+
+    default Object[] nextCommandsIdentifiers() {
+        return nextPossibleCommands().stream().map(IState::getIdentifier).toArray();
     }
 }

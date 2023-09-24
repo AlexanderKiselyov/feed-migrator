@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import polis.commands.context.Context;
 import polis.commands.context.ContextStorage;
 import polis.data.domain.Account;
@@ -70,8 +71,9 @@ public class NonCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NonCommand.class);
 
-    public AnswerPair nonCommandExecute(String text, Long chatId) {
-        Context context = contextStorage.getContext(chatId);
+    public AnswerPair nonCommandExecute(String text, Message message) {
+        Long chatId = message.getChatId();
+        Context context = contextStorage.getByMessage(message);
         IState state = context.currentState();
         if (state == null) {
             LOGGER.error("Null state");

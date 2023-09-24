@@ -41,7 +41,7 @@ public abstract class ACallbackHandler<CB extends Callback> implements CallbackH
         CallbackParser<CB> parser = callbackParser();
         CB callback = parser.fromText(callbackData);
         Long userChatId = message.getChatId();
-        Context context = contextStorage.getContext(userChatId);
+        Context context = contextStorage.getByMessage(message);
         handleCallback(userChatId, message, callback, context);
     }
 

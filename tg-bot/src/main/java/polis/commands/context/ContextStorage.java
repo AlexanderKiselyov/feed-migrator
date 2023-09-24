@@ -1,7 +1,14 @@
 package polis.commands.context;
 
-public interface ContextStorage {
-    Context getContext(long userChatId);
+import org.telegram.telegrambots.meta.api.objects.Message;
 
-    void setContext(long userChatId, Context context);
+public interface ContextStorage {
+    Context getContext(long key);
+
+    void setContext(long key, Context context);
+
+    default Context getByMessage(Message message) {
+        long key = message.getChatId();
+        return getContext(key);
+    }
 }
