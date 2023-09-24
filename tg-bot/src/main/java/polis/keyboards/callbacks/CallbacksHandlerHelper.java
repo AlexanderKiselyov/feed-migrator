@@ -52,7 +52,7 @@ public class CallbacksHandlerHelper {
     public void handleReplyKeyboardMessage(Message message, String text, IState state) throws TelegramApiException {
         ReplyKeyboardCallbackHandler handler = handlersByStateIdentifier.get(state.getIdentifier());
         if (handler == null) {
-            throw new IllegalArgumentException("Cannot find handler for state" + state);
+            throw new IllegalArgumentException("Cannot find handler for state " + state);
         }
         handler.handleCallback(message, new ReplyKeyboardCallback(text));
     }

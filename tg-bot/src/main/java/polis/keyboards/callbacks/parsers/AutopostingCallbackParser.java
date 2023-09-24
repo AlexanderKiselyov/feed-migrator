@@ -16,8 +16,8 @@ public class AutopostingCallbackParser extends ACallbackParser<AutopostingCallba
     @Override
     protected String toData(AutopostingCallback callback) {
         return String.join(FIELDS_SEPARATOR,
-                String.valueOf(callback.channelId),
                 String.valueOf(callback.chatId),
+                String.valueOf(callback.channelId),
                 Util.booleanFlag(callback.enable)
         );
     }
