@@ -5,7 +5,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.keyboards.callbacks.objects.Callback;
 
 /**
- * Сущность, умеющая обработать и выполнить специфичную логику для объекта колбека.
+ * Сущность, умеющая обработать и выполнить специфичную логику соответсвующую объекту колбека.
  * @param <CB> Callback
  */
 public interface CallbackHandler<CB extends Callback> {

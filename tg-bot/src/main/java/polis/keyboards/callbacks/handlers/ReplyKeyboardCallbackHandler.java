@@ -18,6 +18,6 @@ public interface ReplyKeyboardCallbackHandler extends CallbackHandler<ReplyKeybo
 
     @Override
     default CallbackType callbackType() {
-        return CallbackType.REPLY_KEYBOARD_MESSAGE;
+        return CallbackType.CONTEXTUALIZED_MESSAGE;
     }
 }
