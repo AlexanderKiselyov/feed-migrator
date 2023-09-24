@@ -29,12 +29,6 @@ import static polis.commands.Command.USER_ID_NOT_FOUND;
 public class OkDataCheck {
     public static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
             "Введенный код авторизации неверный. Пожалуйста, попробуйте еще раз.";
-    public static final String OK_AUTH_STATE_ANSWER = """
-            Вы были успешно авторизованы в социальной сети Одноклассники.
-            Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
-    public static final String OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = """
-            Невозможно выполнить авторизацию в социальной сети Одноклассники.
-            Пожалуйста, проверьте данные авторизации и попробуйте еще раз.""";
     public static final String OK_GROUP_ADDED = """
             Группа была успешно добавлена.
             Синхронизируйте группу с Телеграмм-каналом по команде /%s.""";

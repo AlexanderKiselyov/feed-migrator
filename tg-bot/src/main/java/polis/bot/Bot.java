@@ -20,6 +20,7 @@ import polis.commands.context.ContextStorage;
 import polis.keyboards.ReplyKeyboard;
 import polis.keyboards.callbacks.CallbacksHandlerHelper;
 import polis.keyboards.callbacks.handlers.replykeyboard.AddVkGroupHandler;
+import polis.keyboards.callbacks.handlers.replykeyboard.OkAuthCodeCallbackHandler;
 import polis.posting.IPostsProcessor;
 import polis.util.IState;
 import polis.util.State;
@@ -29,8 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_ANSWER;
-import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER;
 import static polis.datacheck.OkDataCheck.OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER;
 import static polis.datacheck.OkDataCheck.OK_GROUP_ADDED;
 import static polis.datacheck.OkDataCheck.SAME_OK_ACCOUNT;
@@ -54,13 +53,13 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
     private static final String DEBUG_INFO_TEXT = "Update from ";
 
     public static final Map<String, List<String>> BUTTONS_TEXT_MAP = Map.ofEntries(
-            Map.entry(String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
+            Map.entry(String.format(OkAuthCodeCallbackHandler.OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()),
                     List.of(State.OkAccountDescription.getDescription())),
             Map.entry(String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()),
                     List.of(State.SyncOkTg.getDescription())),
             Map.entry(RIGHT_LINK, List.of(State.TgChannelDescription.getDescription())),
             Map.entry(OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER, EMPTY_LIST),
-            Map.entry(OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, EMPTY_LIST),
+            Map.entry(OkAuthCodeCallbackHandler.OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, EMPTY_LIST),
             Map.entry(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, EMPTY_LIST),
             Map.entry(USER_HAS_NO_RIGHTS, EMPTY_LIST),
             Map.entry(SAME_OK_ACCOUNT, EMPTY_LIST),
