@@ -8,7 +8,8 @@ public enum CallbackType {
     AUTOPOSTING("autoposting"),
     NOTIFICATIONS("notifications"),
     GO_BACK("go-back"),
-    EMPTY("NO_CALLBACK_TEXT");
+    EMPTY("NO_CALLBACK_TEXT"),
+    REPLY_KEYBOARD_MESSAGE(null);
 
     public final String stringKey;
 
