@@ -1,6 +1,7 @@
 package polis.keyboards.callbacks.handlers;
 
 import polis.keyboards.callbacks.CallbackHandler;
+import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.ReplyKeyboardCallback;
 import polis.util.IState;
 
@@ -14,4 +15,9 @@ public interface ReplyKeyboardCallbackHandler extends CallbackHandler<ReplyKeybo
      * @return state related to this callback
      */
     IState state();
+
+    @Override
+    default CallbackType callbackType() {
+        return CallbackType.REPLY_KEYBOARD_MESSAGE;
+    }
 }

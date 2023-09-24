@@ -1,18 +1,16 @@
 package polis.keyboards.callbacks.handlers.replykeyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.ICommandRegistry;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.commands.context.Context;
-import polis.commands.context.ContextStorage;
 import polis.data.domain.Account;
 import polis.data.repositories.AccountsRepository;
 import polis.datacheck.OkDataCheck;
 import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.handlers.ReplyKeyboardCallbackHandler;
+import polis.keyboards.callbacks.handlers.UtilHandler;
 import polis.keyboards.callbacks.objects.ReplyKeyboardCallback;
 import polis.ok.api.OkAuthorizator;
 import polis.ok.api.exceptions.CodeExpiredException;
@@ -25,21 +23,16 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 @Component
-public class OkAuthCodeCallbackHandler implements ReplyKeyboardCallbackHandler {
+public class OkAuthCodeCallbackHandler extends UtilHandler<ReplyKeyboardCallback> implements ReplyKeyboardCallbackHandler {
     @Autowired
     private OkAuthorizator okAuthorizator;
     @Autowired
     private OkDataCheck okDataCheck;
     @Autowired
     private AccountsRepository accountsRepository;
-    @Autowired
-    private ContextStorage contextStorage;
-    @Autowired
-    @Lazy
-    private ICommandRegistry iCommandRegistry;
 
     @Override
-    public void handleCallback(Message message, ReplyKeyboardCallback callback) throws TelegramApiException {
+    public void handleCallback(long chatId, Message message, ReplyKeyboardCallback callback, Context context) throws TelegramApiException {
         String okAuthCode = callback.text;
         OkAuthorizator.TokenPair pair;
         try {
@@ -48,10 +41,10 @@ public class OkAuthCodeCallbackHandler implements ReplyKeyboardCallbackHandler {
             return;
             //TODO LOG
         } catch (CodeExpiredException e) {
-            //TODO LOG SPECIAL
+            //TODO LOG
             return;
         } catch (OkApiException e) {
-            //TODO LOG API EXCEPTION
+            //TODO LOG
             return;
         }
         Long userId = okDataCheck.getOKUserId(pair.accessToken());
@@ -59,7 +52,6 @@ public class OkAuthCodeCallbackHandler implements ReplyKeyboardCallbackHandler {
             //TODO LOG
             return;
         }
-        Long chatId = message.getChatId();
         if (accountsRepository.getUserAccount(chatId, userId, SocialMedia.OK.getName()) != null) {
             //TODO LOG
             return;
@@ -77,18 +69,9 @@ public class OkAuthCodeCallbackHandler implements ReplyKeyboardCallbackHandler {
                 pair.accessToken(),
                 pair.refreshToken()
         );
-        Context context = contextStorage.getContext(chatId);
-        context.resetCurrentAccount(new Account(
-                chatId,
-                newAccount.getSocialMedia().getName(),
-                newAccount.getAccountId(),
-                newAccount.getUserFullName(),
-                newAccount.getAccessToken(),
-                newAccount.getRefreshToken()
-        ));
+        context.resetCurrentAccount(newAccount);
         accountsRepository.insertNewAccount(newAccount);
-        iCommandRegistry.getRegisteredCommand(State.AccountsList.getIdentifier())
-                .processMessage(null, message, null);
+        processNextCommand(State.AccountsList, null, message, null);
     }
 
     @Override
