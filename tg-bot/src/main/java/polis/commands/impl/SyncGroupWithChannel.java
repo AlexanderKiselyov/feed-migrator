@@ -10,8 +10,8 @@ import polis.commands.context.Context;
 import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
-import polis.keyboards.callbacks.objects.YesNoCallback;
-import polis.keyboards.callbacks.parsers.YesNoCallbackParser;
+import polis.callbacks.inlinekeyboard.objects.YesNoCallback;
+import polis.callbacks.inlinekeyboard.parsers.YesNoCallbackParser;
 import polis.util.State;
 
 import java.util.List;

@@ -7,11 +7,10 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
 import polis.commands.context.Context;
-import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
-import polis.keyboards.callbacks.objects.NotificationsCallback;
-import polis.keyboards.callbacks.parsers.NotificationCallbackParser;
+import polis.callbacks.inlinekeyboard.objects.NotificationsCallback;
+import polis.callbacks.inlinekeyboard.parsers.NotificationCallbackParser;
 import polis.util.IState;
 import polis.util.State;
 
