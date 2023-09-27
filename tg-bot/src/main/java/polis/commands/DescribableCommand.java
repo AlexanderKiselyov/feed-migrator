@@ -1,7 +1,6 @@
 package polis.commands;
 
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
-import polis.keyboards.callbacks.CallbackType;
 import polis.util.IState;
 
 import java.util.Collections;
@@ -34,12 +33,6 @@ public interface DescribableCommand extends IBotCommand {
                 nextCommandsIdentifiers()
         );
     }
-
-    default CallbackType callbackType() {
-        return null;
-    }
-
-
 
     default Object[] nextCommandsIdentifiers() {
         return nextPossibleCommands().stream().map(IState::getIdentifier).toArray();

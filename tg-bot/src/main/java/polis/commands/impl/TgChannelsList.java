@@ -10,7 +10,6 @@ import polis.commands.DescribableCommand;
 import polis.commands.context.Context;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.UserChannelsRepository;
-import polis.keyboards.callbacks.CallbackType;
 import polis.keyboards.callbacks.objects.TgChannelCallback;
 import polis.keyboards.callbacks.parsers.TgChannelCallbackParser;
 import polis.util.Emojis;
@@ -49,11 +48,6 @@ public class TgChannelsList extends Command implements DescribableCommand {
     @Override
     public List<IState> nextPossibleCommands() {
         return TRANSITION_WITH_CALLBACK;
-    }
-
-    @Override
-    public CallbackType callbackType() {
-        return CallbackType.TG_CHANNEL_CHOSEN;
     }
 
     @Override
