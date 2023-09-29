@@ -3,6 +3,10 @@ package polis.util;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Состояние, которое один к одному матчится с коммандой
+ * @see polis.commands.Command
+ */
 public enum State implements IState {
     Start("start", Emojis.HELLO_HAND + " Старт"),
     AddTgChannel("add_tg_channel", Emojis.PLUS + " Добавление Телеграмм-канала"),
