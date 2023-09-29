@@ -1,21 +1,15 @@
 package polis.callbacks.inlinekeyboard.parsers;
 
-import polis.callbacks.Callback;
 import polis.callbacks.inlinekeyboard.CallbackParser;
 import polis.callbacks.inlinekeyboard.CallbackType;
+import polis.callbacks.inlinekeyboard.TypedCallback;
 
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class ACallbackParser<CB extends Callback> implements CallbackParser<CB> {
+public abstract class ACallbackParser<CB extends TypedCallback> implements CallbackParser<CB> {
     private static final String TYPE_TO_DATA_SEPARATOR = " ";
     protected static final String FIELDS_SEPARATOR = " ";
-
-    protected final int dataFieldsCount;
-
-    protected ACallbackParser(int dataFieldsCount) {
-        this.dataFieldsCount = dataFieldsCount;
-    }
 
     protected abstract String toData(CB callback);
 
@@ -24,7 +18,7 @@ public abstract class ACallbackParser<CB extends Callback> implements CallbackPa
     @Override
     public String toText(CB callback) {
         String callbackData = toData(callback);
-        return appendType(callbackData, callbackType());
+        return appendType(callbackData, callback.type());
     }
 
     @Override

@@ -9,10 +9,6 @@ import java.util.List;
 @Component
 public class AccountCallbackParser extends ACallbackParser<AccountCallback> {
 
-    public AccountCallbackParser() {
-        super(3);
-    }
-
     @Override
     protected String toData(AccountCallback callback) {
         return String.join(FIELDS_SEPARATOR,
@@ -29,10 +25,5 @@ public class AccountCallbackParser extends ACallbackParser<AccountCallback> {
                 Util.booleanFlag(data.get(1)),
                 data.get(2)
         );
-    }
-
-    @Override
-    public CallbackType callbackType() {
-        return CallbackType.ACCOUNT_CHOSEN;
     }
 }

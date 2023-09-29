@@ -18,7 +18,7 @@ import polis.util.State;
 import java.util.Objects;
 
 @Component
-public class GroupCallbackHandler extends AReplyKeyboardCbHandler<GroupCallback> {
+public class GroupCallbackHandler extends AInlineKeyboardCBHandler<GroupCallback> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupCallbackHandler.class);
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;

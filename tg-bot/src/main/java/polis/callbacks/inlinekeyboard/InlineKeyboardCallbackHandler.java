@@ -7,6 +7,8 @@ import polis.callbacks.CallbackHandler;
 import polis.callbacks.inlinekeyboard.CallbackParser;
 import polis.callbacks.inlinekeyboard.CallbackType;
 
+import java.lang.reflect.Type;
+
 /**
  * Данные колбеки отличаются тем, что обрабатываемая ими информация сериализуется в строку, типизирована и структурирована
  * Поэтому их интерфейс дополняется методом, принимающим строку,
@@ -14,10 +16,8 @@ import polis.callbacks.inlinekeyboard.CallbackType;
  *
  * @param <CB> - Callback
  */
-public interface InlineKeyboardCallbackHandler<CB extends Callback> extends CallbackHandler<CB> {
+public interface InlineKeyboardCallbackHandler<CB extends TypedCallback> extends CallbackHandler<CB> {
     void handleCallback(Message message, String callbackData) throws TelegramApiException;
-
-    CallbackParser<CB> callbackParser();
 
     CallbackType callbackType();
 }

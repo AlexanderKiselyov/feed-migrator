@@ -9,10 +9,6 @@ import java.util.List;
 @Component
 public class NotificationCallbackParser extends ACallbackParser<NotificationsCallback> {
 
-    public NotificationCallbackParser() {
-        super(2);
-    }
-
     @Override
     protected String toData(NotificationsCallback callback) {
         return String.join(FIELDS_SEPARATOR,
@@ -29,8 +25,4 @@ public class NotificationCallbackParser extends ACallbackParser<NotificationsCal
         );
     }
 
-    @Override
-    public CallbackType callbackType() {
-        return CallbackType.NOTIFICATIONS;
-    }
 }

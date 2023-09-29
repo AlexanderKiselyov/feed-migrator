@@ -9,10 +9,6 @@ import java.util.List;
 @Component
 public class AutopostingCallbackParser extends ACallbackParser<AutopostingCallback> {
 
-    public AutopostingCallbackParser() {
-        super(3);
-    }
-
     @Override
     protected String toData(AutopostingCallback callback) {
         return String.join(FIELDS_SEPARATOR,
@@ -29,10 +25,5 @@ public class AutopostingCallbackParser extends ACallbackParser<AutopostingCallba
                 Long.parseLong(data.get(1)),
                 Util.booleanFlag(data.get(2))
         );
-    }
-
-    @Override
-    public CallbackType callbackType() {
-        return CallbackType.AUTOPOSTING;
     }
 }

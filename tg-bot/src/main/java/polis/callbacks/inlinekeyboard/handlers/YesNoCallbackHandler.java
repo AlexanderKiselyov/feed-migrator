@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-public class YesNoCallbackHandler extends AReplyKeyboardCbHandler<YesNoCallback> {
+public class YesNoCallbackHandler extends AInlineKeyboardCBHandler<YesNoCallback> {
     @Autowired
     private AccountsRepository accountsRepository;
     @Autowired

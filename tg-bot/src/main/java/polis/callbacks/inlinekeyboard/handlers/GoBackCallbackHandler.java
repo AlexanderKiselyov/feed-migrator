@@ -13,7 +13,7 @@ import polis.util.IState;
 import polis.util.State;
 
 @Component
-public class GoBackCallbackHandler extends AReplyKeyboardCbHandler<GoBackCallback> {
+public class GoBackCallbackHandler extends AInlineKeyboardCBHandler<GoBackCallback> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GoBackCallbackHandler.class);
 
     public GoBackCallbackHandler(GoBackCallbackParser callbackParser) {

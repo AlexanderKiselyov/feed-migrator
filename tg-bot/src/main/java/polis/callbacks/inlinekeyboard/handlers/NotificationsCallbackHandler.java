@@ -14,7 +14,7 @@ import polis.callbacks.inlinekeyboard.parsers.NotificationCallbackParser;
 import polis.util.State;
 
 @Component
-public class NotificationsCallbackHandler extends AReplyKeyboardCbHandler<NotificationsCallback> {
+public class NotificationsCallbackHandler extends AInlineKeyboardCBHandler<NotificationsCallback> {
     private static final String NOTIFICATIONS_TEXT = "Уведомления %s.";
     private static final String NOTIFICATIONS_ENABLED = "включены";
     private static final String NOTIFICATIONS_DISABLED = "выключены";
@@ -28,7 +28,6 @@ public class NotificationsCallbackHandler extends AReplyKeyboardCbHandler<Notifi
     public NotificationsCallbackHandler(NotificationCallbackParser callbackParser) {
         this.callbackParser = callbackParser;
     }
-
 
     @Override
     public CallbackType callbackType() {

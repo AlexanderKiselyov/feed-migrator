@@ -9,10 +9,6 @@ import java.util.List;
 @Component
 public class YesNoCallbackParser extends ACallbackParser<YesNoCallback> {
 
-    public YesNoCallbackParser() {
-        super(1);
-    }
-
     @Override
     protected String toData(YesNoCallback callback) {
         return Util.booleanFlag(callback.yes);
@@ -23,8 +19,4 @@ public class YesNoCallbackParser extends ACallbackParser<YesNoCallback> {
         return new YesNoCallback(Util.booleanFlag(data.get(0)));
     }
 
-    @Override
-    public CallbackType callbackType() {
-        return CallbackType.YES_NO_ANSWER;
-    }
 }

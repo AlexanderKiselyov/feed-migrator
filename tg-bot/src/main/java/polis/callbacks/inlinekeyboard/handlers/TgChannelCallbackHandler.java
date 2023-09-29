@@ -20,7 +20,7 @@ import polis.util.State;
 import java.util.List;
 
 @Component
-public class TgChannelCallbackHandler extends AReplyKeyboardCbHandler<TgChannelCallback> {
+public class TgChannelCallbackHandler extends AInlineKeyboardCBHandler<TgChannelCallback> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TgChannelCallbackHandler.class);
 
     @Autowired

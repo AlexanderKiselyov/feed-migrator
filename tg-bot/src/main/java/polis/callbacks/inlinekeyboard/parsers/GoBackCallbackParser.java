@@ -9,10 +9,6 @@ import java.util.List;
 @Component
 public class GoBackCallbackParser extends ACallbackParser<GoBackCallback> {
 
-    public GoBackCallbackParser() {
-        super(0);
-    }
-
     @Override
     protected String toData(GoBackCallback callback) {
         return "";
@@ -23,8 +19,4 @@ public class GoBackCallbackParser extends ACallbackParser<GoBackCallback> {
         return new GoBackCallback();
     }
 
-    @Override
-    public CallbackType callbackType() {
-        return CallbackType.GO_BACK;
-    }
 }

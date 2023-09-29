@@ -9,10 +9,6 @@ import java.util.List;
 @Component
 public class GroupCallbackParser extends ACallbackParser<GroupCallback> {
 
-    public GroupCallbackParser() {
-        super(3);
-    }
-
     @Override
     protected String toData(GroupCallback callback) {
         return String.join(FIELDS_SEPARATOR,
@@ -31,8 +27,4 @@ public class GroupCallbackParser extends ACallbackParser<GroupCallback> {
         );
     }
 
-    @Override
-    public CallbackType callbackType() {
-        return CallbackType.GROUP_CHOSEN;
-    }
 }

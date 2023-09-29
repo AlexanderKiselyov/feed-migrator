@@ -13,7 +13,7 @@ import polis.data.repositories.UserChannelsRepository;
 import polis.callbacks.inlinekeyboard.parsers.AutopostingCallbackParser;
 
 @Component
-public class AutopostingCallbackHandler extends AReplyKeyboardCbHandler<AutopostingCallback> {
+public class AutopostingCallbackHandler extends AInlineKeyboardCBHandler<AutopostingCallback> {
     private static final String TURN_ON_NOTIFICATIONS_MSG = "\nВы также можете включить уведомления, чтобы быть в "
             + "курсе автоматически опубликованных записей с помощью команды /notifications";
     private static final String AUTOPOSTING_FUNCTION_ENABLED = "включена";
@@ -25,7 +25,6 @@ public class AutopostingCallbackHandler extends AReplyKeyboardCbHandler<Autopost
     @Lazy
     @Autowired
     TgNotificator tgNotificator;
-
 
     public AutopostingCallbackHandler(AutopostingCallbackParser callbackParser) {
         this.callbackParser = callbackParser;

@@ -1,8 +1,9 @@
 package polis.callbacks.inlinekeyboard.objects;
 
-import polis.callbacks.Callback;
+import polis.callbacks.inlinekeyboard.CallbackType;
+import polis.callbacks.inlinekeyboard.TypedCallback;
 
-public final class AutopostingCallback implements Callback {
+public final class AutopostingCallback implements TypedCallback {
     public final long chatId;
     public final long channelId;
     public final boolean enable;
@@ -21,4 +22,8 @@ public final class AutopostingCallback implements Callback {
         return !enable;
     }
 
+    @Override
+    public CallbackType type() {
+        return CallbackType.AUTOPOSTING;
+    }
 }

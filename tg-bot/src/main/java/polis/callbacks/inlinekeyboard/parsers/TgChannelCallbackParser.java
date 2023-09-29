@@ -9,10 +9,6 @@ import java.util.List;
 @Component
 public class TgChannelCallbackParser extends ACallbackParser<TgChannelCallback> {
 
-    public TgChannelCallbackParser() {
-        super(2);
-    }
-
     @Override
     protected String toData(TgChannelCallback callback) {
         return String.join(FIELDS_SEPARATOR,
@@ -29,8 +25,4 @@ public class TgChannelCallbackParser extends ACallbackParser<TgChannelCallback> 
         );
     }
 
-    @Override
-    public CallbackType callbackType() {
-        return CallbackType.TG_CHANNEL_CHOSEN;
-    }
 }
