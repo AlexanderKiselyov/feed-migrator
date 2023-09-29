@@ -161,7 +161,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
                         .processMessage(this, msg, null);
             } else {
                 try {
-                    callbacksHandlerHelper.handleCallback(msg, callbackQueryData);
+                    callbacksHandlerHelper.handleCallback(callbackQueryData, msg);
                 } catch (TelegramApiException e) {
                     LOGGER.error(String.format("Cannot perform Telegram API operation: %s", e.getMessage()));
                 }
@@ -203,7 +203,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         }
 
         try {
-            callbacksHandlerHelper.handleMessageCallback(msg, messageText, context.currentState());
+            callbacksHandlerHelper.handleMessageCallback(messageText, context.currentState(), msg);
         } catch (TelegramApiException e) {
             //TODO LOG or not throw
             throw new RuntimeException(e);
