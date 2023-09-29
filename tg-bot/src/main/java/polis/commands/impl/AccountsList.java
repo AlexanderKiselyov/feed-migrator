@@ -74,7 +74,7 @@ public class AccountsList extends Command {
             buttons.add(String.format(ACCOUNT_INFO, accountUsername, socialMediaName));
             buttons.add(accountCallbackParser.toText(new AccountCallback(accountId, false, socialMediaName)));
             buttons.add(Emojis.TRASH + DELETE_MESSAGE);
-            buttons.add(accountCallbackParser.toText(new AccountCallback(accountId, false, socialMediaName)));
+            buttons.add(accountCallbackParser.toText(new AccountCallback(accountId, true, socialMediaName)));
         }
         return buttons;
     }
