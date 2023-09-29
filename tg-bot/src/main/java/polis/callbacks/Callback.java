@@ -1,10 +1,5 @@
 package polis.callbacks;
 
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import polis.callbacks.inlinekeyboard.InlineKeyboardCallbackHandler;
-import polis.callbacks.messages.MessageCallbackHandler;
-import polis.callbacks.inlinekeyboard.CallbackType;
-
 import java.io.Serializable;
 
 /**
@@ -15,12 +10,10 @@ import java.io.Serializable;
  *   <li>Текстовая информация, которую прислал пользователь по просьбе бота (код авторизации, ссылка на группу и т.п.)</li>
  *   <li>Данные, пришедшие после нажатия на кнопку Inline клавиатуры</li>
  * </ul>
+ * See its inheritors:
  *
- * @see InlineKeyboardButton#getCallbackData()
- * @see CallbackType ,
- * @see InlineKeyboardCallbackHandler
- * @see MessageCallbackHandler
- * @see polis.util.IState
+ * @see polis.callbacks.typed.TypedCallback
+ * @see polis.callbacks.justmessages.SomeMessage
  */
 public interface Callback extends Serializable {
 }

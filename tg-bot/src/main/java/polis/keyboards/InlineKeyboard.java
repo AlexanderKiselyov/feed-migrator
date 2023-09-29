@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import polis.callbacks.inlinekeyboard.objects.GoBackCallback;
-import polis.callbacks.inlinekeyboard.parsers.GoBackCallbackParser;
+import polis.callbacks.typed.objects.GoBackCallback;
+import polis.callbacks.typed.parsers.GoBackCallbackParser;
 
 import java.util.ArrayList;
 import java.util.List;

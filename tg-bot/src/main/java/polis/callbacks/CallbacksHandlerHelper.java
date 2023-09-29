@@ -1,13 +1,15 @@
 package polis.callbacks;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.callbacks.inlinekeyboard.InlineKeyboardCallbackHandler;
-import polis.callbacks.messages.MessageCallbackHandler;
-import polis.callbacks.inlinekeyboard.parsers.ACallbackParser;
-import polis.callbacks.messages.SomeMessage;
+import polis.callbacks.typed.TypedCallbackHandler;
+import polis.callbacks.justmessages.MessageCallbackHandler;
+import polis.callbacks.typed.parsers.ACallbackParser;
+import polis.callbacks.justmessages.SomeMessage;
 import polis.util.IState;
 
 import java.util.List;
@@ -17,12 +19,14 @@ import java.util.stream.Collectors;
 
 @Component
 public class CallbacksHandlerHelper {
-    private final Map<String, InlineKeyboardCallbackHandler<? extends Callback>> handlersByType;
+    private static final Logger logger = LoggerFactory.getLogger(CallbacksHandlerHelper.class);
+
+    private final Map<String, TypedCallbackHandler<? extends Callback>> handlersByType;
     private final Map<String, MessageCallbackHandler> handlersByStateIdentifier;
 
     @Autowired
     public CallbacksHandlerHelper(
-            List<InlineKeyboardCallbackHandler<?>> handlers,
+            List<TypedCallbackHandler<?>> handlers,
             List<MessageCallbackHandler> replyKeyboardCallbackHandlers
     ) {
         this.handlersByType = handlers.stream().collect(Collectors.toMap(
@@ -35,18 +39,19 @@ public class CallbacksHandlerHelper {
         ));
     }
 
-    public void handleCallback(Message message, String callbackString) throws TelegramApiException {
+    public void handleCallback(String callbackString, Message message) throws TelegramApiException {
         ACallbackParser.CallbackTypeAndData typeAndData = ACallbackParser.parseTypeAndData(callbackString);
-        InlineKeyboardCallbackHandler<? extends Callback> handler = handlersByType.get(typeAndData.type());
+        TypedCallbackHandler<? extends Callback> handler = handlersByType.get(typeAndData.type());
         if (handler == null) {
-            throw new IllegalArgumentException("Cannot find handler for callback with type %s for callback %s"
-                    .formatted(typeAndData.type(), callbackString)
+            logger.error("Cannot find handler for callback with type %s. Callback: %s"
+                    .formatted(typeAndData.type(), typeAndData.data())
             );
+            throw new IllegalArgumentException("Cannot find handler for callback with type " + typeAndData.type());
         }
         handler.handleCallback(message, typeAndData.data());
     }
 
-    public void handleReplyKeyboardMessage(Message message, String text, IState state) throws TelegramApiException {
+    public void handleMessageCallback(String text, IState state, Message message) throws TelegramApiException {
         MessageCallbackHandler handler = handlersByStateIdentifier.get(state.getIdentifier());
         if (handler == null) {
             throw new IllegalArgumentException("Cannot find handler for state " + state);

@@ -4,7 +4,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 /**
- * Сущность, умеющая обработать и выполнить специфичную логику соответсвующую объекту колбека.
+ * Сущность, умеющая обработать, выполнить специфичную логику соответсвующую объекту колбека
  *
  * @param <CB> Callback
  */

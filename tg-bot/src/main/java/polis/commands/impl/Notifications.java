@@ -9,8 +9,8 @@ import polis.commands.Command;
 import polis.commands.context.Context;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.CurrentChannel;
-import polis.callbacks.inlinekeyboard.objects.NotificationsCallback;
-import polis.callbacks.inlinekeyboard.parsers.NotificationCallbackParser;
+import polis.callbacks.typed.objects.NotificationsCallback;
+import polis.callbacks.typed.parsers.NotificationCallbackParser;
 import polis.util.IState;
 import polis.util.State;
 

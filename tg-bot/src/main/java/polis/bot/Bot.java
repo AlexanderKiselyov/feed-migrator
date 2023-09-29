@@ -19,8 +19,8 @@ import polis.commands.context.Context;
 import polis.commands.context.ContextStorage;
 import polis.keyboards.ReplyKeyboard;
 import polis.callbacks.CallbacksHandlerHelper;
-import polis.callbacks.messages.handlers.AddVkGroupHandler;
-import polis.callbacks.messages.handlers.OkAuthCodeCallbackHandler;
+import polis.callbacks.justmessages.handlers.AddVkGroupHandler;
+import polis.callbacks.justmessages.handlers.OkAuthCodeCallbackHandler;
 import polis.posting.IPostsProcessor;
 import polis.util.IState;
 import polis.util.State;
@@ -203,7 +203,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader, 
         }
 
         try {
-            callbacksHandlerHelper.handleReplyKeyboardMessage(msg, messageText, context.currentState());
+            callbacksHandlerHelper.handleMessageCallback(msg, messageText, context.currentState());
         } catch (TelegramApiException e) {
             //TODO LOG or not throw
             throw new RuntimeException(e);
