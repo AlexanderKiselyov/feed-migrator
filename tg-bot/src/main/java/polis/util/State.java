@@ -4,7 +4,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Состояние, которое один к одному матчится с коммандой
+ * Состояние, которое один к одному матчится с командой. Также состоянию может соответствовать 1 MessageCallbackHandler
+ * @see polis.callbacks.justmessages.MessageCallbackHandler
  * @see polis.commands.Command
  */
 public enum State implements IState {
