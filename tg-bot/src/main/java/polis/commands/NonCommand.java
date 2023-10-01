@@ -2,8 +2,8 @@ package polis.commands;
 
 import org.springframework.stereotype.Component;
 
-//@Component
 //TODO REMOVE
+@Deprecated
 public class NonCommand {
 
     /**

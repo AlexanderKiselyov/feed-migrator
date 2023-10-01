@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.bot.TgNotificator;
+import polis.bot.MessageSender;
 import polis.callbacks.typed.CallbackType;
 import polis.callbacks.typed.objects.AutopostingCallback;
 import polis.commands.context.Context;
@@ -24,7 +24,7 @@ public class AutopostingCallbackHandler extends ATypedCallbackHandler<Autopostin
     private UserChannelsRepository userChannelsRepository;
     @Lazy
     @Autowired
-    TgNotificator tgNotificator;
+    MessageSender tgNotificator;
 
     public AutopostingCallbackHandler(AutopostingCallbackParser callbackParser) {
         this.callbackParser = callbackParser;

@@ -35,7 +35,7 @@ public class GoBackCallbackHandler extends ATypedCallbackHandler<GoBackCallback>
                 return;
             }
             deleteLastMessage(message);
-            processNextCommand(previousState, sender, message, null);
+            processNextCommand(previousState, message, null);
         }
     }
 }

@@ -68,6 +68,6 @@ public class AccountCallbackHandler extends ATypedCallbackHandler<AccountCallbac
             }
         }
         deleteLastMessage(message);
-        processNextCommand(state, sender, message, null);
+        processNextCommand(state, message, null);
     }
 }

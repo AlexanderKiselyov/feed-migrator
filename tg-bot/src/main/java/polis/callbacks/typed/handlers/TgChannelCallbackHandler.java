@@ -54,7 +54,7 @@ public class TgChannelCallbackHandler extends ATypedCallbackHandler<TgChannelCal
                 channelGroupsRepository.deleteChannelGroup(channelId, socialMedia.getName());
             }
             deleteLastMessage(message);
-            processNextCommand(State.TgChannelsList, sender, message, null);
+            processNextCommand(State.TgChannelsList, message, null);
         } else {
             UserChannels currentTelegramChannel = null;
             List<UserChannels> tgChannels = userChannelsRepository.getUserChannels(userChatId);
@@ -71,7 +71,7 @@ public class TgChannelCallbackHandler extends ATypedCallbackHandler<TgChannelCal
                         currentTelegramChannel.getChannelUsername()
                 ));
                 deleteLastMessage(message);
-                processNextCommand(State.TgChannelDescription, sender, message, null);
+                processNextCommand(State.TgChannelDescription, message,null);
             } else {
                 LOGGER.error(String.format("Cannot find such a telegram channel id: %s", channelId));
             }

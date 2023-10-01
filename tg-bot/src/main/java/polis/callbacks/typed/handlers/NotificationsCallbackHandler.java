@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.bot.TgNotificator;
+import polis.bot.MessageSender;
 import polis.commands.context.Context;
 import polis.data.repositories.UserChannelsRepository;
 import polis.callbacks.typed.CallbackType;
@@ -23,7 +23,7 @@ public class NotificationsCallbackHandler extends ATypedCallbackHandler<Notifica
     private UserChannelsRepository userChannelsRepository;
     @Lazy
     @Autowired
-    private TgNotificator tgNotificator;
+    private MessageSender tgNotificator;
 
     public NotificationsCallbackHandler(NotificationCallbackParser callbackParser) {
         this.callbackParser = callbackParser;
@@ -41,6 +41,6 @@ public class NotificationsCallbackHandler extends ATypedCallbackHandler<Notifica
         tgNotificator.sendNotification(userChatId, String.format(NOTIFICATIONS_TEXT,
                 (areEnable ? NOTIFICATIONS_ENABLED : NOTIFICATIONS_DISABLED)));
         deleteLastMessage(message);
-        processNextCommand(State.GroupDescription, sender, message, null);
+        processNextCommand(State.GroupDescription, message, null);
     }
 }

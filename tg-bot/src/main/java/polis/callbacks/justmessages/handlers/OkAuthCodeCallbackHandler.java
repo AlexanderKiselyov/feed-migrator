@@ -26,9 +26,6 @@ public class OkAuthCodeCallbackHandler extends UtilCallbackHandler<SomeMessage> 
     public static final String OK_AUTH_STATE_ANSWER = """
             Вы были успешно авторизованы в социальной сети Одноклассники.
             Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
-    public static final String OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = """
-            Невозможно выполнить авторизацию в социальной сети Одноклассники.
-            Пожалуйста, проверьте данные авторизации и попробуйте еще раз.""";
 
     @Autowired
     private OkAuthorizator okAuthorizator;

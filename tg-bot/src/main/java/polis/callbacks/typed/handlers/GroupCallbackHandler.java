@@ -40,7 +40,7 @@ public class GroupCallbackHandler extends ATypedCallbackHandler<GroupCallback> {
                 context.setCurrentGroup(currentGroup);
 
                 deleteLastMessage(message);
-                processNextCommand(State.GroupDescription, sender, message, null);
+                processNextCommand(State.GroupDescription, message, null);
             } else {
                 LOGGER.error(String.format("Cannot find such a social media group id: %s", callback.groupId));
             }
@@ -50,7 +50,7 @@ public class GroupCallbackHandler extends ATypedCallbackHandler<GroupCallback> {
             channelGroupsRepository.deleteChannelGroup(currentChannel.getChannelId(), socialMediaName);
             context.setCurrentGroup(null);
             deleteLastMessage(message);
-            processNextCommand(State.TgSyncGroups, sender, message, null);
+            processNextCommand(State.TgSyncGroups, message, null);
         }
     }
 

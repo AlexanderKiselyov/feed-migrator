@@ -8,8 +8,7 @@ import polis.callbacks.justmessages.MessageCallbackHandler;
 import polis.callbacks.UtilCallbackHandler;
 import polis.callbacks.justmessages.SomeMessage;
 
-//TODO REMOVE SMELLY REMAINS OF THE NONCOMMAND class
-//TODO then this abraction will be reorganized into a slightly different one
+//TODO GET RID OF REMAINS OF THE NONCOMMAND class
 public abstract class NonCommandHandler extends UtilCallbackHandler<SomeMessage> implements MessageCallbackHandler {
     protected abstract NonCommand.AnswerPair nonCommandExecute(long chatId, String text, Context context);
 
