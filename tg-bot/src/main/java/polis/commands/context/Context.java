@@ -8,17 +8,17 @@ import polis.util.IState;
 public interface Context {
     IState currentState();
 
-    void resetCurrentState(IState state);
-
     CurrentChannel currentChannel();
-
-    void resetCurrentChannel(CurrentChannel channel);
 
     Account currentAccount();
 
-    void resetCurrentAccount(Account account);
-
     ChannelGroup currentGroup();
 
-    void resetCurrentGroup(ChannelGroup group);
+    void setCurrentState(IState state);
+
+    void setCurrentChannel(CurrentChannel channel);
+
+    void setCurrentAccount(Account account);
+
+    void setCurrentGroup(ChannelGroup group);
 }

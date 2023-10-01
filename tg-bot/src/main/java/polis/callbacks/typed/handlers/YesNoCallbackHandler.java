@@ -69,7 +69,7 @@ public class YesNoCallbackHandler extends ATypedCallbackHandler<YesNoCallback> {
             deleteLastMessage(message);
             processNextCommand(State.SyncGroupDescription, sender, message, null);
         } else {
-            context.resetCurrentGroup(null);
+            context.setCurrentGroup(null);
             deleteLastMessage(message);
             processNextCommand(State.OkAccountDescription, sender, message, null);
         }

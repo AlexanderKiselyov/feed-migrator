@@ -37,7 +37,7 @@ public class GroupCallbackHandler extends ATypedCallbackHandler<GroupCallback> {
         if (!callback.isClickForDeletion) {
             ChannelGroup currentGroup = getCurrentGroup(userChatId, callback.groupId, context);
             if (currentGroup != null) {
-                context.resetCurrentGroup(currentGroup);
+                context.setCurrentGroup(currentGroup);
 
                 deleteLastMessage(message);
                 processNextCommand(State.GroupDescription, sender, message, null);
@@ -48,7 +48,7 @@ public class GroupCallbackHandler extends ATypedCallbackHandler<GroupCallback> {
             CurrentChannel currentChannel = context.currentChannel();
             String socialMediaName = callback.socialMedia;
             channelGroupsRepository.deleteChannelGroup(currentChannel.getChannelId(), socialMediaName);
-            context.resetCurrentGroup(null);
+            context.setCurrentGroup(null);
             deleteLastMessage(message);
             processNextCommand(State.TgSyncGroups, sender, message, null);
         }

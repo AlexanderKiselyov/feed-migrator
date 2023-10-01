@@ -49,7 +49,7 @@ public class TgChannelCallbackHandler extends ATypedCallbackHandler<TgChannelCal
                     break;
                 }
             }
-            context.resetCurrentChannel(null);
+            context.setCurrentChannel(null);
             for (SocialMedia socialMedia : SocialMedia.values()) {
                 channelGroupsRepository.deleteChannelGroup(channelId, socialMedia.getName());
             }
@@ -65,7 +65,7 @@ public class TgChannelCallbackHandler extends ATypedCallbackHandler<TgChannelCal
                 }
             }
             if (currentTelegramChannel != null) {
-                context.resetCurrentChannel(new CurrentChannel(
+                context.setCurrentChannel(new CurrentChannel(
                         userChatId,
                         currentTelegramChannel.getChannelId(),
                         currentTelegramChannel.getChannelUsername()

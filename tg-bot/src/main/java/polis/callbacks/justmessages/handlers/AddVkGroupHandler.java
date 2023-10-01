@@ -85,7 +85,7 @@ public class AddVkGroupHandler extends NonCommandHandler {
                 return new NonCommand.AnswerPair(GROUP_NAME_NOT_FOUND, true);
             }
 
-            context.resetCurrentGroup(new ChannelGroup(
+            context.setCurrentGroup(new ChannelGroup(
                     currentAccount.getAccessToken(),
                     groupName,
                     currentAccount.getAccountId(),

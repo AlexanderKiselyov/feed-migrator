@@ -46,7 +46,7 @@ public class AccountCallbackHandler extends ATypedCallbackHandler<AccountCallbac
         for (Account account : accountsRepository.getAccountsForUser(userChatId)) {
             if (Objects.equals(account.getAccountId(), callback.accountId)) {
                 if (!callback.isClickedForDeletion) {
-                    context.resetCurrentAccount(new Account(
+                    context.setCurrentAccount(new Account(
                             userChatId,
                             account.getSocialMedia().getName(),
                             account.getAccountId(),
@@ -56,8 +56,8 @@ public class AccountCallbackHandler extends ATypedCallbackHandler<AccountCallbac
                     ));
                     break;
                 }
-                context.resetCurrentGroup(null);
-                context.resetCurrentAccount(null);
+                context.setCurrentGroup(null);
+                context.setCurrentAccount(null);
                 List<UserChannels> userChannels = userChannelsRepository.getUserChannels(userChatId);
                 for (UserChannels userChannel : userChannels) {
                     channelGroupsRepository.deleteChannelGroup(userChannel.getChannelId(),

@@ -63,7 +63,7 @@ public class AddTgChannelCallbackHandler extends NonCommandHandler {
             );
 
             userChannelsRepository.insertUserChannel(newTgChannel);
-            context.resetCurrentChannel(new CurrentChannel(
+            context.setCurrentChannel(new CurrentChannel(
                     chatId,
                     newTgChannel.getChannelId(),
                     newTgChannel.getChannelUsername()

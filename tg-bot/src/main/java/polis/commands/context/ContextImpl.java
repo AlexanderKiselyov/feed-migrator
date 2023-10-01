@@ -17,7 +17,7 @@ public class ContextImpl implements Context {
     }
 
     @Override
-    public void resetCurrentState(IState state) {
+    public void setCurrentState(IState state) {
         this.currentState = state;
     }
 
@@ -27,7 +27,7 @@ public class ContextImpl implements Context {
     }
 
     @Override
-    public void resetCurrentChannel(CurrentChannel channel) {
+    public void setCurrentChannel(CurrentChannel channel) {
         this.currentChannel = channel;
     }
 
@@ -37,7 +37,7 @@ public class ContextImpl implements Context {
     }
 
     @Override
-    public void resetCurrentAccount(Account account) {
+    public void setCurrentAccount(Account account) {
         this.currentAccount = account;
     }
 
@@ -47,7 +47,7 @@ public class ContextImpl implements Context {
     }
 
     @Override
-    public void resetCurrentGroup(ChannelGroup group) {
+    public void setCurrentGroup(ChannelGroup group) {
         this.currentGroup = group;
     }
 }

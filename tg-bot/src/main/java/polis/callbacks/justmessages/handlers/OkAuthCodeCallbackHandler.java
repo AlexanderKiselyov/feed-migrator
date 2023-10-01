@@ -75,7 +75,7 @@ public class OkAuthCodeCallbackHandler extends UtilCallbackHandler<SomeMessage> 
                 pair.accessToken(),
                 pair.refreshToken()
         );
-        context.resetCurrentAccount(newAccount);
+        context.setCurrentAccount(newAccount);
         accountsRepository.insertNewAccount(newAccount);
         sendAnswer(chatId, username, String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()));
     }

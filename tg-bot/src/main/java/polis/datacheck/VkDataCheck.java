@@ -82,7 +82,7 @@ public class VkDataCheck {
         );
 
         Context context = contextStorage.getContext(chatId);
-        context.resetCurrentAccount(new Account(
+        context.setCurrentAccount(new Account(
                 chatId,
                 newAccount.getSocialMedia().getName(),
                 newAccount.getAccountId(),

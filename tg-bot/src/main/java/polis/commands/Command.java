@@ -57,12 +57,8 @@ public abstract class Command implements IBotCommand {
     }
 
     public void processMessage(AbsSender absSender, Message message, String[] arguments) {
-        execute(absSender, message, arguments);
-    }
-
-    public void execute(AbsSender absSender, Message message, String[] arguments) {
         Context context = contextStorage.getByMessage(message);
-        context.resetCurrentState(state());
+        context.setCurrentState(state());
         doExecute(absSender, message.getFrom(), message.getChat(), context);
     }
 

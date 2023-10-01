@@ -68,7 +68,7 @@ public class AddOkGroupHandler extends NonCommandHandler {
             }
 
             if (!answer.getError()) {
-                context.resetCurrentGroup(new ChannelGroup(
+                context.setCurrentGroup(new ChannelGroup(
                         currentAccount.getAccessToken(),
                         groupName,
                         currentAccount.getAccountId(),
