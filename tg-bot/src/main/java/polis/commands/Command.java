@@ -2,34 +2,68 @@ package polis.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import polis.commands.context.Context;
+import polis.commands.context.ContextStorage;
 import polis.keyboards.InlineKeyboard;
 import polis.keyboards.ReplyKeyboard;
+import polis.util.IState;
 
 import java.util.Collections;
 import java.util.List;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
 
-public abstract class Command extends BotCommand {
-    static final String YES_ANSWER = "Да";
-    static final String NO_ANSWER = "Нет";
-    static final String DELETE_MESSAGE = " Удалить";
-    public static final String USER_ID_NOT_FOUND = "Не удалось найти id пользователя. Попробуйте еще раз.";
+@Component
+public abstract class Command implements IBotCommand {
     public static final String USERNAME_NOT_FOUND = "Не удалось найти имя пользователя. Попробуйте еще раз.";
     public static final String GROUP_NAME_NOT_FOUND = "Не удалось найти название группы. Попробуйте еще раз.";
+    public static final String USER_ID_NOT_FOUND = "Не удалось найти id пользователя. Попробуйте еще раз.";
+    protected static final String YES_ANSWER = "Да";
+    protected static final String NO_ANSWER = "Нет";
+    protected static final String DELETE_MESSAGE = " Удалить";
     private static final Logger LOGGER = LoggerFactory.getLogger(Command.class);
 
-    public Command(String commandIdentifier, String description) {
-        super(commandIdentifier, description);
+    @Autowired
+    private InlineKeyboard inlineKeyboard;
+
+    @Autowired
+    private ReplyKeyboard replyKeyboard;
+
+    @Autowired
+    ContextStorage contextStorage;
+
+    public abstract IState state();
+
+    protected abstract void doExecute(AbsSender absSender, User user, Chat chat, Context context);
+
+    @Override
+    public String getCommandIdentifier() {
+        return state().getIdentifier();
     }
 
-    private static void setAndSendMessage(AbsSender absSender, Long chatId, String text, SendMessage message,
-                                          LoggingInfo loggingInfo) {
+    @Override
+    public String getDescription() {
+        return state().getDescription();
+    }
+
+    public void processMessage(AbsSender absSender, Message message, String[] arguments) {
+        Context context = contextStorage.getByMessage(message);
+        context.setCurrentState(state());
+        doExecute(absSender, message.getFrom(), message.getChat(), context);
+    }
+
+    private void setAndSendMessage(AbsSender absSender, Long chatId, String text, SendMessage message,
+                                   LoggingInfo loggingInfo) {
         message.setChatId(chatId.toString());
         message.setParseMode(ParseMode.HTML);
         message.setText(text);
@@ -43,28 +77,28 @@ public abstract class Command extends BotCommand {
         }
     }
 
-    static void sendAnswerWithInlineKeyboard(AbsSender absSender, Long chatId, String text, int rowsCount,
-                                             List<String> inlineKeyboardCommands, LoggingInfo loggingInfo) {
-        SendMessage message = InlineKeyboard.INSTANCE.createSendMessage(chatId, text, rowsCount,
+    protected void sendAnswerWithInlineKeyboard(AbsSender absSender, Long chatId, String text, int rowsCount,
+                                                List<String> inlineKeyboardCommands, LoggingInfo loggingInfo) {
+        SendMessage message = inlineKeyboard.createSendMessage(chatId, text, rowsCount,
                 inlineKeyboardCommands);
         setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }
 
-    static void sendAnswerWithReplyKeyboard(AbsSender absSender, Long chatId, String text, int rowsCount,
-                                            List<String> commandsList, LoggingInfo loggingInfo) {
-        SendMessage message = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, rowsCount, commandsList);
+    protected void sendAnswerWithReplyKeyboard(AbsSender absSender, Long chatId, String text, int rowsCount,
+                                               List<String> commandsList, LoggingInfo loggingInfo) {
+        SendMessage message = replyKeyboard.createSendMessage(chatId, text, rowsCount, commandsList);
         setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }
 
-    static void sendAnswerWithReplyKeyboardAndBackButton(AbsSender absSender, Long chatId, String text, int rowsCount,
-                                                         List<String> commandsList, LoggingInfo loggingInfo) {
-        SendMessage message = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, rowsCount, commandsList,
+    protected void sendAnswerWithReplyKeyboardAndBackButton(AbsSender absSender, Long chatId, String text, int rowsCount,
+                                                            List<String> commandsList, LoggingInfo loggingInfo) {
+        SendMessage message = replyKeyboard.createSendMessage(chatId, text, rowsCount, commandsList,
                 GO_BACK_BUTTON_TEXT);
         setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }
 
-    static void sendAnswerWithOnlyBackButton(AbsSender absSender, Long chatId, String text, LoggingInfo loggingInfo) {
-        SendMessage message = ReplyKeyboard.INSTANCE.createSendMessage(chatId, text, 0, Collections.emptyList(),
+    protected void sendAnswerWithOnlyBackButton(AbsSender absSender, Long chatId, String text, LoggingInfo loggingInfo) {
+        SendMessage message = replyKeyboard.createSendMessage(chatId, text, 0, Collections.emptyList(),
                 GO_BACK_BUTTON_TEXT);
         setAndSendMessage(absSender, chatId, text, message, loggingInfo);
     }

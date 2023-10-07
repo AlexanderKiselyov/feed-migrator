@@ -3,7 +3,6 @@ package polis.posting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -16,7 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.bot.FileIsTooBigException;
 import polis.bot.TgContentManager;
-import polis.bot.TgNotificator;
+import polis.bot.MessageSender;
 import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
 import polis.data.domain.UserChannels;
@@ -85,10 +84,8 @@ public class PostsProcessor implements IPostsProcessor {
     @Autowired
     private TgContentManager tgContentManager;
 
-    @Lazy
     @Autowired
-    @Qualifier("Bot")
-    private TgNotificator tgNotificator;
+    private MessageSender tgNotificator;
 
     @Override
     public void processPostsInChannel(long channelId, List<Message> posts) {
