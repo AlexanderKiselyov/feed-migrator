@@ -6,12 +6,9 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
-import polis.commands.DescribableCommand;
 import polis.commands.context.Context;
 import polis.data.domain.UserChannels;
 import polis.data.repositories.UserChannelsRepository;
-import polis.callbacks.typed.objects.TgChannelCallback;
-import polis.callbacks.typed.parsers.TgChannelCallbackParser;
 import polis.util.Emojis;
 import polis.util.IState;
 import polis.util.State;
@@ -20,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class TgChannelsList extends Command implements DescribableCommand {
+public class TgChannelsList extends Command {
     private static final String TG_CHANNELS_LIST_MSG = """
             Список добавленных Телеграмм-каналов.
             Нажмите на Телеграмм-канал, чтобы выбрать определенный.
@@ -28,6 +25,8 @@ public class TgChannelsList extends Command implements DescribableCommand {
     private static final String NO_TG_CHANNELS = """
             Список добавленных Телеграмм-каналов пуст.
             Пожалуйста, добавьте хотя бы один канал.""";
+    private static final String GET_TELEGRAM_CHANNEL = "tg_channel %s %d";
+    private static final String DELETE_TELEGRAM_CHANNEL = "tg_channel %s %d";
     private static final int ROWS_COUNT = 2;
     private static final List<String> KEYBOARD_COMMANDS = List.of(
             State.AddTgChannel.getDescription(),
@@ -37,18 +36,6 @@ public class TgChannelsList extends Command implements DescribableCommand {
     @Autowired
     private UserChannelsRepository userChannelsRepository;
 
-    @Autowired
-    private TgChannelCallbackParser tgChannelCallbackParser;
-
-    @Override
-    public String helloMessage() {
-        return "";
-    }
-
-    @Override
-    public List<IState> nextPossibleCommands() {
-        return TRANSITION_WITH_CALLBACK;
-    }
 
     @Override
     public IState state() {
@@ -56,7 +43,7 @@ public class TgChannelsList extends Command implements DescribableCommand {
     }
 
     @Override
-    public void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
+    protected void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
         List<UserChannels> channels = userChannelsRepository.getUserChannels(chat.getId());
         if (channels != null && !channels.isEmpty()) {
             sendAnswerWithInlineKeyboard(
@@ -77,15 +64,15 @@ public class TgChannelsList extends Command implements DescribableCommand {
         }
     }
 
-    private List<String> getUserTgChannelsArray(List<UserChannels> channels) {
+    private static List<String> getUserTgChannelsArray(List<UserChannels> channels) {
         List<String> buttons = new ArrayList<>(channels.size() * 4);
         for (UserChannels channel : channels) {
             String telegramChannelUsername = channel.getChannelUsername();
-            long telegramChannelId = channel.getChannelId();
+            Long telegramChannelId = channel.getChannelId();
             buttons.add(telegramChannelUsername);
-            buttons.add(tgChannelCallbackParser.toText(new TgChannelCallback(telegramChannelId, false)));
+            buttons.add(String.format(GET_TELEGRAM_CHANNEL, telegramChannelId, 0));
             buttons.add(Emojis.TRASH + DELETE_MESSAGE);
-            buttons.add(tgChannelCallbackParser.toText(new TgChannelCallback(telegramChannelId, true)));
+            buttons.add(String.format(DELETE_TELEGRAM_CHANNEL, telegramChannelId, 1));
         }
         return buttons;
     }

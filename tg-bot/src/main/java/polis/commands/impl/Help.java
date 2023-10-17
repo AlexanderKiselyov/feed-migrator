@@ -5,21 +5,18 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import polis.commands.Command;
-import polis.commands.DescribableCommand;
 import polis.commands.context.Context;
 import polis.util.IState;
 import polis.util.State;
 
-import java.util.List;
-
 @Component
-public class Help extends Command implements DescribableCommand {
+public class Help extends Command {
     private static final String HELP = """
             <b>Feed-Migrator</b> - бот авто-постинга в Телеграмме.
             Бот позволяет подключить несколько аккаунтов с группами в социальных сетях ВКонтакте и Одноклассники к"""
             + """
              Телеграмм-каналу и автоматически публиковать контент из канала одновременно во все группы.
-                        
+            
             Для того, чтобы настроить авто-постинг для группы из социальной сети ВКонтакте или Одноклассники,"""
             + """
              необходимо сделать следующее:
@@ -33,7 +30,7 @@ public class Help extends Command implements DescribableCommand {
             6. Согласиться с синхронизацией выбранного Телеграмм-канала и выбранной группы
             7. Включить функцию авто-постинга из Телеграмм-канала с группу
             8*. По желанию включить функцию уведомления о статусе опубликованных постов
-                        
+            
             Возможность публиковать следующий контент:
             1. Одноклассники:
             1.1. Текст
@@ -48,11 +45,11 @@ public class Help extends Command implements DescribableCommand {
             2.4. Опросы
             2.5. Документы
             2.6. Текстовые ссылки
-                        
+            
             Дополнительные функции:
             1. Возможность включения/выключения авто-постинга для выбранных Телеграмм-каналов
             2. Возможность включения/выключения уведомлений для выбранных Телеграмм-каналов
-                        
+            
             <b>Ограничения пользования ботом:
             1. Каждый Телеграмм-канал может быть связан не более, чем с одной группой каждой из социальных сетей\s"""
             + """
@@ -74,6 +71,10 @@ public class Help extends Command implements DescribableCommand {
             + """
             осуществляется по причине ограничений посещаемости таких групп и каналов.</b>""";
 
+    @Override
+    public IState state() {
+        return State.Help;
+    }
 
     @Override
     protected void doExecute(AbsSender absSender, User user, Chat chat, Context context) {
@@ -81,23 +82,6 @@ public class Help extends Command implements DescribableCommand {
                 absSender,
                 chat.getId(),
                 HELP,
-                loggingInfo(user.getUserName())
-        );
+                loggingInfo(user.getUserName()));
     }
-
-    @Override
-    public String helloMessage() {
-        return HELP;
-    }
-
-    @Override
-    public List<IState> nextPossibleCommands() {
-        return List.of(State.MainMenu, State.Start);
-    }
-
-    @Override
-    public IState state() {
-        return State.Help;
-    }
-
 }
