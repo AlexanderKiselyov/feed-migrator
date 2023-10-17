@@ -56,6 +56,7 @@ public abstract class Command implements IBotCommand {
         return state().getDescription();
     }
 
+    @Override
     public void processMessage(AbsSender absSender, Message message, String[] arguments) {
         Context context = contextStorage.getByMessage(message);
         context.setCurrentState(state());

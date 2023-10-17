@@ -14,6 +14,9 @@ import polis.callbacks.CallbackHandler;
  */
 public interface TypedCallbackHandler<CB extends TypedCallback> extends CallbackHandler<CB> {
 
+    @Override
+    void handleCallback(Message message, CB callback) throws TelegramApiException;
+
     CallbackType callbackType();
 
     CallbackParser<CB> callbackParser();
@@ -28,5 +31,4 @@ public interface TypedCallbackHandler<CB extends TypedCallback> extends Callback
         CB callback = parser.fromText(callbackData);
         handleCallback(message, callback);
     }
-
 }

@@ -44,8 +44,6 @@ public class OkDataCheck {
             Время действия кода авторизации истекло.
             Пройдите по ссылке для авторизации еще раз и получите новый код.""";
 
-    private static final String OK_SOCIAL_NAME = SocialMedia.OK.getName();
-
     @Autowired
     private HttpClient client;
 
