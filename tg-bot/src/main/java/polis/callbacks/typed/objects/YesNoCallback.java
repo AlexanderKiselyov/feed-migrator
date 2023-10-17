@@ -23,6 +23,6 @@ public final class YesNoCallback implements TypedCallback {
 
     @Override
     public CallbackType type() {
-        return null;
+        return CallbackType.YES_NO_ANSWER;
     }
 }
