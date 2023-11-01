@@ -6,10 +6,20 @@ import polis.data.domain.CurrentChannel;
 import polis.util.IState;
 
 public class ContextImpl implements Context {
+    private final long currentUserChatId;
     private IState currentState;
     private CurrentChannel currentChannel;
     private Account currentAccount;
     private ChannelGroup currentGroup;
+
+    public ContextImpl(long currentUserChatId) {
+        this.currentUserChatId = currentUserChatId;
+    }
+
+    @Override
+    public long getCurrentUserChatId() {
+        return currentUserChatId;
+    }
 
     @Override
     public IState currentState() {

@@ -6,6 +6,9 @@ import polis.data.domain.CurrentChannel;
 import polis.util.IState;
 
 public interface Context {
+
+    long getCurrentUserChatId();
+
     IState currentState();
 
     CurrentChannel currentChannel();
