@@ -23,6 +23,7 @@ public class StartCommand extends Command {
             State.AddTgChannel.getIdentifier(),
             State.Help.getIdentifier());
     private static final int ROWS_COUNT = 2;
+
     private static final List<String> KEYBOARD_COMMANDS = List.of(
             State.AddTgChannel.getDescription(),
             State.Help.getDescription()

@@ -135,6 +135,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
         Context context = contextStorage.getByMessage(msg);
         IState currentState = context.currentState();
 
+        //TODO Use GoBackCallbackHandler?
         if (messageText.equals(Keyboard.GO_BACK_BUTTON_TEXT) && currentState != null) {
             IState previousState = State.getPrevState(currentState);
             if (previousState == null) {
