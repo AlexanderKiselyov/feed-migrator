@@ -14,6 +14,8 @@ import polis.commands.context.ContextStorage;
 import polis.keyboards.ReplyKeyboard;
 import polis.util.IState;
 
+import java.util.List;
+
 public abstract class UtilCallbackHandler<CB extends Callback> implements CallbackHandler<CB> {
     @Lazy
     @Autowired
@@ -52,8 +54,8 @@ public abstract class UtilCallbackHandler<CB extends Callback> implements Callba
         return (userName != null) ? userName : String.format("%s %s", user.getLastName(), user.getFirstName());
     }
 
-    protected void sendAnswer(long chatId, String username, String text) {
-        messageSender.sendAnswer(chatId, username, text);
+    protected void sendAnswer(long chatId, String username, String text, List<String> buttonsList) {
+        messageSender.sendAnswer(chatId, username, text, buttonsList);
     }
 
     protected void deleteLastMessage(Message msg) throws TelegramApiException {

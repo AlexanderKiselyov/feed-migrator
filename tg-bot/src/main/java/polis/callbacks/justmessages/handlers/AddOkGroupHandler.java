@@ -2,6 +2,11 @@ package polis.callbacks.justmessages.handlers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import polis.callbacks.justmessages.SomeMessage;
+import polis.commands.Command;
+import polis.commands.impl.AddOkGroup;
 import polis.util.AnswerPair;
 import polis.commands.context.Context;
 import polis.data.domain.Account;
@@ -12,10 +17,9 @@ import polis.util.IState;
 import polis.util.SocialMedia;
 import polis.util.State;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
-
-import static polis.commands.Command.GROUP_NAME_NOT_FOUND;
-import static polis.commands.impl.AddOkGroup.SAME_SOCIAL_MEDIA_MSG;
 
 @Component
 public class AddOkGroupHandler extends NonCommandHandler {
@@ -28,6 +32,8 @@ public class AddOkGroupHandler extends NonCommandHandler {
     private OkDataCheck okDataCheck;
     @Autowired
     private ChannelGroupsRepository channelGroupsRepository;
+
+    private static final List<String> KEYBOARD_BUTTONS = List.of(State.SyncOkTg.getDescription());
 
     @Override
     public IState state() {
@@ -47,7 +53,7 @@ public class AddOkGroupHandler extends NonCommandHandler {
             for (ChannelGroup smg : channelGroupsRepository
                     .getGroupsForChannel(context.currentChannel().getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.OK) {
-                    return new AnswerPair(String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.OK.getName()), true);
+                    return new AnswerPair(String.format(AddOkGroup.SAME_SOCIAL_MEDIA_MSG, SocialMedia.OK.getName()), true);
                 }
             }
 
@@ -64,7 +70,7 @@ public class AddOkGroupHandler extends NonCommandHandler {
             String groupName = okDataCheck.getOKGroupName(groupId, currentAccount.getAccessToken());
 
             if (Objects.equals(groupName, null)) {
-                return new AnswerPair(GROUP_NAME_NOT_FOUND, true);
+                return new AnswerPair(Command.GROUP_NAME_NOT_FOUND, true);
             }
 
             if (!answer.getError()) {
@@ -80,5 +86,12 @@ public class AddOkGroupHandler extends NonCommandHandler {
 
             return answer;
         }
+    }
+
+    @Override
+    protected void handleCallback(long userChatId, Message message, SomeMessage callback, Context context) throws TelegramApiException {
+        AnswerPair answerPair = nonCommandExecute(userChatId, callback.text, context);
+        List<String> keyboardButtons = !answerPair.getError() ? KEYBOARD_BUTTONS : Collections.emptyList();
+        sendAnswer(userChatId, getUserName(message), OkDataCheck.OK_GROUP_ADDED, keyboardButtons);
     }
 }

@@ -23,11 +23,15 @@ import static polis.commands.Command.USER_ID_NOT_FOUND;
 
 @Component
 public class OkDataCheck {
+    private static final String OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = """
+            Невозможно выполнить авторизацию в социальной сети Одноклассники.
+            Пожалуйста, проверьте данные авторизации и попробуйте еще раз.""";
     public static final String OK_AUTH_STATE_WRONG_AUTH_CODE_ANSWER =
             "Введенный код авторизации неверный. Пожалуйста, попробуйте еще раз.";
-    public static final String OK_GROUP_ADDED = """
+    public static final String OK_GROUP_ADDED = String.format("""
             Группа была успешно добавлена.
-            Синхронизируйте группу с Телеграмм-каналом по команде /%s.""";
+            Синхронизируйте группу с Телеграмм-каналом по команде /%s.""",
+            State.SyncOkTg.getIdentifier());
     private static final String OK_METHOD_DO = "https://api.ok.ru/fb.do";
     public static final String SAME_OK_ACCOUNT = "Данный аккаунт в социальной сети Одноклассники уже был добавлен.";
     public static final String WRONG_LINK_OR_USER_HAS_NO_RIGHTS = """
@@ -87,7 +91,9 @@ public class OkDataCheck {
 
             String status = object.getString("status");
             if (Objects.equals(status, "ADMIN") || Objects.equals(status, "MODERATOR")) {
-                return new AnswerPair(String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()), false);
+                return new AnswerPair(String.format("""
+                        Группа была успешно добавлена.
+                        Синхронизируйте группу с Телеграмм-каналом по команде /%s.""", State.SyncOkTg.getIdentifier()), false);
             } else {
                 return new AnswerPair(USER_HAS_NO_RIGHTS, true);
             }

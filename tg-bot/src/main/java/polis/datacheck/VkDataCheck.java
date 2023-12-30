@@ -19,13 +19,16 @@ import static polis.commands.Command.USERNAME_NOT_FOUND;
 
 @Component
 public class VkDataCheck {
+
+    private static final String VK_AUTH_STATE_ANSWER = String.format("""
+                    Вы были успешно авторизованы в социальной сети ВКонтакте.
+                    Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""",
+            State.VkAccountDescription.getIdentifier()
+    );
     public static final String VK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = """
             Невозможно выполнить авторизацию в социальной сети ВКонтакте.
             Пожалуйста, проверьте данные авторизации и попробуйте еще раз.""";
 
-    public static final String VK_AUTH_STATE_ANSWER = """
-            Вы были успешно авторизованы в социальной сети ВКонтакте.
-            Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
     public static final String SAME_VK_ACCOUNT = "Данный аккаунт в социальной сети ВКонтакте уже был добавлен.";
     private static final String INVALID_LINK = """
             Введена неверная ссылка.
@@ -93,9 +96,7 @@ public class VkDataCheck {
 
         accountsRepository.insertNewAccount(newAccount);
 
-        return new AnswerPair(
-                String.format(VK_AUTH_STATE_ANSWER, State.VkAccountDescription.getIdentifier()),
-                false);
+        return new AnswerPair(VK_AUTH_STATE_ANSWER, false);
     }
 
     public Boolean getIsVkGroupAdmin(VkAuthorizator.TokenWithId tokenWithId, String groupId) {

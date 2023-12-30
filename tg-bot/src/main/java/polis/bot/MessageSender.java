@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.keyboards.ReplyKeyboard;
 
+import java.util.Collections;
 import java.util.List;
 
 import static polis.keyboards.Keyboard.GO_BACK_BUTTON_TEXT;
@@ -32,17 +33,13 @@ public class MessageSender {
     }
 
     public void sendAnswer(Long chatId, String text) {
-        sendAnswer(chatId, null, text);
+        sendAnswer(chatId, null, text, Collections.emptyList());
     }
 
-    public void sendAnswer(Long chatId, String userName, String text) {
+    public void sendAnswer(Long chatId, String userName, String text, List<String> buttonsList) {
         SendMessage answer = new SendMessage();
-
-        //TODO DONT USE THIS SHIT
-        if (ButtonsUtil.BUTTONS_TEXT_MAP.containsKey(text)) {
-            List<String> commandsList = ButtonsUtil.BUTTONS_TEXT_MAP.get(text);
-            answer = replyKeyboard.createSendMessage(chatId, text, commandsList.size(), commandsList,
-                    GO_BACK_BUTTON_TEXT);
+        if (buttonsList != null) {
+            answer = replyKeyboard.createSendMessage(chatId, text, buttonsList.size(), buttonsList, GO_BACK_BUTTON_TEXT);
         } else {
             answer.setParseMode(ParseMode.HTML);
             answer.disableWebPagePreview();

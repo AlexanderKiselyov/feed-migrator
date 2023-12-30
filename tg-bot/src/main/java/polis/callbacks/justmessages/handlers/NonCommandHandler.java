@@ -1,20 +1,13 @@
 package polis.callbacks.justmessages.handlers;
 
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import polis.util.AnswerPair;
-import polis.commands.context.Context;
-import polis.callbacks.justmessages.MessageCallbackHandler;
 import polis.callbacks.UtilCallbackHandler;
+import polis.callbacks.justmessages.MessageCallbackHandler;
 import polis.callbacks.justmessages.SomeMessage;
+import polis.commands.context.Context;
+import polis.util.AnswerPair;
 
-//TODO GET RID OF REMAINS OF THE NONCOMMAND class
+//Look for examples in MessageCallbackHandler's that do not inherit this class
+@Deprecated(since = "The logic tied to class AnswerPair most likely needs refactoring")
 public abstract class NonCommandHandler extends UtilCallbackHandler<SomeMessage> implements MessageCallbackHandler {
     protected abstract AnswerPair nonCommandExecute(long chatId, String text, Context context);
-
-    @Override
-    protected void handleCallback(long userChatId, Message message, SomeMessage callback, Context context) throws TelegramApiException {
-        AnswerPair answerPair = nonCommandExecute(userChatId, callback.text, context);
-        sendAnswer(userChatId, getUserName(message), answerPair.getAnswer());
-    }
 }

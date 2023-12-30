@@ -20,12 +20,17 @@ import polis.util.State;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 @Component
 public class OkAuthCodeCallbackHandler extends UtilCallbackHandler<SomeMessage> implements MessageCallbackHandler {
-    public static final String OK_AUTH_STATE_ANSWER = """
-            Вы были успешно авторизованы в социальной сети Одноклассники.
-            Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""";
+
+    public static final String OK_AUTH_STATE_ANSWER = String.format("""
+                    Вы были успешно авторизованы в социальной сети Одноклассники.
+                    Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""",
+            State.OkAccountDescription.getIdentifier());
+
+    private static final List<String> KEYBOARD_BUTTONS = List.of(State.OkAccountDescription.getDescription());
 
     @Autowired
     private OkAuthorizator okAuthorizator;
@@ -74,7 +79,8 @@ public class OkAuthCodeCallbackHandler extends UtilCallbackHandler<SomeMessage> 
         );
         context.setCurrentAccount(newAccount);
         accountsRepository.insertNewAccount(newAccount);
-        sendAnswer(chatId, username, String.format(OK_AUTH_STATE_ANSWER, State.OkAccountDescription.getIdentifier()));
+
+        sendAnswer(chatId, username, OK_AUTH_STATE_ANSWER, KEYBOARD_BUTTONS);
     }
 
     @Override

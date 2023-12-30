@@ -2,6 +2,9 @@ package polis.callbacks.justmessages.handlers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import polis.callbacks.justmessages.SomeMessage;
 import polis.util.AnswerPair;
 import polis.commands.context.Context;
 import polis.data.domain.Account;
@@ -13,6 +16,8 @@ import polis.util.SocialMedia;
 import polis.util.State;
 import polis.vk.api.VkAuthorizator;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static polis.commands.Command.GROUP_NAME_NOT_FOUND;
@@ -27,9 +32,13 @@ public class AddVkGroupHandler extends NonCommandHandler {
     private static final String USER_NOT_GROUP_ADMIN = """
             Пользователь не является администратором, модератором или редактором канала.
             Попробуйте еще раз.""";
-    public static final String VK_GROUP_ADDED = """
-            Группа была успешно добавлена.
-            Синхронизируйте группу с Телеграмм-каналом по команде /%s.""";
+
+    private static final String VK_GROUP_ADDED = String.format("""
+                    Группа была успешно добавлена.
+                    Синхронизируйте группу с Телеграмм-каналом по команде /%s.""",
+            State.SyncVkTg.getIdentifier());
+
+    private static final List<String> KEYBOARD_BUTTONS = List.of(State.SyncVkTg.getDescription());
 
 
     @Autowired
@@ -93,7 +102,14 @@ public class AddVkGroupHandler extends NonCommandHandler {
                     groupId,
                     SocialMedia.VK.getName()
             ));
-            return new AnswerPair(String.format(VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()), false);
+            return new AnswerPair(VK_GROUP_ADDED, false);
         }
+    }
+
+    @Override
+    protected void handleCallback(long userChatId, Message message, SomeMessage callback, Context context) throws TelegramApiException {
+        AnswerPair answerPair = nonCommandExecute(userChatId, callback.text, context);
+        List<String> keyboardButtons = !answerPair.getError() ? KEYBOARD_BUTTONS : Collections.emptyList();
+        sendAnswer(userChatId, getUserName(message), answerPair.getAnswer(), keyboardButtons);
     }
 }
