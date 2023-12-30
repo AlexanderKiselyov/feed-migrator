@@ -28,7 +28,12 @@ public abstract class Command implements IBotCommand {
     public static final String USERNAME_NOT_FOUND = "Не удалось найти имя пользователя. Попробуйте еще раз.";
     public static final String GROUP_NAME_NOT_FOUND = "Не удалось найти название группы. Попробуйте еще раз.";
     public static final String USER_ID_NOT_FOUND = "Не удалось найти id пользователя. Попробуйте еще раз.";
+    public static final String NOT_ENOUGH_CONTEXT = """
+            Ошибка - недостаточно данных.
+            Скорее всего какие-то из ранее введённых вами данных потерялись. Попробуйте перейти к команде /start и повторить действие.
+            """;
     protected static final String YES_ANSWER = "Да";
+
     protected static final String NO_ANSWER = "Нет";
     protected static final String DELETE_MESSAGE = " Удалить";
     private static final Logger LOGGER = LoggerFactory.getLogger(Command.class);

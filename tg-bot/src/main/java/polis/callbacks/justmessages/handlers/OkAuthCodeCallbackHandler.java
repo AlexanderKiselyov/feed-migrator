@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.callbacks.justmessages.MessageCallbackHandler;
 import polis.callbacks.UtilCallbackHandler;
 import polis.callbacks.justmessages.SomeMessage;
+import polis.commands.Command;
 import polis.commands.context.Context;
 import polis.data.domain.Account;
 import polis.data.repositories.AccountsRepository;
@@ -20,12 +21,18 @@ import polis.util.State;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 
 @Component
 public class OkAuthCodeCallbackHandler extends UtilCallbackHandler<SomeMessage> implements MessageCallbackHandler {
 
-    public static final String OK_AUTH_STATE_ANSWER = String.format("""
+    private static final String SAME_OK_ACCOUNT = "Данный аккаунт в социальной сети Одноклассники уже был добавлен.";
+    private static final String FAIL_TO_GET_USERNAME = "Ошибка извлечения имени профиля из социальной сети Одноклассники";
+    private static final String OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER = """
+            Невозможно выполнить авторизацию в социальной сети Одноклассники.
+            Пожалуйста, проверьте данные авторизации и попробуйте еще раз.""";
+    private static final String OK_AUTH_STATE_ANSWER = String.format("""
                     Вы были успешно авторизованы в социальной сети Одноклассники.
                     Вы можете посмотреть информацию по аккаунту, если введете команду /%s.""",
             State.OkAccountDescription.getIdentifier());
@@ -45,28 +52,25 @@ public class OkAuthCodeCallbackHandler extends UtilCallbackHandler<SomeMessage> 
         OkAuthorizator.TokenPair pair;
         try {
             pair = okAuthorizator.getToken(okAuthCode);
-        } catch (IOException | URISyntaxException e) {
-            return;
-            //TODO LOG
         } catch (CodeExpiredException e) {
-            //TODO LOG
+            sendAnswer(chatId, getUserName(message), OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, Collections.emptyList());
             return;
-        } catch (OkApiException e) {
-            //TODO LOG
+        } catch (IOException | URISyntaxException | OkApiException e) {
+            sendAnswer(chatId, getUserName(message), OK_AUTH_STATE_SERVER_EXCEPTION_ANSWER, Collections.emptyList());
             return;
         }
         Long userId = okDataCheck.getOKUserId(pair.accessToken());
         if (userId == null) {
-            //TODO LOG
+            sendAnswer(chatId, getUserName(message), Command.NOT_ENOUGH_CONTEXT, Collections.emptyList());
             return;
         }
         if (accountsRepository.getUserAccount(chatId, userId, SocialMedia.OK.getName()) != null) {
-            //TODO LOG
+            sendAnswer(chatId, getUserName(message), SAME_OK_ACCOUNT, Collections.emptyList());
             return;
         }
         String username = okDataCheck.getOKUsername(pair.accessToken());
         if (username == null || username.isEmpty()) {
-            //TODO LOG
+            sendAnswer(chatId, getUserName(message), FAIL_TO_GET_USERNAME, Collections.emptyList());
             return;
         }
         Account newAccount = new Account(
