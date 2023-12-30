@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import polis.bot.BotProperties;
-import polis.commands.NonCommand;
+import polis.util.AnswerPair;
 import polis.util.State;
 
 import java.io.IOException;
@@ -56,7 +56,7 @@ public class TelegramDataCheck {
 
     }
 
-    public NonCommand.AnswerPair checkTelegramChannelLink(String checkChannelLink) {
+    public AnswerPair checkTelegramChannelLink(String checkChannelLink) {
         try {
             URI uri = new URIBuilder(String.format(GET_CHAT_MEMBER, BotProperties.TOKEN))
                     .addParameter("chat_id", String.format("@%s", checkChannelLink))
@@ -73,32 +73,32 @@ public class TelegramDataCheck {
 
             if (response.statusCode() != 200) {
                 logNotSuccessCode(request, response);
-                return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
+                return new AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
             }
 
             JSONObject object = new JSONObject(response.body());
 
             if (!object.has(RESULT_FIELD)) {
                 logFieldAbsence(request, response, RESULT_FIELD);
-                return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
+                return new AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
             }
 
             JSONObject result = object.getJSONObject(RESULT_FIELD);
 
             if (!result.has(STATUS_FIELD)) {
                 logFieldAbsence(request, response, STATUS_FIELD);
-                return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
+                return new AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
             }
 
             String status = result.getString(STATUS_FIELD);
             if (Objects.equals(status, "administrator")) {
-                return new NonCommand.AnswerPair(RIGHT_LINK, false);
+                return new AnswerPair(RIGHT_LINK, false);
             } else {
-                return new NonCommand.AnswerPair(BOT_NOT_ADMIN, true);
+                return new AnswerPair(BOT_NOT_ADMIN, true);
             }
         } catch (URISyntaxException | IOException | InterruptedException e) {
             LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
-            return new NonCommand.AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
+            return new AnswerPair(WRONG_LINK_OR_BOT_NOT_ADMIN, true);
         }
     }
 

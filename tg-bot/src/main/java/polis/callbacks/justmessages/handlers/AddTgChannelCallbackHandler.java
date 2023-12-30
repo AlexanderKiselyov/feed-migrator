@@ -2,7 +2,7 @@ package polis.callbacks.justmessages.handlers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import polis.commands.NonCommand;
+import polis.util.AnswerPair;
 import polis.commands.context.Context;
 import polis.data.domain.CurrentChannel;
 import polis.data.domain.UserChannels;
@@ -34,26 +34,26 @@ public class AddTgChannelCallbackHandler extends NonCommandHandler {
     }
 
     @Override
-    protected NonCommand.AnswerPair nonCommandExecute(long chatId, String text, Context context) {
+    protected AnswerPair nonCommandExecute(long chatId, String text, Context context) {
         String[] split = text.split("/");
         if (split.length < 2) {
 
-            return new NonCommand.AnswerPair(WRONG_LINK_TELEGRAM, true);
+            return new AnswerPair(WRONG_LINK_TELEGRAM, true);
         }
         String checkChannelLink = text.split("/")[split.length - 1];
 
-        NonCommand.AnswerPair answer = telegramDataCheck.checkTelegramChannelLink(checkChannelLink);
+        AnswerPair answer = telegramDataCheck.checkTelegramChannelLink(checkChannelLink);
         if (!answer.getError()) {
             TelegramDataCheck.TelegramChannel channel = telegramDataCheck.getChannel(checkChannelLink);
 
             if (channel == null) {
-                return new NonCommand.AnswerPair(WRONG_CHAT_PARAMETERS, true);
+                return new AnswerPair(WRONG_CHAT_PARAMETERS, true);
             }
 
             UserChannels addedChannel = userChannelsRepository.getUserChannel(channel.id(), chatId);
 
             if (addedChannel != null) {
-                return new NonCommand.AnswerPair(String.format(SAME_CHANNEL, addedChannel.getChannelUsername()), true);
+                return new AnswerPair(String.format(SAME_CHANNEL, addedChannel.getChannelUsername()), true);
             }
 
             UserChannels newTgChannel = new UserChannels(

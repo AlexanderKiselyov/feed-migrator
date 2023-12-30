@@ -7,12 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import polis.commands.NonCommand;
-import polis.commands.context.ContextStorage;
-import polis.data.repositories.AccountsRepository;
+import polis.util.AnswerPair;
 import polis.ok.api.OkAppProperties;
-import polis.ok.api.OkAuthorizator;
-import polis.util.SocialMedia;
 import polis.util.State;
 
 import java.io.IOException;
@@ -49,11 +45,11 @@ public class OkDataCheck {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OkDataCheck.class);
 
-    public NonCommand.AnswerPair checkOKGroupAdminRights(String accessToken, Long groupId) {
+    public AnswerPair checkOKGroupAdminRights(String accessToken, Long groupId) {
         Long uid = getOKUserId(accessToken);
 
         if (Objects.equals(uid, null)) {
-            return new NonCommand.AnswerPair(USER_ID_NOT_FOUND, true);
+            return new AnswerPair(USER_ID_NOT_FOUND, true);
         }
 
         try {
@@ -74,30 +70,30 @@ public class OkDataCheck {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                return new NonCommand.AnswerPair(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, true);
+                return new AnswerPair(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, true);
             }
 
             JSONArray array = new JSONArray(response.body());
 
             if (array.length() == 0) {
-                return new NonCommand.AnswerPair(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, true);
+                return new AnswerPair(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, true);
             }
 
             JSONObject object = array.getJSONObject(0);
 
             if (!object.has("status")) {
-                return new NonCommand.AnswerPair(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, true);
+                return new AnswerPair(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, true);
             }
 
             String status = object.getString("status");
             if (Objects.equals(status, "ADMIN") || Objects.equals(status, "MODERATOR")) {
-                return new NonCommand.AnswerPair(String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()), false);
+                return new AnswerPair(String.format(OK_GROUP_ADDED, State.SyncOkTg.getIdentifier()), false);
             } else {
-                return new NonCommand.AnswerPair(USER_HAS_NO_RIGHTS, true);
+                return new AnswerPair(USER_HAS_NO_RIGHTS, true);
             }
         } catch (URISyntaxException | IOException | InterruptedException e) {
             LOGGER.error(String.format("Cannot create request: %s", e.getMessage()));
-            return new NonCommand.AnswerPair(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, true);
+            return new AnswerPair(WRONG_LINK_OR_USER_HAS_NO_RIGHTS, true);
         }
     }
 

@@ -2,7 +2,7 @@ package polis.callbacks.justmessages.handlers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import polis.commands.NonCommand;
+import polis.util.AnswerPair;
 import polis.commands.context.Context;
 import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
@@ -43,11 +43,11 @@ public class AddVkGroupHandler extends NonCommandHandler {
     }
 
     @Override
-    protected NonCommand.AnswerPair nonCommandExecute(long chatId, String text, Context context) {
+    protected AnswerPair nonCommandExecute(long chatId, String text, Context context) {
         {
             Account currentAccount = context.currentAccount();
             if (currentAccount == null) {
-                return new NonCommand.AnswerPair(String.format(WRONG_ACCOUNT, SocialMedia.VK.getName(),
+                return new AnswerPair(String.format(WRONG_ACCOUNT, SocialMedia.VK.getName(),
                         State.MainMenu.getIdentifier()),
                         true);
             }
@@ -55,7 +55,7 @@ public class AddVkGroupHandler extends NonCommandHandler {
             for (ChannelGroup smg : channelGroupsRepository
                     .getGroupsForChannel(context.currentChannel().getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.VK) {
-                    return new NonCommand.AnswerPair(String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.VK.getName()), true);
+                    return new AnswerPair(String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.VK.getName()), true);
                 }
             }
 
@@ -65,14 +65,14 @@ public class AddVkGroupHandler extends NonCommandHandler {
                     (int) currentAccount.getAccountId()), text);
 
             if (groupId == null) {
-                return new NonCommand.AnswerPair(GROUP_NOT_FOUND, true);
+                return new AnswerPair(GROUP_NOT_FOUND, true);
             }
 
             Boolean isAdmin = vkDataCheck.getIsVkGroupAdmin(new VkAuthorizator.TokenWithId(accessToken,
                     (int) currentAccount.getAccountId()), text);
 
             if (!isAdmin) {
-                return new NonCommand.AnswerPair(USER_NOT_GROUP_ADMIN, true);
+                return new AnswerPair(USER_NOT_GROUP_ADMIN, true);
             }
 
             String groupName = vkDataCheck.getVkGroupName(
@@ -82,7 +82,7 @@ public class AddVkGroupHandler extends NonCommandHandler {
             );
 
             if (Objects.equals(groupName, null)) {
-                return new NonCommand.AnswerPair(GROUP_NAME_NOT_FOUND, true);
+                return new AnswerPair(GROUP_NAME_NOT_FOUND, true);
             }
 
             context.setCurrentGroup(new ChannelGroup(
@@ -93,7 +93,7 @@ public class AddVkGroupHandler extends NonCommandHandler {
                     groupId,
                     SocialMedia.VK.getName()
             ));
-            return new NonCommand.AnswerPair(String.format(VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()), false);
+            return new AnswerPair(String.format(VK_GROUP_ADDED, State.SyncVkTg.getIdentifier()), false);
         }
     }
 }

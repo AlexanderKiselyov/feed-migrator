@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import polis.commands.NonCommand;
+import polis.util.AnswerPair;
 import polis.commands.context.Context;
 import polis.commands.context.ContextStorage;
 import polis.data.domain.Account;
@@ -41,7 +41,7 @@ public class VkDataCheck {
     @Autowired
     private ContextStorage contextStorage;
 
-    public NonCommand.AnswerPair getVkAccessToken(String text, Long chatId) {
+    public AnswerPair getVkAccessToken(String text, Long chatId) {
         String accessToken;
         int userId;
 
@@ -57,19 +57,19 @@ public class VkDataCheck {
             userId = Integer.parseInt(text.substring(userIdStartIndex,
                     userIdEndIndex == -1 ? text.length() : userIdEndIndex));
         } else {
-            return new NonCommand.AnswerPair(INVALID_LINK, true);
+            return new AnswerPair(INVALID_LINK, true);
         }
 
         VkAuthorizator.TokenWithId tokenWithId = new VkAuthorizator.TokenWithId(accessToken, userId);
 
         if (accountsRepository.getUserAccount(chatId, userId, VK_SOCIAL_NAME) != null) {
-            return new NonCommand.AnswerPair(SAME_VK_ACCOUNT, true);
+            return new AnswerPair(SAME_VK_ACCOUNT, true);
         }
 
         String username = getVkUsername(tokenWithId);
 
         if (username == null) {
-            return new NonCommand.AnswerPair(USERNAME_NOT_FOUND, true);
+            return new AnswerPair(USERNAME_NOT_FOUND, true);
         }
 
         Account newAccount = new Account(
@@ -93,7 +93,7 @@ public class VkDataCheck {
 
         accountsRepository.insertNewAccount(newAccount);
 
-        return new NonCommand.AnswerPair(
+        return new AnswerPair(
                 String.format(VK_AUTH_STATE_ANSWER, State.VkAccountDescription.getIdentifier()),
                 false);
     }

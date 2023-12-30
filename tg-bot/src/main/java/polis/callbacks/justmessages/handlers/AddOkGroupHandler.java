@@ -2,7 +2,7 @@ package polis.callbacks.justmessages.handlers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import polis.commands.NonCommand;
+import polis.util.AnswerPair;
 import polis.commands.context.Context;
 import polis.data.domain.Account;
 import polis.data.domain.ChannelGroup;
@@ -35,11 +35,11 @@ public class AddOkGroupHandler extends NonCommandHandler {
     }
 
     @Override
-    protected NonCommand.AnswerPair nonCommandExecute(long chatId, String text, Context context) {
+    protected AnswerPair nonCommandExecute(long chatId, String text, Context context) {
         {
             Account currentAccount = context.currentAccount();
             if (currentAccount == null) {
-                return new NonCommand.AnswerPair(String.format(WRONG_ACCOUNT, SocialMedia.OK.getName(),
+                return new AnswerPair(String.format(WRONG_ACCOUNT, SocialMedia.OK.getName(),
                         State.MainMenu.getIdentifier()),
                         true);
             }
@@ -47,7 +47,7 @@ public class AddOkGroupHandler extends NonCommandHandler {
             for (ChannelGroup smg : channelGroupsRepository
                     .getGroupsForChannel(context.currentChannel().getChannelId())) {
                 if (smg.getSocialMedia() == SocialMedia.OK) {
-                    return new NonCommand.AnswerPair(String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.OK.getName()), true);
+                    return new AnswerPair(String.format(SAME_SOCIAL_MEDIA_MSG, SocialMedia.OK.getName()), true);
                 }
             }
 
@@ -56,15 +56,15 @@ public class AddOkGroupHandler extends NonCommandHandler {
             Long groupId = okDataCheck.getOKGroupId(text, accessToken);
 
             if (groupId == null) {
-                return new NonCommand.AnswerPair(GROUP_NOT_FOUND, true);
+                return new AnswerPair(GROUP_NOT_FOUND, true);
             }
 
-            NonCommand.AnswerPair answer = okDataCheck.checkOKGroupAdminRights(accessToken, groupId);
+            AnswerPair answer = okDataCheck.checkOKGroupAdminRights(accessToken, groupId);
 
             String groupName = okDataCheck.getOKGroupName(groupId, currentAccount.getAccessToken());
 
             if (Objects.equals(groupName, null)) {
-                return new NonCommand.AnswerPair(GROUP_NAME_NOT_FOUND, true);
+                return new AnswerPair(GROUP_NAME_NOT_FOUND, true);
             }
 
             if (!answer.getError()) {
