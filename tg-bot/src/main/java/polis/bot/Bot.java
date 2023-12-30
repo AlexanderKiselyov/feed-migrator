@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
@@ -14,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import polis.callbacks.CallbacksHandlerHelper;
+import polis.commands.Command;
 import polis.commands.context.Context;
 import polis.commands.context.ContextStorage;
 import polis.keyboards.Keyboard;
@@ -26,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Configuration //Real?
 @Component
 public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
@@ -47,6 +47,9 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
     @Autowired
     private ContextStorage contextStorage;
 
+    @Autowired
+    @Lazy
+    private MessageSender messageSender;
 
     public Bot(
             @Value("${bot.name}") String botName,
@@ -81,7 +84,7 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
                 .collect(Collectors.partitioningBy(Update::hasChannelPost));
         boolean channelPosts = true;
 
-        updates.get(!channelPosts).forEach(this::processNonCommandUpdate);
+        updates.get(!channelPosts).forEach(this::processUpdate);
         updates.get(channelPosts).stream()
                 .map(Update::getChannelPost)
                 .collect(Collectors.groupingBy(Message::getChatId))
@@ -90,24 +93,22 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
 
     @Override
     public void processNonCommandUpdate(Update update) {
+    }
+
+    public void processUpdate(Update update) {
         if (LOGGER.isDebugEnabled()) {
             String s = messageDebugInfo(update.getMessage());
             LOGGER.debug(s);
         }
-        Message msg;
+        final Message msg;
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
             msg = callbackQuery.getMessage();
             String callbackQueryData = callbackQuery.getData();
-            if (callbackQueryData.startsWith("/")) {
-                getRegisteredCommand(callbackQueryData.replace("/", ""))
-                        .processMessage(this, msg, null);
-            } else {
-                try {
-                    callbacksHandlerHelper.handleCallback(callbackQueryData, msg);
-                } catch (TelegramApiException e) {
-                    LOGGER.error(String.format("Cannot perform Telegram API operation: %s", e.getMessage()));
-                }
+            try {
+                callbacksHandlerHelper.handleCallback(callbackQueryData, msg);
+            } catch (TelegramApiException e) {
+                LOGGER.error(String.format("Cannot perform Telegram API operation: %s", e.getMessage()));
             }
             return;
         }
@@ -146,11 +147,15 @@ public class Bot extends TelegramLongPollingCommandBot implements TgFileLoader {
             return;
         }
 
-        try {
-            callbacksHandlerHelper.handleMessageCallback(messageText, context.currentState(), msg);
-        } catch (TelegramApiException e) {
-            //TODO LOG or not throw
-            throw new RuntimeException(e);
+        if(currentState != null) {
+            try {
+                callbacksHandlerHelper.handleMessageCallback(messageText, currentState, msg);
+            } catch (TelegramApiException e) {
+                //TODO LOG or not throw
+                throw new RuntimeException(e);
+            }
+        } else {
+            messageSender.sendAnswer(msg.getChatId(), Command.NOT_ENOUGH_CONTEXT);
         }
 
     }

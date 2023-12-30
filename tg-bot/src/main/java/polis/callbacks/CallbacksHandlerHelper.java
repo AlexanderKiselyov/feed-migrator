@@ -12,6 +12,7 @@ import polis.callbacks.typed.parsers.ACallbackParser;
 import polis.callbacks.justmessages.SomeMessage;
 import polis.util.IState;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -51,7 +52,11 @@ public class CallbacksHandlerHelper {
         handler.handleCallback(message, typeAndData.data());
     }
 
-    public void handleMessageCallback(String text, IState state, Message message) throws TelegramApiException {
+    public void handleMessageCallback(
+            @NotNull String text,
+            @NotNull IState state,
+            @NotNull Message message
+    ) throws TelegramApiException {
         MessageCallbackHandler handler = handlersByStateIdentifier.get(state.getIdentifier());
         if (handler == null) {
             throw new IllegalArgumentException("Cannot find handler for state " + state);
